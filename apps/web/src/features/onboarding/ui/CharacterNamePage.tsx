@@ -110,8 +110,8 @@ export function CharacterNamePage() {
               </div>
 
               <p className="onboarding-name-panel__guide">
-                이름은 MVP API 명세 기준으로 캐릭터 생성 시 한 번 전달해요. 변경 기능은 후속 화면에서
-                별도 정책이 정해지면 붙이면 됩니다.
+                이 이름은 별친구를 처음 만들 때 저장돼요. 나중에 이름 변경 기능이 열리면 설정에서
+                다시 바꿀 수 있어요.
               </p>
             </div>
           </section>

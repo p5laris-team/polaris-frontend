@@ -93,7 +93,7 @@ export function ShopPage() {
               <span className="shop-page__eyebrow">스킨 꾸미기</span>
               <h2 id="skin-shop-title">별친구 스킨</h2>
             </div>
-            <Tag variant="primary">MVP 스킨 전용</Tag>
+            <Tag variant="primary">스킨 상점</Tag>
           </div>
 
           <div className="shop-page__skin-grid" role="list">
@@ -143,8 +143,8 @@ export function ShopPage() {
         </section>
 
         <Card className="shop-page__notice-card">
-          <strong>스킨만 실제 구매 정책으로 다뤄요.</strong>
-          <p>소모품과 액세서리는 이번 MVP 상점 범위에서 제외하고, 보관함 장착 흐름은 다음 PR에서 이어갑니다.</p>
+          <strong>별친구의 외형을 바꾸는 스킨을 구매할 수 있어요.</strong>
+          <p>구매한 스킨은 보관함에서 장착하거나 기본 외형으로 되돌릴 수 있어요.</p>
         </Card>
       </div>
 

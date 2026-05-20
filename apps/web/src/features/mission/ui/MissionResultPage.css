@@ -1,5 +1,7 @@
 .mission-result__body {
-  min-height: 760px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 42px 24px 32px;
   display: flex;
   flex-direction: column;

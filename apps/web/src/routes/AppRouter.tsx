@@ -46,8 +46,8 @@ export function AppRouter() {
             <RoutePlaceholderPage
               screenId="SCR-015"
               title="별조각"
-              description="현재 별조각 잔액과 추후 거래 내역을 보여줄 화면이에요."
-              apiNote="GET /api/wallet/v1/wallets/me"
+              description="현재 보유한 별조각은 상점과 마이페이지에서 바로 확인할 수 있어요."
+              supportText="자세한 사용 내역은 별조각 화면이 열리면 이곳에서 확인할 수 있어요."
             />
           }
         />

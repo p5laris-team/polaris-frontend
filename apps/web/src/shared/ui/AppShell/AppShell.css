@@ -1,6 +1,8 @@
 .app-shell {
   width: min(420px, 100vw);
-  min-height: 760px;
+  height: min(760px, 100vh);
+  height: min(760px, 100dvh);
+  min-height: 0;
   margin: 0 auto;
   overflow: hidden;
   position: relative;
@@ -14,10 +16,11 @@
     0 8px 16px rgba(45, 36, 24, 0.06);
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
   .app-shell {
     width: 100vw;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     border: 0;
     border-radius: 0;
     box-shadow: none;

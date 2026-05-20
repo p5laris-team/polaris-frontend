@@ -1,4 +1,8 @@
 .bottom-tabs {
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
   display: flex;
   gap: 4px;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));

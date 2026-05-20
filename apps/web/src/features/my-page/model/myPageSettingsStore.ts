@@ -42,7 +42,7 @@ export const useMyPageSettingsStore = create<MyPageSettingsState>()(
     }),
     {
       name: "polaris-my-page-settings",
-      // 세부 알림 설정 저장 API가 아직 없어서 SCR-021 MVP에서는 클라이언트 로컬 정책으로만 보관한다.
+      // 세부 알림 설정 저장 API가 생기기 전까지는 이 기기의 로컬 설정으로만 보관한다.
       storage: createJSONStorage(() => localStorage),
     },
   ),
