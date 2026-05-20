@@ -3,6 +3,7 @@ import {
   getDemoActiveCharacter,
   getDemoWalletStarPiece,
 } from "@/features/home/model/homeFixture";
+import { demoGetEquippedSkin } from "@/features/item/model/itemFixtures";
 import {
   type ActiveCharacterResponse,
   type CareActionType,
@@ -22,7 +23,7 @@ export function demoGetActiveCharacter(): ActiveCharacterResponse {
 
   return {
     ...character,
-    equippedSkin: null,
+    equippedSkin: demoGetEquippedSkin(),
   };
 }
 

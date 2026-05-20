@@ -605,7 +605,11 @@
   ├── 아이템 이름
   ├── 장착 중 배지 (현재 장착된 아이템에 표시)
   └── [장착] / [장착 중] 버튼
+- "기본 외형" 카드
+  ├── 현재 `equippedSkin === null`이면 장착 중 표시
+  └── 탭 시 `PUT /api/character/v1/characters/{characterId}/equipped-skin` body `{ "itemId": null }`로 스킨 해제
 - 장착 시 캐릭터 미리보기 갱신 (상단 소형 미리뷰)
+- 장착 여부는 `GET /api/character/v1/characters/me`의 `equippedSkin.itemId`와 보유 아이템 `itemId`를 클라이언트에서 비교해 판단
 
 [소모품 탭]
 - 보유 소모품 + 수량 표시
