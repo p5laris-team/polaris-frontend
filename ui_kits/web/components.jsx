@@ -29,10 +29,10 @@ function Header({ title, left, right, onBack }) {
 }
 
 /* ----------- Button ----------- */
-function Button({ variant = "primary", size, children, onClick, disabled, type = "button", className = "" }) {
+function Button({ variant = "primary", size, children, onClick, disabled, type = "button", className = "", ...rest }) {
   const classes = ["btn", `btn-${variant}`, size === "large" ? "btn-large" : "", className].filter(Boolean).join(" ");
   return (
-    <button className={classes} onClick={onClick} disabled={disabled} type={type}>
+    <button className={classes} onClick={onClick} disabled={disabled} type={type} {...rest}>
       {children}
     </button>
   );
@@ -85,7 +85,9 @@ function MissionCard({ mission, onToggle }) {
 
 /* ----------- Character Stage ----------- */
 function CharacterStage({ character, name, level, bubble, hearts = 78, coins = 240, streak = 7 }) {
-  const moodImg = `../../assets/character-${character || "byeori"}.svg`;
+  const charId = character || "nova";
+  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
+  const moodImg = `../../assets/character-${charId}.${ext}`;
   return (
     <div className="stage">
       <div className="character-img">
@@ -212,17 +214,35 @@ function Dots({ total, current }) {
 
 /* ----------- Character Select Card ----------- */
 function CharCard({ id, name, desc, selected, onClick }) {
+  const ext = ["nova", "jjori", "mumu"].includes(id) ? "png" : "svg";
   return (
     <button className={`char-card ${selected ? "selected" : ""}`} onClick={onClick}>
-      <img src={`../../assets/character-${id}.svg`} alt="" />
+      <img src={`../../assets/character-${id}.${ext}`} alt="" />
       <div className="name">{name}</div>
       <div className="desc">{desc}</div>
     </button>
   );
 }
 
+/* ----------- Modal (Popup) ----------- */
+function Modal({ isOpen, title, children, onConfirm, onCancel, confirmText = "확인", cancelText = "취소" }) {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onCancel?.(); }}>
+      <div className="modal-card">
+        {title && <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, color: "var(--fg-1)", marginBottom: 12 }}>{title}</h3>}
+        <div style={{ fontSize: 14, color: "var(--fg-2)", marginBottom: 20, lineHeight: 1.5 }}>{children}</div>
+        <div style={{ display: "flex", gap: 10 }}>
+          {onCancel && <Button variant="secondary" onClick={onCancel}>{cancelText}</Button>}
+          <Button variant="primary" onClick={onConfirm}>{confirmText}</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 Object.assign(window, {
   AppShell, Header, Button, TextField, Chip, MissionCard, CharacterStage,
   ProgressRing, BottomTabs, SectionTitle, StreakTrack, Coin, Tag,
-  SurveyOption, Dots, CharCard,
+  SurveyOption, Dots, CharCard, Modal
 });

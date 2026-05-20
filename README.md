@@ -38,9 +38,12 @@
 
 | 이름 | 컨셉 | 메인 컬러 |
 |---|---|---|
-| **별이 (Byeori)** | 통통한 별친구 | 테라코타 + 버터 옐로우 |
-| **구름이 (Gureumi)** | 부드러운 구름친구 | 화이트 + 스카이 블루 |
-| **콩이 (Kongi)** | 동그란 새싹친구 | 버터 옐로우 + 민트 |
+| **노바 (Nova)** | 별이 내려앉은 알친구 | 버터 옐로우 + 화이트 |
+| **쪼리 (Jjori)** | 모험을 좋아하는 생쥐친구 | 그레이 + 스카이 블루 |
+| **무무 (Mumu)** | 새싹이 돋아난 나무밑둥 | 우드 브라운 + 민트 |
+| **별이 (Byeori)** | (레거시) 통통한 별친구 | 테라코타 + 버터 옐로우 |
+| **구름이 (Gureumi)** | (레거시) 부드러운 구름친구 | 화이트 + 스카이 블루 |
+| **콩이 (Kongi)** | (레거시) 동그란 새싹친구 | 버터 옐로우 + 민트 |
 
 각 캐릭터는 기본/행복/졸림/슬픔 등 표정 상태(mood)를 가지며, 루틴 완료에 따라 표정·크기·악세서리가 변화합니다.
 
@@ -278,11 +281,16 @@ import { Heart, Sparkles, ChevronRight } from 'lucide-react';
 | `assets/logo-wordmark.svg` | 캐릭터 + "Polaris" 워드마크 (헤더, 마케팅) |
 | `assets/logomark.svg` | 64×64 앱 아이콘 / 파비콘 |
 | `assets/star-mark.svg` | 4포인트 별 단독 (currentColor, 작은 액센트) |
-| `assets/character-byeori.svg` | 별이 — 기본 표정 |
-| `assets/character-byeori-happy.svg` | 별이 — 행복 |
-| `assets/character-byeori-sleepy.svg` | 별이 — 졸림 |
-| `assets/character-gureumi.svg` | 구름이 — 기본 |
-| `assets/character-kongi.svg` | 콩이 — 기본 |
+| `assets/character-nova.png` | 노바 — 기본 표정 |
+| `assets/character-nova-happy.png` | 노바 — 행복 |
+| `assets/character-nova-sleepy.png` | 노바 — 졸림 |
+| `assets/character-jjori.png` | 쪼리 — 기본 |
+| `assets/character-mumu.png` | 무무 — 기본 |
+| `assets/character-byeori.svg` | 별이 — 기본 표정 (레거시) |
+| `assets/character-byeori-happy.svg` | 별이 — 행복 (레거시) |
+| `assets/character-byeori-sleepy.svg` | 별이 — 졸림 (레거시) |
+| `assets/character-gureumi.svg` | 구름이 — 기본 (레거시) |
+| `assets/character-kongi.svg` | 콩이 — 기본 (레거시) |
 | `assets/pattern-stardust.svg` | 별가루 배경 패턴 (타일 반복) |
 | `assets/illustration-empty.svg` | 빈 상태 일러스트 |
 | `assets/cat-morning.svg` | 카테고리 — 모닝 |
