@@ -39,6 +39,13 @@ a {
   letter-spacing: 0;
 }
 
+.app-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 80px;
+}
+
 .preview-page {
   display: flex;
   min-height: 100vh;
@@ -46,7 +53,8 @@ a {
   padding: 28px 16px 80px;
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
+  .app-page,
   .preview-page {
     padding: 0;
   }

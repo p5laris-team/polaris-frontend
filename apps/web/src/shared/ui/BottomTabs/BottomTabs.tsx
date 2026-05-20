@@ -19,7 +19,7 @@ const tabs = [
 
 export function BottomTabs({ active, onChange }: BottomTabsProps) {
   return (
-    // MVP 하단 탭 구조. 업적은 MVP 제외라 탭에 포함하지 않는다.
+    // 하단 탭은 매일 자주 쓰는 핵심 화면만 둔다. 보조 화면은 각 화면의 CTA에서 접근한다.
     <nav className="bottom-tabs" aria-label="하단 탭">
       {tabs.map((tab) => {
         const Icon = tab.icon;

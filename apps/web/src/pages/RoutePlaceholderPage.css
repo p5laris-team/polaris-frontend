@@ -36,3 +36,9 @@
   color: var(--fg-3);
   line-height: 1.55;
 }
+
+@media (max-width: 420px) {
+  .placeholder-page__body {
+    padding-inline: 18px;
+  }
+}

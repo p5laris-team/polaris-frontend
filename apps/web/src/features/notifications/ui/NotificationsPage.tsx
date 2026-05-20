@@ -271,7 +271,7 @@ function getNotificationMeta(type: NotificationType) {
 }
 
 function resolveNotificationRoute(targetType: NotificationTargetType) {
-  // API targetType만으로 이동할 수 있는 MVP 화면에 연결한다. 미션 상세 화면은 아직 없어서 홈으로 보낸다.
+  // API targetType만으로 바로 갈 수 있는 화면에 연결한다. 미션 상세 화면은 아직 없어서 홈으로 보낸다.
   if (targetType === "MISSION") return routes.home;
   if (targetType === "CHARACTER") return routes.character;
   if (targetType === "ATTENDANCE") return routes.attendance;

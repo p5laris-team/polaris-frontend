@@ -10,14 +10,14 @@ type RoutePlaceholderPageProps = {
   screenId: string;
   title: string;
   description: string;
-  apiNote: string;
+  supportText?: string;
 };
 
 export function RoutePlaceholderPage({
   screenId,
   title,
   description,
-  apiNote,
+  supportText,
 }: RoutePlaceholderPageProps) {
   const navigate = useNavigate();
 
@@ -26,12 +26,12 @@ export function RoutePlaceholderPage({
       <AppShell>
         <Header title={title} />
         <section className="placeholder-page__body">
-          {/* 아직 실제 화면이 아닌 라우트 자리표시자다. 다음 PR에서 SCR 단위로 API mutation을 연결한다. */}
+          {/* 아직 독립 화면이 아닌 보조 라우트다. 사용자에게는 현재 가능한 확인 경로만 안내한다. */}
           <Card className="placeholder-page__card">
             <span className="placeholder-page__screen-id">{screenId}</span>
             <h2>{title}</h2>
             <p>{description}</p>
-            <small>{apiNote}</small>
+            {supportText ? <small>{supportText}</small> : null}
             <Button variant="secondary" onClick={() => navigate(-1)}>
               <ArrowLeft size={17} strokeWidth={1.8} />
               이전 화면

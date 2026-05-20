@@ -39,7 +39,7 @@ export function CharacterSelectPage() {
             <div className="onboarding-flow__hero">
               <span className="onboarding-flow__eyebrow">STEP 1</span>
               <h1>처음 만날 별친구를 골라 주세요.</h1>
-              <p>각 별친구는 같은 온보딩 정책을 따르지만, 말투와 응원 방식이 조금씩 달라요.</p>
+              <p>각 별친구는 같은 시작 흐름을 따르지만, 말투와 응원 방식이 조금씩 달라요.</p>
             </div>
 
             {characterTypesQuery.isLoading ? (

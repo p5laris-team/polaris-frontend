@@ -235,7 +235,7 @@ export function MyPage() {
           />
           <Card className="my-page__link-list">
             <LinkRow
-              description="별조각 잔액과 후속 거래 내역 화면으로 이동"
+              description="별조각 잔액 확인"
               icon={<WalletCards size={20} strokeWidth={1.8} />}
               label="별조각"
               onClick={() => navigate(routes.wallet)}
@@ -273,7 +273,7 @@ export function MyPage() {
           </Card>
           <div className="my-page__version">
             <ShieldCheck size={15} strokeWidth={1.8} />
-            MVP 0.1.0
+            Polaris 0.1.0
           </div>
         </section>
       </div>

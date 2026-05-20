@@ -28,7 +28,7 @@ export function LoginPage() {
       if (runtimeConfig.useApiFixtures) {
         setSession(demoAuthSession);
         resetOnboardingFlow();
-        showToast("개발용 로그인으로 온보딩을 시작해요.");
+        showToast("체험 모드로 온보딩을 시작해요.");
         navigate(routes.onboardingCharacter, { replace: true });
         return;
       }
@@ -73,7 +73,7 @@ export function LoginPage() {
             </p>
             <span className="login-page__dev-note">
               <Sparkles size={14} strokeWidth={1.8} />
-              API fixture 모드에서는 버튼 클릭 시 캐릭터 선택으로 이동합니다.
+              체험 모드에서는 바로 캐릭터 선택으로 이동해요.
             </span>
           </div>
         </section>
