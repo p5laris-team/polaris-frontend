@@ -1,0 +1,88 @@
+.polaris-button {
+  width: 100%;
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 22px;
+  border: 0;
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.polaris-button:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.polaris-button:active {
+  transform: scale(0.97);
+}
+
+.polaris-button:disabled {
+  color: var(--fg-4);
+  background: var(--bg-4);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.polaris-button--primary {
+  color: var(--fg-on-primary);
+  background: var(--primary);
+}
+
+.polaris-button--primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.polaris-button--secondary {
+  color: var(--fg-1);
+  background: var(--bg-3);
+}
+
+.polaris-button--secondary:hover:not(:disabled) {
+  background: var(--bg-4);
+}
+
+.polaris-button--ghost {
+  color: var(--primary);
+  background: transparent;
+}
+
+.polaris-button--ghost:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.polaris-button--google {
+  color: #1f1f1f;
+  background: #ffffff;
+  border: 1px solid var(--border-2);
+}
+
+.polaris-button--google:hover:not(:disabled) {
+  background: var(--bg-3);
+}
+
+.polaris-button--large {
+  min-height: 56px;
+  padding: 18px 28px;
+  font-size: 17px;
+}
+
+.polaris-button--compact {
+  width: auto;
+  min-height: 40px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+}

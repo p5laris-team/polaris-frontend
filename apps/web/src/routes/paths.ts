@@ -1,0 +1,16 @@
+export const routes = {
+  login: "/login",
+  home: "/app/home",
+  missions: "/app/missions",
+  missionAnswer: "/app/missions/current/answer",
+  missionResult: "/app/missions/current/result",
+  character: "/app/character",
+  shop: "/app/shop",
+  inventory: "/app/inventory",
+  wallet: "/app/wallet",
+  share: "/app/share",
+  attendance: "/app/attendance",
+  notifications: "/app/notifications",
+  myPage: "/app/me",
+  designSystem: "/dev/design-system",
+};

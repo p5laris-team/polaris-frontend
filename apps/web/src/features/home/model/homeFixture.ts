@@ -1,0 +1,185 @@
+import { type HomeResponse } from "@/entities/home/types";
+import {
+  type CurrentMissionResponse,
+  type MissionCompletionQuestionResponse,
+  type MissionCompletionResultResponse,
+  type MissionRejectionResponse,
+  type RequestNextMissionRequest,
+} from "@/entities/mission/types";
+
+const missionTemplates: CurrentMissionResponse[] = [
+  {
+    id: 100,
+    missionDate: "2026-05-20",
+    stackOrder: 3,
+    title: "창문 열고 숨 고르기",
+    description: "지금 자리에서 창문을 열고 공기를 한 번 바꿔보세요.",
+    characterMessage: "무... 오늘의 작은 별을 찾은 것 같아요.",
+    category: "BASIC_ROUTINE",
+    difficulty: "EASY",
+    rewardStarPiece: 10,
+    status: "OFFERED",
+  },
+  {
+    id: 101,
+    missionDate: "2026-05-20",
+    stackOrder: 4,
+    title: "책상 위 물건 하나 치우기",
+    description: "눈에 보이는 물건 하나만 제자리로 옮겨보세요.",
+    characterMessage: "무... 공간이 조금 숨을 쉬게 될 것 같아요.",
+    category: "SPACE_RESET",
+    difficulty: "EASY",
+    rewardStarPiece: 10,
+    status: "OFFERED",
+  },
+  {
+    id: 102,
+    missionDate: "2026-05-20",
+    stackOrder: 5,
+    title: "좋았던 문장 저장하기",
+    description: "읽던 글이나 떠오른 생각에서 한 줄만 남겨보세요.",
+    characterMessage: "무... 문장도 별조각처럼 남을 수 있대요.",
+    category: "READING",
+    difficulty: "EASY",
+    rewardStarPiece: 12,
+    status: "OFFERED",
+  },
+];
+
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+const initialHomeResponse: HomeResponse = {
+  user: {
+    id: 1,
+    nickname: "별따라걷기",
+  },
+  wallet: {
+    starPiece: 240,
+  },
+  character: {
+    id: 10,
+    name: "작은무무",
+    characterTypeCode: "MUMU",
+    currentAssetUrl: "https://cdn.polaris.app/mumu/idle.png",
+    states: {
+      hunger: { value: 80, label: "든든함", grade: "GOOD" },
+      energy: { value: 55, label: "졸림", grade: "NORMAL" },
+      affection: { value: 68, label: "가까움", grade: "GOOD" },
+    },
+  },
+  currentMission: missionTemplates[0],
+  notifications: {
+    unreadCount: 2,
+  },
+};
+
+let demoHomeState = clone(initialHomeResponse);
+let lastClosedMissionStackOrder = initialHomeResponse.currentMission?.stackOrder ?? 3;
+
+export function getDemoHomeResponse() {
+  return clone(demoHomeState);
+}
+
+export function demoStartCompletionSession(missionId: number): MissionCompletionQuestionResponse {
+  const mission = demoHomeState.currentMission;
+
+  if (!mission || mission.id !== missionId) {
+    throw new Error("현재 진행 중인 미션을 찾지 못했어요.");
+  }
+
+  // 완료 버튼 이후에는 보상을 바로 지급하지 않고 ANSWERING 상태와 질문 1개만 만든다.
+  demoHomeState.currentMission = { ...mission, status: "ANSWERING" };
+
+  return {
+    missionId,
+    status: "ANSWERING",
+    question: {
+      id: 501,
+      text: "방금 미션을 해내면서 어떤 점이 제일 기억에 남았나요?",
+      inputType: "TEXT",
+      minLength: 1,
+      maxLength: 300,
+    },
+  };
+}
+
+export function demoRejectMission(missionId: number): MissionRejectionResponse {
+  const mission = demoHomeState.currentMission;
+
+  if (!mission || mission.id !== missionId) {
+    throw new Error("거절할 수 있는 현재 미션이 없어요.");
+  }
+
+  demoHomeState.currentMission = null;
+  lastClosedMissionStackOrder = mission.stackOrder;
+
+  return {
+    missionId,
+    status: "REJECTED",
+    rejectedAt: new Date().toISOString(),
+    characterMessage: "괜찮아요. 다른 별을 찾아볼게요.",
+  };
+}
+
+export function demoRequestNextMission(body: RequestNextMissionRequest): CurrentMissionResponse {
+  const lastOrder =
+    missionTemplates.find((mission) => mission.id === body.lastMissionId)?.stackOrder ??
+    demoHomeState.currentMission?.stackOrder ??
+    lastClosedMissionStackOrder;
+  const nextOrder = Math.min(lastOrder + 1, 15);
+  const template = missionTemplates[(nextOrder - 3) % missionTemplates.length];
+  const nextMission = {
+    ...template,
+    id: 100 + nextOrder,
+    stackOrder: nextOrder,
+    status: "OFFERED",
+  } satisfies CurrentMissionResponse;
+
+  demoHomeState.currentMission = nextMission;
+  lastClosedMissionStackOrder = nextMission.stackOrder;
+
+  return clone(nextMission);
+}
+
+export function demoSubmitCompletionAnswer(
+  missionId: number,
+  answer: string,
+): MissionCompletionResultResponse {
+  const mission = demoHomeState.currentMission;
+  const trimmedAnswer = answer.trim();
+
+  if (!mission || mission.id !== missionId) {
+    throw new Error("답변할 수 있는 현재 미션이 없어요.");
+  }
+
+  if (!trimmedAnswer || trimmedAnswer.length > 300) {
+    throw new Error("답변은 1자 이상 300자 이하로 남겨주세요.");
+  }
+
+  const rewardStarPiece = mission.rewardStarPiece;
+  demoHomeState.wallet.starPiece += rewardStarPiece;
+  demoHomeState.character.states.affection = {
+    value: Math.min(100, demoHomeState.character.states.affection.value + 5),
+    label: "가까움",
+    grade: "GOOD",
+  };
+  demoHomeState.currentMission = null;
+  lastClosedMissionStackOrder = mission.stackOrder;
+
+  return {
+    missionId,
+    status: "COMPLETED",
+    answer: {
+      text: trimmedAnswer,
+      answeredAt: new Date().toISOString(),
+    },
+    reward: {
+      starPiece: rewardStarPiece,
+      affection: 5,
+    },
+    wallet: {
+      starPiece: demoHomeState.wallet.starPiece,
+    },
+    characterMessage: "무! 오늘의 작은 행동을 별조각으로 남겨둘게요.",
+  };
+}

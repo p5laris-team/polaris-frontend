@@ -1,0 +1,32 @@
+.polaris-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid var(--border-1);
+  backdrop-filter: blur(12px);
+}
+
+[data-mode="dark"] .polaris-header {
+  background: rgba(34, 30, 21, 0.85);
+}
+
+.polaris-header__title {
+  flex: 1;
+  margin: 0;
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.polaris-header__spacer {
+  width: 40px;
+  height: 40px;
+}
