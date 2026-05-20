@@ -35,7 +35,7 @@
     - [SCR-015 별조각 내역](#scr-015-별조각-내역)
     - [SCR-016 캐릭터 카드 공유](#scr-016-캐릭터-카드-공유)
     - [SCR-017 공유 링크 랜딩 (외부 유입)](#scr-017-공유-링크-랜딩-외부-유입)
-    - [SCR-018 업적](#scr-018-업적)
+    - [SCR-018 업적 (MVP 제외/보류)](#scr-018-업적-mvp-제외보류)
     - [SCR-019 출석 체크](#scr-019-출석-체크)
     - [SCR-020 알림함](#scr-020-알림함)
     - [SCR-021 마이페이지](#scr-021-마이페이지)
@@ -56,14 +56,16 @@
 | 캐릭터 | 캐릭터 상태·돌봄 | 1개 |
 | 경제 | 상점·인벤토리·별조각 | 3개 |
 | 바이럴 | 카드 공유·외부 유입 | 2개 |
-| 부가 기능 | 업적·출석·알림·마이페이지 | 4개 |
-| **합계** | | **19개** |
+| 부가 기능 | 출석·알림·마이페이지 | 3개 |
+| 보류/제외 | 업적 | 1개 |
+| **합계(MVP 구현 대상)** | | **18개** |
 
 ### 1.2 설계 원칙
 
 ```
 1. 미션 1개 집중 — 리스트 나열 금지. 현재 미션 1개를 캐릭터 대화형으로 제안
 2. 캐릭터 말투 일관성 — 노바/무무/쪼리 각각 다른 말투로 모든 화면에 녹아남
+3. API는 `docs/01-API-spec.md`의 최신 `/api/{domain}/v1/...` 명세를 기준으로 한다
 4. 거절 → 다음 미션 즉시 — 별도 사유 입력 없이 즉시 거절 API를 호출하고 다음 미션으로 전환 (하루 최대 15개)
 5. 공유 유입 추적 — 공유 링크 클릭 시 referral / UTM 파라미터 추적
 ```
@@ -74,24 +76,25 @@
 
 | 화면 ID | 화면 이름 | 관련 UC | 주요 기능                                  | 호출 API |
 |---------|---------|---------|----------------------------------------|---------|
-| SCR-002 | Google 로그인 | UC-001 | Google 소셜 로그인 진입 및 인증, 신규/기존 분기 | `POST /auth/google` |
-| SCR-003 | 캐릭터 선택 | UC-002 | 3종 캐릭터 소개 및 선택                         | `GET /characters/types` |
-| SCR-004 | 캐릭터 이름 설정 | UC-003 | 캐릭터 닉네임 입력, 캐릭터 생성                     | `POST /characters` |
-| SCR-005 | 온보딩 설문 | UC-004 | 7문항 설문 진행, 개인화 프로필 저장                  | `GET /users/me/onboarding`, `POST /users/me/onboarding` |
-| SCR-006 | 홈 | UC-006, UC-010, UC-020 | 캐릭터·미션 카드·별조각·상태 요약                | `GET /characters/me`, `GET /missions/current`, `GET /api/wallet/v1/wallets/me`, `POST /ads/impressions` |
-| SCR-007 | 미션 카드 | UC-006, UC-007, UC-008 | 미션 1개 제안, 완료/거절 선택                     | `GET /missions/current`, `POST /missions/{missionId}/complete` |
-| SCR-009 | 미션 완료 질문 | UC-008, UC-009 | 캐릭터 질문 1개, 텍스트 답변 입력                   | `POST /missions/{missionId}/complete`, `POST /missions/{missionId}/answer` |
-| SCR-010 | 미션 완료 결과 | UC-009, UC-021 | 별조각 지급 애니메이션, 캐릭터 반응         | `POST /missions/{missionId}/answer`, `GET /api/wallet/v1/wallets/me`, `POST /ads/impressions` |
-| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회 (최대 15개)          | `GET /missions/current` |
-| SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태 3개 확인, 밥 주기/재우기/놀아주기            | `GET /characters/me`, `POST /characters/me/care/feed`, `POST /characters/me/care/sleep`, `POST /characters/me/care/play` |
-| SCR-013 | 상점 | UC-015, UC-016, UC-017, UC-023 | 스킨·소모품 목록 조회, 별조각으로 구매       | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me`, `POST /ads/impressions` |
-| SCR-014 | 인벤토리 | UC-018, UC-019 | 보유 아이템 조회, 스킨 장착, 소모품 사용               | `GET /api/item/v1/user-items`, `POST /items/{itemId}/equip`, `POST /items/{itemId}/use` |
-| SCR-015 | 별조각 내역 | UC-020 | 별조각 잔액 조회, 획득/사용 트랜잭션 목록               | `GET /api/wallet/v1/wallets/me` |
-| SCR-016 | 캐릭터 카드 공유 | UC-025, UC-026, UC-022 | 공유 카드 생성(멘트 지정), SNS 공유, 보상 여부 조회/지급 | `POST /api/share/v1/share-cards`, `POST /api/share/v1/share-events`, `GET /api/share/v1/share-events/today` |
+| SCR-002 | Google 로그인 | UC-001 | Google 소셜 로그인 진입 및 인증, 신규/기존 분기 | `GET /api/auth/v1/google/authorization-url`, `POST /api/auth/v1/google/sessions` |
+| SCR-003 | 캐릭터 선택 | UC-002 | 3종 캐릭터 소개 및 선택                         | `GET /api/character/v1/character-types` |
+| SCR-004 | 캐릭터 이름 설정 | UC-003 | 캐릭터 닉네임 입력, 캐릭터 생성                     | `POST /api/character/v1/characters` |
+| SCR-005 | 온보딩 설문 | UC-004 | 7문항 설문 진행, 개인화 프로필 저장                  | `GET /api/onboarding/v1/questions`, `GET /api/onboarding/v1/profiles/me`, `PUT /api/onboarding/v1/profiles/me` |
+| SCR-006 | 홈 | UC-006, UC-010, UC-020 | 캐릭터·미션 카드·별조각·상태 요약                | `GET /api/home/v1/home` |
+| SCR-007 | 미션 카드 | UC-006, UC-007, UC-008 | 미션 1개 제안, 완료/거절 선택                     | `GET /api/mission/v1/missions/current`, `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/rejections`, `POST /api/mission/v1/missions/today-focus/next` |
+| SCR-009 | 미션 완료 질문 | UC-008, UC-009 | 캐릭터 질문 1개, 텍스트 답변 입력                   | `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/completion-answers` |
+| SCR-010 | 미션 완료 결과 | UC-009, UC-021 | 별조각 지급 애니메이션, 캐릭터 반응         | `POST /api/mission/v1/missions/{missionId}/completion-answers`, `GET /api/wallet/v1/wallets/me` |
+| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회 (최대 15개)          | MVP API 미제공(클라이언트 세션 기록 또는 후속 API 필요) |
+| SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태 3개 확인, 밥 주기/재우기/놀아주기            | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| SCR-013 | 상점 | UC-015, UC-016, UC-017, UC-023 | 스킨·소모품 목록 조회, 별조각으로 구매       | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me` |
+| SCR-014 | 인벤토리 | UC-018, UC-019 | 보유 아이템 조회, 스킨 장착, 소모품 사용               | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| SCR-015 | 별조각 내역 | UC-020 | 별조각 잔액 조회, 획득/사용 트랜잭션 목록               | `GET /api/wallet/v1/wallets/me` (거래 내역 API는 MVP 미제공) |
+| SCR-016 | 캐릭터 카드 공유 | UC-025, UC-026, UC-022 | 공유 카드 생성(멘트 지정), SNS 공유, 보상 여부 조회/지급 | `GET /api/share/v1/presigned-url`, `POST /api/share/v1/share-cards`, `POST /api/share/v1/share-events`, `GET /api/share/v1/share-events/today` |
 | SCR-017 | 공유 링크 랜딩 | UC-027 | 외부 공유 링크 진입 화면, 카드 정보 로드 및 클릭 로그 자동 적재 | `GET /api/share/v1/share-links/{shareId}` |
-| SCR-019 | 출석 체크 | UC-028 | 오늘 출석 체크, 출석 달력 조회                     | `POST /attendance/check`, `GET /attendance/calendar` |
-| SCR-020 | 알림함 | UC-031 | 앱 내 알림 목록 조회, 알림 읽음 처리, 알림 설정 진입       | `GET /notifications/settings` |
-| SCR-021 | 마이페이지 | UC-031 | 내 정보 조회, 알림 설정 변경, 로그아웃                | `GET /users/me`, `PUT /notifications/settings` |
+| SCR-018 | 업적 | UC-029, UC-030 | MVP 제외/보류. 화면 구현 대상 아님 | API 미제공 |
+| SCR-019 | 출석 체크 | UC-028 | 오늘 출석 체크, 출석 달력 조회                     | `POST /api/attendance/v1/attendance-records`, `GET /api/attendance/v1/attendance-records` |
+| SCR-020 | 알림함 | UC-031 | 앱 내 알림 목록 조회, 알림 읽음 처리       | `GET /api/notification/v1/notifications`, `PATCH /api/notification/v1/notifications/{notificationId}` |
+| SCR-021 | 마이페이지 | UC-031 | 내 정보 조회, 알림 로컬 설정, 로그아웃                | `GET /api/user/v1/users/me`, `DELETE /api/auth/v1/sessions/current` |
 
 ---
 
@@ -113,7 +116,7 @@
 | **화면 이름** | Google 로그인 |
 | **진입 경로** | 앱 최초 접속 (비로그인 상태) |
 | **관련 UC** | UC-001 |
-| **호출 API** | `POST /auth/google` |
+| **호출 API** | `GET /api/auth/v1/google/authorization-url`, `POST /api/auth/v1/google/sessions` |
 
 #### 화면 구성
 
@@ -157,7 +160,7 @@
 | **화면 이름** | 캐릭터 선택 |
 | **진입 경로** | SCR-002 신규 가입 완료 후 |
 | **관련 UC** | UC-002 |
-| **호출 API** | `GET /characters/types` |
+| **호출 API** | `GET /api/character/v1/character-types` |
 
 #### 화면 구성
 
@@ -198,7 +201,7 @@
 | **화면 이름** | 캐릭터 이름 설정 |
 | **진입 경로** | SCR-003 캐릭터 선택 완료 후 |
 | **관련 UC** | UC-003 |
-| **호출 API** | `POST /characters` |
+| **호출 API** | `POST /api/character/v1/characters` |
 
 #### 화면 구성
 
@@ -238,7 +241,7 @@
 | **화면 이름** | 온보딩 설문 |
 | **진입 경로** | SCR-004 캐릭터 이름 설정 완료 후 |
 | **관련 UC** | UC-004 |
-| **호출 API** | `GET /users/me/onboarding`, `POST /users/me/onboarding` |
+| **호출 API** | `GET /api/onboarding/v1/questions`, `GET /api/onboarding/v1/profiles/me`, `PUT /api/onboarding/v1/profiles/me` |
 
 #### 화면 구성
 
@@ -271,7 +274,7 @@
 
 #### 중단 복귀 처리
 
-설문 미완료 상태로 앱 재진입 시 `GET /users/me/onboarding`으로 진행 상태 조회 후 마지막 완료 문항 다음 문항으로 복귀.
+설문 미완료 상태로 앱 재진입 시 `GET /api/onboarding/v1/profiles/me`로 진행 상태를 확인하고, 저장된 답변 기준으로 다음 문항부터 복귀한다.
 
 ---
 
@@ -283,7 +286,7 @@
 | **화면 이름** | 홈 |
 | **진입 경로** | 온보딩 완료 후 / 앱 재방문 시 |
 | **관련 UC** | UC-006, UC-010, UC-020 |
-| **호출 API** | `GET /characters/me`, `GET /missions/current`, `GET /star-pieces/balance`, `POST /ads/impressions` |
+| **호출 API** | `GET /api/home/v1/home` |
 
 #### 화면 구성
 
@@ -311,7 +314,7 @@
 - 미션 없음 상태: "오늘 미션은 다 봤어요. 내일 또 와요!" 문구
 
 [하단 퀵 메뉴]
-- 상점 / 인벤토리 / 업적 / 공유 아이콘 버튼 4개
+- 상점 / 인벤토리 / 공유 아이콘 버튼 3개
 - 오늘 완료 미션 수 요약
 
 ```
@@ -320,7 +323,7 @@
 
 | 내부 필드 | 화면 표현 | 임계치 |
 |----------|----------|--------|
-| `fullness` 낮음 | "배가 고파요 🍚" | < 30 |
+| `hunger` 낮음 | "배가 고파요" | < 30 |
 | `energy` 낮음 | "너무 피곤해요 💤" | < 30 |
 | `affection` 낮음 | "쓸쓸해요 🥺" | < 30 |
 
@@ -334,7 +337,7 @@
 | **화면 이름** | 미션 카드 |
 | **진입 경로** | SCR-006 홈에서 미션 카드 탭 |
 | **관련 UC** | UC-006, UC-007, UC-008 |
-| **호출 API** | `GET /missions/current`, `POST /missions/{missionId}/complete` |
+| **호출 API** | `GET /api/mission/v1/missions/current`, `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/rejections`, `POST /api/mission/v1/missions/today-focus/next` |
 
 #### 화면 구성
 
@@ -350,7 +353,7 @@
 - 보상 별조각 (예: ✦ +10)
 
 [하단 버튼]
-- [해냈어요! ✓] → POST /missions/{missionId}/complete → SCR-009
+- [해냈어요] → `POST /api/mission/v1/missions/{missionId}/completion-sessions` → SCR-009
 - [다른 거 볼게요] → 즉시 거절 API(`POST /api/mission/v1/missions/{missionId}/rejections`) 호출 및 홈/미션 즉시 갱신
 
 [상단 우측]
@@ -397,7 +400,7 @@
 | **화면 이름** | 미션 완료 질문 |
 | **진입 경로** | SCR-007 "해냈어요" 버튼 클릭 |
 | **관련 UC** | UC-008, UC-009 |
-| **호출 API** | `POST /missions/{missionId}/complete`, `POST /missions/{missionId}/answer` |
+| **호출 API** | `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/completion-answers` |
 
 #### 화면 구성
 
@@ -414,13 +417,13 @@
 [답변 입력]
 - 멀티라인 텍스트 입력창
   - placeholder: "한두 줄이면 충분해요 :)"
-  - 최대 200자
+  - 최대 300자
   - 실시간 글자 수 표시
 
 [하단]
-- [답변 완료] 버튼 → POST /missions/{missionId}/answer → SCR-010
+- [답변 완료] 버튼 → `POST /api/mission/v1/missions/{missionId}/completion-answers` → SCR-010
   - 활성 조건: 1자 이상 입력
-- [건너뛰기] 링크 텍스트 (선택 가능, 보상 동일하게 지급)
+- 공백만 입력하거나 300자를 초과하면 제출 불가
 ```
 
 ---
@@ -433,7 +436,7 @@
 | **화면 이름** | 미션 완료 결과 |
 | **진입 경로** | SCR-009 답변 제출 완료 후 |
 | **관련 UC** | UC-009, UC-021 |
-| **호출 API** | `POST /missions/{missionId}/answer`, `GET /star-pieces/balance`, `POST /ads/impressions` |
+| **호출 API** | `POST /api/mission/v1/missions/{missionId}/completion-answers`, `GET /api/wallet/v1/wallets/me` |
 
 #### 화면 구성
 
@@ -467,7 +470,7 @@
 | **화면 이름** | 미션 히스토리 |
 | **진입 경로** | SCR-006 홈 하단 "오늘 완료 N개" 탭 |
 | **관련 UC** | UC-006 |
-| **호출 API** | `GET /missions/current` |
+| **호출 API** | MVP API 미제공(클라이언트 세션 기록 또는 후속 API 필요) |
 
 #### 화면 구성
 
@@ -500,7 +503,7 @@
 | **화면 이름** | 캐릭터 상세 / 돌봄 |
 | **진입 경로** | SCR-006 홈 캐릭터 이미지 탭 |
 | **관련 UC** | UC-010, UC-011, UC-012, UC-013 |
-| **호출 API** | `GET /characters/me`, `GET /characters/me/image`, `POST /characters/me/care/feed`, `POST /characters/me/care/sleep`, `POST /characters/me/care/play` |
+| **호출 API** | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `POST /api/character/v1/characters/{characterId}/care-logs` |
 
 #### 화면 구성
 
@@ -511,7 +514,7 @@
 - 캐릭터 레벨 (MVP에서는 표기만, 실제 진화 제외)
 
 [상태 패널]
-- 포만감 (fullness)
+- 포만감 (`hunger`)
   - 아이콘: 🍚 + 게이지 바
   - 문구 변환: 0~30 "배고파요", 31~70 "배불러요", 71~100 "완전 배불러요"
 - 기운 (energy)
@@ -547,7 +550,7 @@
 | **화면 이름** | 상점 |
 | **진입 경로** | SCR-006 홈 하단 퀵 메뉴 "상점" 아이콘 |
 | **관련 UC** | UC-015, UC-016, UC-017, UC-023 |
-| **호출 API** | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me`, `POST /ads/impressions` |
+| **호출 API** | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me` |
 
 #### 화면 구성
 
@@ -587,7 +590,7 @@
 | **화면 이름** | 인벤토리 |
 | **진입 경로** | SCR-006 홈 하단 퀵 메뉴 "인벤토리" 아이콘 |
 | **관련 UC** | UC-018, UC-019 |
-| **호출 API** | `GET /api/item/v1/user-items`, `POST /items/{itemId}/equip`, `POST /items/{itemId}/use` |
+| **호출 API** | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin`, `POST /api/character/v1/characters/{characterId}/care-logs` |
 
 #### 화면 구성
 
@@ -606,7 +609,7 @@
 
 [소모품 탭]
 - 보유 소모품 + 수량 표시
-- [사용] 버튼 → POST /items/{itemId}/use
+- [사용] 버튼 → `POST /api/character/v1/characters/{characterId}/care-logs` (`itemId` 포함)
   - 소모품 사용 후 캐릭터 상태 변화 토스트
 
 [빈 상태]
@@ -655,7 +658,7 @@
 | **화면 이름** | 캐릭터 카드 공유 |
 | **진입 경로** | SCR-006 홈 하단 퀵 메뉴 "공유" 아이콘 |
 | **관련 UC** | UC-025, UC-026, UC-022 |
-| **호출 API** | `POST /api/share/v1/share-cards`, `POST /api/share/v1/share-events`, `GET /api/share/v1/share-events/today` |
+| **호출 API** | `GET /api/share/v1/presigned-url`, `POST /api/share/v1/share-cards`, `POST /api/share/v1/share-events`, `GET /api/share/v1/share-events/today` |
 
 #### 화면 구성
 
@@ -729,39 +732,22 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 
 ---
 
-### SCR-018 업적
+### SCR-018 업적 (MVP 제외/보류)
 
 | 항목 | 내용 |
 |------|------|
 | **화면 ID** | SCR-018 |
 | **화면 이름** | 업적 |
-| **진입 경로** | SCR-006 홈 하단 퀵 메뉴 "업적" 아이콘 |
+| **진입 경로** | MVP에서는 제공하지 않음 |
 | **관련 UC** | UC-029, UC-030 |
-| **호출 API** | `GET /achievements`, `GET /achievements/me`, `POST /achievements/{achievementId}/claim` |
+| **호출 API** | API 미제공 |
 
-#### 화면 구성
+#### MVP 처리
 
 ```
-[상단]
-- "업적" 제목
-- 달성 수 / 전체 수 요약 (예: 3 / 12)
-
-[업적 목록]
-- 탭: 전체 / 달성 완료 / 진행 중
-
-각 업적 카드:
-├── 업적 아이콘
-├── 업적 이름
-├── 업적 설명 (조건)
-├── 진행 바 (현재 / 목표)
-├── 보상 별조각 (✦ N)
-└── 달성 완료: [보상 받기] 버튼 / 수령 완료: "수령 완료" 배지
-
-[업적 유형]
-- MISSION_COUNT: 미션 완료 수 달성
-- SHARE: SNS 공유 횟수 달성
-- ATTENDANCE: 연속 출석 달성
-- ITEM_PURCHASE: 아이템 구매 달성
+업적은 PRD상 MVP 제외 기능이며, 현재 API 명세에도 endpoint가 없다.
+홈 퀵 메뉴와 마이페이지 활동 요약에는 업적 진입/수치를 노출하지 않는다.
+향후 업적 API가 확정되면 별도 화면 설계로 복구한다.
 ```
 
 ---
@@ -774,7 +760,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **화면 이름** | 출석 체크 |
 | **진입 경로** | SCR-021 마이페이지 또는 홈 출석 배너 |
 | **관련 UC** | UC-028 |
-| **호출 API** | `POST /attendance/check`, `GET /attendance/calendar` |
+| **호출 API** | `POST /api/attendance/v1/attendance-records`, `GET /api/attendance/v1/attendance-records` |
 
 #### 화면 구성
 
@@ -790,7 +776,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 - 오늘: 강조 테두리
 
 [출석 버튼]
-- 오늘 미출석 시: [오늘 출석하기] → POST /attendance/check
+- 오늘 미출석 시: [오늘 출석하기] → `POST /api/attendance/v1/attendance-records`
   - 완료 토스트: "출석 완료! ✦ +5"
 - 오늘 출석 완료 시: "오늘 출석 완료 ✓" (비활성)
 ```
@@ -805,7 +791,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **화면 이름** | 알림함 |
 | **진입 경로** | SCR-006 홈 상단 알림 아이콘 |
 | **관련 UC** | UC-031 |
-| **호출 API** | `GET /notifications/settings` |
+| **호출 API** | `GET /api/notification/v1/notifications`, `PATCH /api/notification/v1/notifications/{notificationId}` |
 
 #### 화면 구성
 
@@ -819,7 +805,6 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 ├── 알림 유형 아이콘
 │   - 🎯 미션 제안 (MISSION_OFFER)
 │   - 😴 상태 악화 (STATE_BAD / STATE_CRITICAL)
-│   - 🏆 업적 달성 (ACHIEVEMENT)
 │   - 📅 일일 리마인더 (DAILY_REMINDER)
 ├── 알림 제목 + 본문 (1줄 말줄임)
 ├── 시간 (예: 2시간 전)
@@ -842,7 +827,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **화면 이름** | 마이페이지 |
 | **진입 경로** | 하단 네비게이션 바 "마이" 탭 |
 | **관련 UC** | UC-031 |
-| **호출 API** | `GET /users/me`, `PUT /notifications/settings` |
+| **호출 API** | `GET /api/user/v1/users/me`, `DELETE /api/auth/v1/sessions/current` |
 
 #### 화면 구성
 
@@ -856,20 +841,20 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 [활동 요약]
 - 총 완료 미션 수
 - 연속 출석 일수
-- 보유 업적 수
+- 보유 별조각
 
 [설정 섹션]
 ─ 알림 설정
   - 전체 알림 ON/OFF 토글
   - 미션 제안 알림 ON/OFF
   - 상태 알림 ON/OFF
-  - 업적 알림 ON/OFF
   - 일일 리마인더 ON/OFF
   - 방해 금지 시간 설정 (시작/종료 시각)
-  → PUT /notifications/settings 즉시 반영
+  - FCM 푸시 구독은 `POST /api/notification/v1/subscriptions/`로 토큰 저장
+  - 세부 알림 설정 저장 API는 현재 명세에 없으므로 MVP에서는 로컬 설정으로 처리
 
 ─ 계정
-  - [로그아웃] → POST /auth/logout → SCR-001
+  - [로그아웃] → `DELETE /api/auth/v1/sessions/current` → SCR-002
   - [서비스 이용약관]
   - [개인정보처리방침]
   - 앱 버전 정보
@@ -895,10 +880,9 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
                 ├── 상단: 알림 → SCR-020
                 ├── 캐릭터 이미지 탭 → SCR-012
                 ├── 미션 카드 [해냈어요] → SCR-009
-                ├── 미션 카드 [다른 거] → SCR-008
+                ├── 미션 카드 [다른 거] → 즉시 거절 API 호출 후 다음 미션 갱신
                 ├── 퀵메뉴: 상점 → SCR-013
                 ├── 퀵메뉴: 인벤토리 → SCR-014
-                ├── 퀵메뉴: 업적 → SCR-018
                 ├── 퀵메뉴: 공유 → SCR-016
                 └── 하단 네비: 마이 → SCR-021
 ```
@@ -914,7 +898,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **상태 게이지 바** | 포만감/기운/애정 3개 인디케이터 | SCR-006, SCR-012 |
 | **토스트 메시지** | 하단 2초 노출 알림 (성공/에러) | 전 화면 |
 | **로딩 스피너** | API 호출 중 표시 | 전 화면 |
-| **바텀 시트** | 거절 사유 선택 등 오버레이 패널 | SCR-008 |
+| **바텀 시트** | 확장용 오버레이 패널. MVP 미션 거절에는 사용하지 않음 | 향후 확장 |
 | **확인 팝업** | 구매 확인 등 2-버튼 모달 | SCR-013 |
 
 ---
@@ -965,9 +949,9 @@ SCR-006 홈 퀵메뉴
 ```
 SCR-006 홈 캐릭터 이미지 탭
   → SCR-012 캐릭터 상세 / 돌봄
-    → [밥 주기] POST /characters/me/care/feed
-    → [재우기] POST /characters/me/care/sleep
-    → [놀아주기] POST /characters/me/care/play
+    → [밥 주기] `POST /api/character/v1/characters/{characterId}/care-logs`
+    → [재우기] `POST /api/character/v1/characters/{characterId}/care-logs`
+    → [놀아주기] `POST /api/character/v1/characters/{characterId}/care-logs`
       → 상태 변화 토스트 → SCR-012 상태 갱신
 ```
 
