@@ -1,0 +1,12 @@
+{
+  "name": "polaris-frontend",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @polaris/web dev",
+    "build:web": "pnpm --filter @polaris/web build",
+    "preview:web": "pnpm --filter @polaris/web preview",
+    "typecheck:web": "pnpm --filter @polaris/web typecheck"
+  },
+  "devDependencies": {}
+}

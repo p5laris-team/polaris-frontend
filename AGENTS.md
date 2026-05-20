@@ -48,9 +48,9 @@ Polaris는 사용자가 고른 별친구 캐릭터가 하루의 작은 미션을
 8. `ui_kits/web/styles.css`
 9. `ui_kits/mobile/tokens.js`
 10. `colors_and_type.css`
-11. `docs/07-Screen-Design-Specification.md`
-12. `docs/PRD.md`
-13. `docs/01-API-spec.md`
+11. `docs/product/07-Screen-Design-Specification.md`
+12. `docs/product/PRD.md`
+13. `docs/api/01-API-spec.md`
 
 화면 구현 중 디자인이 헷갈리면 PRD보다 먼저 UI kit을 확인한다. PRD는 제품 의도와 정책의 기준이고, 화면의 실제 생김새는 UI kit이 기준이다.
 
@@ -228,7 +228,7 @@ Polaris는 "해야 할 일 관리 앱"이 아니라 "작은 일상을 같이 살
 
 ## 11. API 연동 규칙
 
-API 명세는 `docs/01-API-spec.md`를 따른다.
+API 명세는 `docs/api/01-API-spec.md`를 따른다.
 
 공통 응답은 `ApiResponse<T>`로 감싼다.
 
@@ -263,7 +263,7 @@ API 클라이언트 지침:
 
 - 캐릭터 돌봄 액션 `POST /api/character/v1/characters/{characterId}/care-logs`는 요청 헤더 `Idempotency-Key`를 사용한다.
 - 공유 이벤트 `POST /api/share/v1/share-events`는 request body의 `idempotencyKey`를 사용한다.
-- 다른 동시성 민감 API는 `docs/01-API-spec.md`의 해당 endpoint 상세를 확인해 header인지 body인지 맞춘다.
+- 다른 동시성 민감 API는 `docs/api/01-API-spec.md`의 해당 endpoint 상세를 확인해 header인지 body인지 맞춘다.
 - `DUPLICATED_IDEMPOTENCY_KEY` 응답은 중복 요청으로 처리하고, 사용자에게 같은 보상을 또 지급된 것처럼 표시하지 않는다.
 
 커서 페이지네이션 구현 규칙:

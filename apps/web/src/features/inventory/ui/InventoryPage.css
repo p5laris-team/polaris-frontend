@@ -1,0 +1,239 @@
+.inventory-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 80px;
+}
+
+.inventory-page__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 20px 96px;
+}
+
+.inventory-page__shop-button {
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.inventory-page__section {
+  margin-top: 18px;
+}
+
+.inventory-page__section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.inventory-page__eyebrow {
+  display: block;
+  color: var(--primary-strong);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.inventory-page__section-head h2 {
+  margin: 3px 0 0;
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.inventory-page__skin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.inventory-page__skin-card {
+  min-width: 0;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  border: 1.5px solid transparent;
+}
+
+.inventory-page__skin-card--equipped {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.inventory-page__skin-preview {
+  aspect-ratio: 1 / 0.82;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--border-1);
+}
+
+.inventory-page__skin-preview--base {
+  color: var(--fg-3);
+  background: linear-gradient(135deg, var(--bg-3) 0%, var(--bg-2) 100%);
+}
+
+.inventory-page__skin-preview--0 {
+  background: linear-gradient(135deg, #f8e7ad 0%, #c7f0dc 100%);
+}
+
+.inventory-page__skin-preview--1 {
+  background: linear-gradient(135deg, #d9e7ff 0%, #d7f6f1 100%);
+}
+
+.inventory-page__skin-preview--2 {
+  background: linear-gradient(135deg, #f7dec7 0%, #f4f0bd 100%);
+}
+
+.inventory-page__skin-preview img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+}
+
+.inventory-page__skin-preview svg {
+  position: relative;
+  color: var(--neutral-800);
+  filter: drop-shadow(0 6px 10px rgba(70, 56, 26, 0.18));
+}
+
+.inventory-page__skin-preview--base svg {
+  color: var(--fg-3);
+  filter: none;
+}
+
+.inventory-page__skin-info {
+  min-width: 0;
+}
+
+.inventory-page__skin-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--fg-1);
+}
+
+.inventory-page__skin-title-row strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inventory-page__skin-title-row svg {
+  flex: 0 0 auto;
+  color: var(--success);
+}
+
+.inventory-page__skin-info span {
+  display: block;
+  margin-top: 4px;
+  color: var(--fg-3);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.inventory-page__equip-button {
+  width: 100%;
+}
+
+.inventory-page__empty-card {
+  margin-top: 12px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.inventory-page__empty-card svg {
+  color: var(--fg-3);
+}
+
+.inventory-page__empty-card strong {
+  color: var(--fg-1);
+  font-size: 15px;
+}
+
+.inventory-page__empty-card p {
+  margin: 0;
+  color: var(--fg-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.inventory-page__state {
+  margin: auto;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.inventory-page__state h2 {
+  margin: 0;
+  color: var(--fg-1);
+  font-size: 18px;
+}
+
+.inventory-page__state p {
+  margin: 8px 0 18px;
+  color: var(--fg-3);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.inventory-page__skeleton {
+  border-radius: 22px;
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2));
+  background-size: 220% 100%;
+  animation: inventory-skeleton 1.2s ease-in-out infinite;
+}
+
+.inventory-page__skeleton--stage {
+  min-height: 260px;
+  margin-bottom: 18px;
+}
+
+.inventory-page__skeleton--item {
+  min-height: 220px;
+}
+
+@keyframes inventory-skeleton {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .inventory-page {
+    padding: 0;
+  }
+
+  .inventory-page__body {
+    padding-inline: 18px;
+  }
+
+  .inventory-page__skin-grid {
+    gap: 10px;
+  }
+
+  .inventory-page__skin-card {
+    padding: 10px;
+  }
+}

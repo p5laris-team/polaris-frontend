@@ -1,0 +1,215 @@
+.character-care-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 80px;
+}
+
+.character-care-page__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 20px 96px;
+}
+
+.character-care-page__status-card {
+  margin-top: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.character-care-page__section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.character-care-page__section-title h2 {
+  margin: 0;
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.character-care-page__section-title span {
+  color: var(--fg-3);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.character-care-page__gauge-list {
+  display: grid;
+  gap: 12px;
+}
+
+.character-care-page__gauge-item {
+  display: grid;
+  gap: 6px;
+}
+
+.character-care-page__gauge-item + .character-care-page__gauge-item {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-1);
+}
+
+.character-care-page__gauge-item p {
+  margin: 0;
+  color: var(--fg-3);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.character-care-page__care-section {
+  margin-top: 20px;
+}
+
+.character-care-page__care-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.character-care-page__care-action {
+  min-height: 126px;
+  padding: 14px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--fg-1);
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  text-align: center;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.character-care-page__care-action:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: var(--bg-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.character-care-page__care-action:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.character-care-page__care-action:disabled {
+  color: var(--fg-4);
+  cursor: not-allowed;
+}
+
+.character-care-page__care-action strong {
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.character-care-page__care-action small {
+  min-height: 32px;
+  color: var(--fg-3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.character-care-page__care-action span {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.character-care-page__inventory-callout {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.character-care-page__inventory-callout strong {
+  color: var(--fg-1);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.character-care-page__inventory-callout p {
+  margin: 4px 0 0;
+  color: var(--fg-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.character-care-page__state {
+  margin: auto;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.character-care-page__state h2 {
+  margin: 0;
+  color: var(--fg-1);
+  font-size: 18px;
+}
+
+.character-care-page__state p {
+  margin: 8px 0 18px;
+  color: var(--fg-3);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.character-care-page__skeleton {
+  min-height: 156px;
+  border-radius: 22px;
+  background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2));
+  background-size: 220% 100%;
+  animation: character-care-skeleton 1.2s ease-in-out infinite;
+}
+
+.character-care-page__skeleton + .character-care-page__skeleton {
+  margin-top: 14px;
+}
+
+.character-care-page__skeleton--stage {
+  min-height: 330px;
+  border-radius: 28px;
+}
+
+.character-care-page__skeleton--actions {
+  min-height: 126px;
+}
+
+@keyframes character-care-skeleton {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .character-care-page {
+    padding: 0;
+  }
+
+  .character-care-page__body {
+    padding-inline: 18px;
+  }
+}

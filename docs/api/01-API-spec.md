@@ -126,11 +126,12 @@ Base Pattern: /api/{domain}/v1/{resource}
 | PATCH  | `/api/character/v1/characters/{characterId}`                    | 캐릭터 이름 수정     | path + body | character | 🔐 |
 | GET    | `/api/character/v1/characters/{characterId}/status`             | 캐릭터 상태 조회     | path | status | 🔐 |
 | POST   | `⚠️ /api/character/v1/characters/{characterId}/care-logs`       | 돌봄 액션 수행      | path + body | care result | 🔐 |
-| PUT    | `⚠️ /api/character/v1/characters/{characterId}/equipped-skin`   | 캐릭터 스킨 장착     | path + body | equipped skin | 🔐 |
+| PUT    | `⚠️ /api/character/v1/characters/{characterId}/equipped-skin`   | 캐릭터 스킨 장착/해제 | path + body | equipped skin | 🔐 |
 | GET    | `💾 /api/onboarding/v1/questions`                               | 온보딩 질문 목록 조회  | none | questions | 🔐 |
 | GET    | `/api/onboarding/v1/profiles/me`                                | 내 온보딩 프로필 조회  | none | profile | 🔐 |
 | PUT    | `/api/onboarding/v1/profiles/me`                                | 내 온보딩 프로필 저장/완료 | body | profile | 🔐 |
 | GET    | `/api/mission/v1/missions/current`                              | 현재 제안 미션 조회   | query | mission | 🔐 |
+| GET    | `/api/mission/v1/missions/today`                                | 오늘 미션 스택 조회   | none | today missions | 🔐 |
 | POST   | `/api/mission/v1/missions/today-focus/next`                     | 다음 미션 요청      | body | mission | 🔐 |
 | POST   | `/api/mission/v1/missions/{missionId}/rejections`               | 미션 거절 기록 생성   | path + body | rejection | 🔐 |
 | POST   | `/api/mission/v1/missions/{missionId}/completion-sessions`      | 완료 질문 세션 시작   | path + body | question | 🔐 |
@@ -565,9 +566,15 @@ Refresh Token으로 Access Token을 재발급한다.
 ### 4.8 PUT `⚠️ /api/character/v1/characters/{characterId}/equipped-skin` 🔐
 
 **설명**  
-캐릭터에 스킨을 장착한다. 스킨은 한 번에 하나만 적용한다.
+캐릭터에 스킨을 장착하거나 기본 외형으로 해제한다. 스킨은 한 번에 하나만 적용한다.
+
+- `itemId`가 숫자이면 해당 보유 스킨을 장착한다.
+- `itemId`가 `null`이면 현재 장착 스킨을 해제하고 기본 외형으로 되돌린다.
+- 클라이언트는 `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId`와 `GET /api/item/v1/user-items` 응답의 `itemId`를 비교해 장착 여부를 표시한다.
 
 **Request**
+
+장착:
 
 ```json
 {
@@ -575,7 +582,17 @@ Refresh Token으로 Access Token을 재발급한다.
 }
 ```
 
+해제:
+
+```json
+{
+  "itemId": null
+}
+```
+
 **Response**
+
+장착:
 
 ```json
 {
@@ -585,6 +602,16 @@ Refresh Token으로 Access Token을 재발급한다.
     "name": "말랑 별빛 스킨"
   },
   "updatedAt": "2026-05-15T18:40:00+09:00"
+}
+```
+
+해제:
+
+```json
+{
+  "characterId": 10,
+  "equippedSkin": null,
+  "updatedAt": "2026-05-15T18:45:00+09:00"
 }
 ```
 
@@ -743,7 +770,64 @@ missionId path variable은 1 이상의 숫자여야 한다.
 
 ---
 
-### 6.2 POST `⚠️ /api/mission/v1/missions/today-focus/next` 🔐
+### 6.2 GET `/api/mission/v1/missions/today` 🔐
+
+**설명**
+오늘 기준 로그인한 유저에게 제안된 미션 스택을 조회한다. 하루 최대 제안 수가 15개이므로 pagination은 제공하지 않는다.
+
+목록은 `stackOrder` 오름차순으로 반환한다. `currentMissionId`는 현재 진행 중인 `OFFERED` 또는 `ANSWERING` 상태 미션의 id이며, 현재 미션이 없으면 `null`이다.
+
+**Request**
+
+```json
+{}
+```
+
+**Response**
+
+```json
+{
+  "missionDate": "2026-05-21",
+  "maxDailyOffers": 15,
+  "offeredCount": 4,
+  "completedCount": 2,
+  "rejectedCount": 1,
+  "remainingOfferCount": 11,
+  "currentMissionId": 104,
+  "missions": [
+    {
+      "id": 101,
+      "stackOrder": 1,
+      "title": "물 한 컵 마시기",
+      "category": "BASIC_ROUTINE",
+      "difficulty": "EASY",
+      "rewardStarPiece": 10,
+      "status": "COMPLETED",
+      "characterMessage": "잘했어. 작은 시작도 별조각이 됐어.",
+      "createdAt": "2026-05-21T09:10:00+09:00",
+      "completedAt": "2026-05-21T09:15:00+09:00",
+      "rejectedAt": null
+    },
+    {
+      "id": 104,
+      "stackOrder": 4,
+      "title": "창문 열고 숨 고르기",
+      "category": "BASIC_ROUTINE",
+      "difficulty": "EASY",
+      "rewardStarPiece": 10,
+      "status": "OFFERED",
+      "characterMessage": "무... 오늘의 작은 별을 찾은 것 같아요.",
+      "createdAt": "2026-05-21T11:30:00+09:00",
+      "completedAt": null,
+      "rejectedAt": null
+    }
+  ]
+}
+```
+
+---
+
+### 6.3 POST `⚠️ /api/mission/v1/missions/today-focus/next` 🔐
 
 **설명**
 다음 미션을 생성해 현재 미션으로 제안한다.
@@ -782,7 +866,7 @@ missionId path variable은 1 이상의 숫자여야 한다.
 
 ---
 
-### 6.3 POST `/api/mission/v1/missions/{missionId}/rejections` 🔐
+### 6.4 POST `/api/mission/v1/missions/{missionId}/rejections` 🔐
 
 **설명**
 현재 제안된 미션을 거절한다. 거절은 실패가 아니며, 별조각 차감도 없다.
@@ -810,7 +894,7 @@ missionId path variable은 1 이상의 숫자여야 한다.
 
 ---
 
-### 6.4 POST `/api/mission/v1/missions/{missionId}/completion-sessions` 🔐
+### 6.5 POST `/api/mission/v1/missions/{missionId}/completion-sessions` 🔐
 
 **설명**
 사용자가 완료 버튼을 눌렀을 때 완료 질문 1개를 시작한다. 이 시점에는 아직 보상을 지급하지 않는다.
@@ -841,7 +925,7 @@ missionId path variable은 1 이상의 숫자여야 한다.
 
 ---
 
-### 6.5 POST `⚠️ /api/mission/v1/missions/{missionId}/completion-answers` 🔐
+### 6.6 POST `⚠️ /api/mission/v1/missions/{missionId}/completion-answers` 🔐
 
 **설명**
 완료 질문에 답변한다. 답변 저장 후 미션을 `COMPLETED`로 전환한다.
@@ -881,7 +965,7 @@ missionId path variable은 1 이상의 숫자여야 한다.
 
 ---
 
-### 6.6 내부 gRPC `AiService.GenerateMissionTexts`
+### 6.7 내부 gRPC `AiService.GenerateMissionTexts`
 
 **설명**
 선택된 미션 템플릿을 캐릭터 말투 기반 문구로 변환한다. 외부 클라이언트가 직접 호출하는 REST API가 아니라, mission 또는 gateway 내부에서 사용하는 AI gRPC API다.
@@ -1034,6 +1118,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 > `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId` 와  
 > 이 API 응답의 `itemId` 를 클라이언트에서 비교합니다.  
 > `itemId === equippedSkin.itemId` → 장착된 스킨
+> `equippedSkin === null` → 기본 외형 상태
 
 **Request (Query Parameters)**
 

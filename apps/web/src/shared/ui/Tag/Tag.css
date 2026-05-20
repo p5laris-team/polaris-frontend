@@ -1,0 +1,25 @@
+.polaris-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.polaris-tag--primary {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+
+.polaris-tag--accent {
+  color: var(--neutral-800);
+  background: var(--accent-soft);
+}
+
+.polaris-tag--neutral {
+  color: var(--fg-2);
+  background: var(--bg-3);
+}
