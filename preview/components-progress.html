@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .col { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); text-align: center; }
+  /* progress ring */
+  .ring { width: 110px; height: 110px; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .center { position: absolute; inset: 0; display: grid; place-items: center; }
+  .ring .num { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--fg-1); }
+  .ring .label { font-size: 11px; color: var(--fg-3); }
+  /* streak */
+  .streak { display: flex; gap: 6px; }
+  .day { width: 32px; height: 32px; border-radius: 12px; background: var(--bg-3); display: grid; place-items: center; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--fg-3); }
+  .day.done { background: var(--primary); color: white; }
+  .day.today { background: var(--accent); color: var(--neutral-800); box-shadow: 0 0 0 3px var(--accent-soft); }
+  /* growth bar */
+  .bar-wrap { width: 220px; }
+  .level { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); margin-bottom: 6px; }
+  .bar { background: var(--bg-3); height: 10px; border-radius: 999px; overflow: hidden; }
+  .bar .fill { background: linear-gradient(90deg, var(--primary), var(--accent)); height: 100%; width: 62%; border-radius: 999px; }
+</style></head>
+<body>
+  <div class="col">
+    <div class="ring">
+      <svg width="110" height="110">
+        <circle cx="55" cy="55" r="48" fill="none" stroke="var(--bg-3)" stroke-width="10"/>
+        <circle cx="55" cy="55" r="48" fill="none" stroke="var(--primary)" stroke-width="10" stroke-linecap="round" stroke-dasharray="301" stroke-dashoffset="105"/>
+      </svg>
+      <div class="center"><div><div class="num">65%</div><div class="label">오늘</div></div></div>
+    </div>
+    <div class="meta">ProgressRing</div>
+  </div>
+  <div class="col">
+    <div class="streak">
+      <div class="day done">월</div>
+      <div class="day done">화</div>
+      <div class="day done">수</div>
+      <div class="day done">목</div>
+      <div class="day today">금</div>
+      <div class="day">토</div>
+      <div class="day">일</div>
+    </div>
+    <div class="meta">StreakTrack — 연속 7일</div>
+  </div>
+  <div class="col">
+    <div class="bar-wrap">
+      <div class="level"><span>Lv.3 별이</span><span>+62 / 100</span></div>
+      <div class="bar"><div class="fill"></div></div>
+    </div>
+    <div class="meta">LevelBar — 캐릭터 성장</div>
+  </div>
+</body></html>

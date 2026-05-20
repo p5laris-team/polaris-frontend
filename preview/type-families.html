@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .card { background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 20px; padding: 20px 22px; }
+  .tag { display: inline-block; background: var(--bg-3); color: var(--fg-2); padding: 4px 10px; border-radius: 999px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; margin-bottom: 12px; }
+  .sample { font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.02em; color: var(--fg-1); margin: 0 0 10px; }
+  .body { font-size: 16px; line-height: 1.6; color: var(--fg-2); }
+  .pretendard .sample, .pretendard .body { font-family: "Pretendard Variable", sans-serif; }
+  .suit .sample, .suit .body { font-family: "SUIT Variable", sans-serif; }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="card pretendard">
+      <span class="tag">Pretendard · Body / UI 기본</span>
+      <h3 class="sample">매일의 작은 발걸음</h3>
+      <p class="body">어제보다 조금만 더 가볼까요? 별이가 살짝 들떠 있어요.</p>
+    </div>
+    <div class="card suit">
+      <span class="tag">SUIT · Display / 헤딩 대안</span>
+      <h3 class="sample">매일의 작은 발걸음</h3>
+      <p class="body">어제보다 조금만 더 가볼까요? 별이가 살짝 들떠 있어요.</p>
+    </div>
+  </div>
+</body></html>

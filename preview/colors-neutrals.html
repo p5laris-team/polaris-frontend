@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+  .cell { aspect-ratio: 1 / 1.05; border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; }
+  .cell .v { color: #FFF; opacity: .92; }
+  .cell.light .v { color: var(--fg-1); }
+  .cell .n { color: rgba(255,255,255,.7); font-size: 9px; }
+  .cell.light .n { color: var(--fg-3); }
+  .label { font-family: var(--font-display); font-weight: 700; font-size: 13px; margin-bottom: 10px; color: var(--fg-1); }
+</style></head>
+<body>
+  <div class="label">Neutrals — 따뜻한 회갈색 50 ~ 900</div>
+  <div class="grid">
+    <div class="cell light" style="background:#FAF7F2"><span class="n">50</span><span class="v">FAF7F2</span></div>
+    <div class="cell light" style="background:#F4EFE6"><span class="n">100</span><span class="v">F4EFE6</span></div>
+    <div class="cell light" style="background:#E8E1D2"><span class="n">200</span><span class="v">E8E1D2</span></div>
+    <div class="cell light" style="background:#D4CABA"><span class="n">300</span><span class="v">D4CABA</span></div>
+    <div class="cell light" style="background:#A89A85"><span class="n">400</span><span class="v">A89A85</span></div>
+    <div class="cell" style="background:#756957"><span class="n">500</span><span class="v">756957</span></div>
+    <div class="cell" style="background:#4F4636"><span class="n">600</span><span class="v">4F4636</span></div>
+    <div class="cell" style="background:#3A3325"><span class="n">700</span><span class="v">3A3325</span></div>
+    <div class="cell" style="background:#2A2418"><span class="n">800</span><span class="v">2A2418</span></div>
+    <div class="cell" style="background:#1A150D"><span class="n">900</span><span class="v">1A150D</span></div>
+  </div>
+</body></html>

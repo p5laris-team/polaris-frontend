@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" data-mode="dark"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 24px; color: var(--fg-1); }
+  .row { display: flex; gap: 14px; align-items: flex-end; }
+  .swatch { width: 80px; height: 80px; border-radius: 20px; position: relative; overflow: hidden; border: 1px solid var(--border-1); }
+  .swatch .label { position: absolute; left: 10px; bottom: 8px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.92); font-family: var(--font-mono); }
+  .swatch.lt .label { color: var(--fg-inverse); }
+  .meta { margin-top: 10px; font-size: 12px; color: var(--fg-2); font-family: var(--font-mono); }
+  .name { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--fg-1); margin-top: 4px; }
+  .tag { display: inline-block; background: var(--bg-3); color: var(--fg-2); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 12px; font-family: var(--font-mono); }
+</style></head>
+<body>
+  <div class="tag">data-mode="dark"</div>
+  <div class="row">
+    <div>
+      <div class="swatch" style="background:#16140E"><span class="label">#16140E</span></div>
+      <div class="name">Bg</div>
+      <div class="meta">--bg-1</div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#221E15"><span class="label">#221E15</span></div>
+      <div class="name">Card</div>
+      <div class="meta">--bg-2</div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#2D281C"><span class="label">#2D281C</span></div>
+      <div class="name">Sunken</div>
+      <div class="meta">--bg-3</div>
+    </div>
+    <div>
+      <div class="swatch lt" style="background:#F5EFE2"><span class="label">#F5EFE2</span></div>
+      <div class="name">Ink</div>
+      <div class="meta">--fg-1</div>
+    </div>
+    <div>
+      <div class="swatch" style="background:#E07A5F"><span class="label">#E07A5F</span></div>
+      <div class="name">Primary</div>
+      <div class="meta">--primary</div>
+    </div>
+    <div>
+      <div class="swatch lt" style="background:#F4D35E"><span class="label">#F4D35E</span></div>
+      <div class="name">Accent</div>
+      <div class="meta">--accent</div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .card { background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; }
+  .dot { width: 40px; height: 40px; border-radius: 14px; flex-shrink: 0; }
+  .meta-name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--fg-1); }
+  .meta-hex { font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); margin-top: 2px; }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="card">
+      <div class="dot" style="background:#5B9A6F"></div>
+      <div><div class="meta-name">Success</div><div class="meta-hex">#5B9A6F · 세이지</div></div>
+    </div>
+    <div class="card">
+      <div class="dot" style="background:#D98531"></div>
+      <div><div class="meta-name">Warning</div><div class="meta-hex">#D98531 · 호박</div></div>
+    </div>
+    <div class="card">
+      <div class="dot" style="background:#C95252"></div>
+      <div><div class="meta-name">Danger</div><div class="meta-hex">#C95252 · 차분한 코랄</div></div>
+    </div>
+    <div class="card">
+      <div class="dot" style="background:#E07A5F"></div>
+      <div><div class="meta-name">Info</div><div class="meta-hex">#E07A5F · primary</div></div>
+    </div>
+    <div class="card" style="background:#DCEEDF">
+      <div class="dot" style="background:#5B9A6F"></div>
+      <div><div class="meta-name">Success soft</div><div class="meta-hex">#DCEEDF</div></div>
+    </div>
+    <div class="card" style="background:#FBE6CE">
+      <div class="dot" style="background:#D98531"></div>
+      <div><div class="meta-name">Warning soft</div><div class="meta-hex">#FBE6CE</div></div>
+    </div>
+    <div class="card" style="background:#F8DCDC">
+      <div class="dot" style="background:#C95252"></div>
+      <div><div class="meta-name">Danger soft</div><div class="meta-hex">#F8DCDC</div></div>
+    </div>
+    <div class="card" style="background:#FBEDE3">
+      <div class="dot" style="background:#E07A5F"></div>
+      <div><div class="meta-name">Info soft</div><div class="meta-hex">#FBEDE3</div></div>
+    </div>
+  </div>
+</body></html>

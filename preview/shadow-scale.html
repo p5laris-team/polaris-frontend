@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 36px 28px 44px; color: var(--fg-1); }
+  .row { display: flex; gap: 22px; align-items: flex-start; }
+  .box { width: 110px; height: 80px; background: var(--bg-2); border-radius: 18px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .name { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--fg-1); }
+  .v { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+</style></head>
+<body>
+  <div class="row">
+    <div class="col">
+      <div class="box" style="box-shadow: var(--shadow-xs)"></div>
+      <div class="name">xs</div>
+      <div class="v">hover hint</div>
+    </div>
+    <div class="col">
+      <div class="box" style="box-shadow: var(--shadow-sm)"></div>
+      <div class="name">sm</div>
+      <div class="v">카드 기본</div>
+    </div>
+    <div class="col">
+      <div class="box" style="box-shadow: var(--shadow-md)"></div>
+      <div class="name">md</div>
+      <div class="v">FAB · 메뉴</div>
+    </div>
+    <div class="col">
+      <div class="box" style="box-shadow: var(--shadow-lg)"></div>
+      <div class="name">lg</div>
+      <div class="v">모달</div>
+    </div>
+    <div class="col">
+      <div class="box" style="box-shadow: var(--shadow-xl)"></div>
+      <div class="name">xl</div>
+      <div class="v">풀스크린 시트</div>
+    </div>
+    <div class="col">
+      <div class="box" style="box-shadow: var(--shadow-character)"></div>
+      <div class="name">character</div>
+      <div class="v">캐릭터 카드</div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); display: flex; gap: 28px; align-items: center; }
+  .empty { background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 22px; padding: 28px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 360px; box-shadow: var(--shadow-sm); }
+  .empty img { width: 180px; }
+  .empty h3 { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--fg-1); margin: 6px 0 2px; }
+  .empty p { font-size: 14px; color: var(--fg-3); text-align: center; line-height: 1.55; }
+  .pattern { width: 220px; height: 220px; border-radius: 22px; background: var(--bg-character); background-image: url('../assets/pattern-stardust.svg'); background-size: 110px 110px; border: 1px solid var(--border-1); }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+</style></head>
+<body>
+  <div class="col">
+    <div class="empty">
+      <img src="../assets/illustration-empty.svg" alt="">
+      <h3>오늘의 미션이 비어 있어요</h3>
+      <p>별이가 무엇을 할지 기다리고 있어요.<br>첫 번째 미션을 추가해볼까요?</p>
+    </div>
+    <div class="meta">EmptyState 일러스트</div>
+  </div>
+  <div class="col">
+    <div class="pattern"></div>
+    <div class="meta">Stardust pattern · 타일 반복</div>
+  </div>
+</body></html>

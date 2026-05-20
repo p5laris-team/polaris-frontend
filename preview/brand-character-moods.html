@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); display: flex; gap: 14px; align-items: center; }
+  .card { flex:1; background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 18px; padding: 14px 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .card img { width: 100px; height: 100px; }
+  .name { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--fg-1); }
+  .sub { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+</style></head>
+<body>
+  <div class="card">
+    <img src="../assets/character-byeori.svg" alt="기본">
+    <div class="name">기본</div>
+    <div class="sub">default</div>
+  </div>
+  <div class="card">
+    <img src="../assets/character-byeori-happy.svg" alt="행복">
+    <div class="name">행복</div>
+    <div class="sub">happy · 미션완료</div>
+  </div>
+  <div class="card">
+    <img src="../assets/character-byeori-sleepy.svg" alt="졸림">
+    <div class="name">졸림</div>
+    <div class="sub">sleepy · 자정 이후</div>
+  </div>
+</body></html>

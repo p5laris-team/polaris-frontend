@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); display: flex; gap: 16px; }
+  .card { flex: 1; background: linear-gradient(180deg, var(--bg-character) 0%, var(--bg-2) 100%); border: 1px solid var(--border-1); border-radius: 22px; padding: 18px 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: var(--shadow-character); }
+  .card img { width: 140px; height: 140px; }
+  .name { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--fg-1); }
+  .sub { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+</style></head>
+<body>
+  <div class="card">
+    <img src="../assets/character-byeori.svg" alt="별이">
+    <div class="name">별이 · Byeori</div>
+    <div class="sub">테라코타 별친구</div>
+  </div>
+  <div class="card" style="background: linear-gradient(180deg, #DCE4F2 0%, var(--bg-2) 100%); box-shadow: 0 12px 28px rgba(111,144,218,.16), 0 4px 10px rgba(45,36,24,.06)">
+    <img src="../assets/character-gureumi.svg" alt="구름이">
+    <div class="name">구름이 · Gureumi</div>
+    <div class="sub">부드러운 구름친구</div>
+  </div>
+  <div class="card" style="background: linear-gradient(180deg, #DCEDDF 0%, var(--bg-2) 100%); box-shadow: 0 12px 28px rgba(79,179,164,.16), 0 4px 10px rgba(45,36,24,.06)">
+    <img src="../assets/character-kongi.svg" alt="콩이">
+    <div class="name">콩이 · Kongi</div>
+    <div class="sub">새싹 친구</div>
+  </div>
+</body></html>

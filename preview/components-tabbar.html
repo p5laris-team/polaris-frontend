@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); }
+  .tabbar { display: flex; background: var(--bg-2); border-radius: 24px; padding: 8px; gap: 4px; box-shadow: var(--shadow-md); max-width: 420px; margin: 0 auto; border: 1px solid var(--border-1); }
+  .tab { flex: 1; padding: 12px 8px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--font-display); font-size: 11px; font-weight: 700; color: var(--fg-3); cursor: pointer; transition: all 0.14s; }
+  .tab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.75; }
+  .tab.active { background: var(--primary-soft); color: var(--primary-strong); }
+  .meta { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); margin-top: 12px; }
+</style></head>
+<body>
+  <div class="tabbar">
+    <div class="tab active">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 12 L12 3 L21 12 M5 10 L5 21 L19 21 L19 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      홈
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 5 L19 5 L19 19 L5 19 Z M8 12 L11 15 L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      미션
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L14 8 L20 8 L15 12 L17 19 L12 15 L7 19 L9 12 L4 8 L10 8 Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      별이
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 6 L20 6 L18 18 L6 18 Z M8 6 L8 4 C8 3 9 2 12 2 C15 2 16 3 16 4 L16 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      상점
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke-linecap="round"/><path d="M4 21 C4 16 8 14 12 14 C16 14 20 16 20 21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      나
+    </div>
+  </div>
+  <div class="meta">BottomTabs · 5 destinations · 64 px tall</div>
+</body></html>

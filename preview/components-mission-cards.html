@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 20px; padding: 20px; box-shadow: var(--shadow-sm); display: flex; gap: 16px; align-items: center; }
+  .icon { width: 56px; height: 56px; border-radius: 18px; flex-shrink: 0; display: grid; place-items: center; background: var(--accent-soft); }
+  .icon img { width: 56px; height: 56px; }
+  .title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--fg-1); margin-bottom: 4px; }
+  .sub { font-size: 13px; color: var(--fg-3); }
+  .check { width: 28px; height: 28px; border-radius: 999px; border: 2px solid var(--border-3); margin-left: auto; flex-shrink: 0; display: grid; place-items: center; }
+  .check.done { background: var(--success); border-color: var(--success); color: white; font-weight: 800; font-size: 14px; }
+  .card.locked { opacity: 0.5; }
+  .card.in-progress { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="card">
+      <div class="icon"><img src="../assets/cat-morning.svg" alt=""></div>
+      <div><div class="title">물 한 잔 마시기</div><div class="sub">기상 직후</div></div>
+      <div class="check"></div>
+    </div>
+    <div class="card in-progress">
+      <div class="icon" style="background:#FBEDE3"><img src="../assets/cat-fitness.svg" alt=""></div>
+      <div><div class="title">5분 스트레칭</div><div class="sub">진행중 · 2분 남음</div></div>
+      <div class="check" style="border-color: var(--primary); color: var(--primary); font-weight:800">▸</div>
+    </div>
+    <div class="card">
+      <div class="icon" style="background:#E6F4EF"><img src="../assets/cat-reading.svg" alt=""></div>
+      <div><div class="title">책 한 페이지</div><div class="sub">취침 전</div></div>
+      <div class="check done">✓</div>
+    </div>
+    <div class="card locked">
+      <div class="icon" style="background:#ECF1FB"><img src="../assets/cat-mind.svg" alt=""></div>
+      <div><div class="title">감사 일기 한 줄</div><div class="sub">잠금 — 별가루 50개 필요</div></div>
+      <div class="check"></div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+  .cell { aspect-ratio: 1 / 1; background: var(--bg-2); border: 1px solid var(--border-1); display: flex; align-items: flex-end; justify-content: center; padding: 10px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-2); }
+  .name { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--fg-1); margin-top: 6px; text-align: center; }
+</style></head>
+<body>
+  <div class="grid">
+    <div>
+      <div class="cell" style="border-radius:6px">6</div>
+      <div class="name">xs</div>
+    </div>
+    <div>
+      <div class="cell" style="border-radius:10px">10</div>
+      <div class="name">sm</div>
+    </div>
+    <div>
+      <div class="cell" style="border-radius:14px">14</div>
+      <div class="name">md</div>
+    </div>
+    <div>
+      <div class="cell" style="border-radius:16px">16</div>
+      <div class="name">button</div>
+    </div>
+    <div>
+      <div class="cell" style="border-radius:20px">20</div>
+      <div class="name">lg · 카드</div>
+    </div>
+    <div>
+      <div class="cell" style="border-radius:28px">28</div>
+      <div class="name">xl · 시트</div>
+    </div>
+    <div>
+      <div class="cell" style="border-radius:999px">∞</div>
+      <div class="name">pill</div>
+    </div>
+  </div>
+</body></html>

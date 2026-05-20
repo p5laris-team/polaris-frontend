@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); display: flex; gap: 24px; align-items: center; }
+  .panel { background: var(--bg-2); border: 1px solid var(--border-1); border-radius: 24px; padding: 28px; display: flex; align-items: center; gap: 18px; box-shadow: var(--shadow-sm); }
+  .panel.dark { background: var(--neutral-800); color: var(--neutral-50); border-color: transparent; }
+  .panel img { display: block; }
+  .name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--fg-1); margin-top: 12px; }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+</style></head>
+<body>
+  <div class="col">
+    <div class="panel"><img src="../assets/logo-wordmark.svg" width="180"></div>
+    <div class="name">Wordmark</div>
+    <div class="meta">logo-wordmark.svg</div>
+  </div>
+  <div class="col">
+    <div class="panel" style="padding:16px"><img src="../assets/logomark.svg" width="80" height="80"></div>
+    <div class="name">App Icon</div>
+    <div class="meta">logomark.svg</div>
+  </div>
+  <div class="col">
+    <div class="panel dark" style="padding:16px"><img src="../assets/logomark.svg" width="80" height="80" style="filter:drop-shadow(0 6px 16px rgba(244,211,94,0.4))"></div>
+    <div class="name">On dark</div>
+    <div class="meta">data-mode="dark"</div>
+  </div>
+  <div class="col">
+    <div class="panel" style="padding:16px"><svg viewBox="0 0 24 24" width="48" height="48" style="color:var(--primary)"><use href="../assets/star-mark.svg#root"/><path d="M12 1.5 L14.2 9.4 L22.5 10.5 L16.4 16.1 L18 24 L12 19.8 L6 24 L7.6 16.1 L1.5 10.5 L9.8 9.4 Z" fill="currentColor"/></svg></div>
+    <div class="name">Star glyph</div>
+    <div class="meta">star-mark.svg</div>
+  </div>
+</body></html>

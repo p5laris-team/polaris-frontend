@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { background: var(--bg-1); padding: 28px; color: var(--fg-1); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .row:last-child { margin-bottom: 0; }
+  .label { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); min-width: 80px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--bg-3); color: var(--fg-1); border: 1px solid var(--border-1); }
+  .chip-selected { background: var(--primary); color: white; border-color: var(--primary); }
+  .chip-soft { background: var(--primary-soft); color: var(--primary-strong); border-color: transparent; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; background: var(--bg-3); color: var(--fg-2); }
+  .badge-primary { background: var(--primary); color: white; }
+  .badge-accent { background: var(--accent); color: var(--neutral-800); }
+  .badge-success { background: var(--success-soft); color: var(--success); }
+  .badge-danger { background: var(--danger-soft); color: var(--danger); }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+</style></head>
+<body>
+  <div class="row">
+    <span class="label">chips</span>
+    <span class="chip">전체</span>
+    <span class="chip chip-selected">아침</span>
+    <span class="chip">오후</span>
+    <span class="chip">저녁</span>
+    <span class="chip chip-soft">진행중</span>
+  </div>
+  <div class="row">
+    <span class="label">badges</span>
+    <span class="badge">NEW</span>
+    <span class="badge badge-primary">3</span>
+    <span class="badge badge-accent">✦ 별가루</span>
+    <span class="badge badge-success"><span class="dot"></span> 완료</span>
+    <span class="badge badge-danger">지각</span>
+  </div>
+</body></html>
