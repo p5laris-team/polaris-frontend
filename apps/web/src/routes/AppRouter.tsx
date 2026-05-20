@@ -10,6 +10,7 @@ import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
 import { CharacterSelectPage } from "@/features/onboarding/ui/CharacterSelectPage";
 import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyPage";
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
+import { ShopPage } from "@/features/shop/ui/ShopPage";
 import { DesignSystemPreviewPage } from "@/pages/DesignSystemPreviewPage";
 import { RoutePlaceholderPage } from "@/pages/RoutePlaceholderPage";
 import { routes } from "@/routes/paths";
@@ -42,17 +43,7 @@ export function AppRouter() {
         <Route path={routes.missionAnswer} element={<MissionAnswerPage />} />
         <Route path={routes.missionResult} element={<MissionResultPage />} />
         <Route path={routes.character} element={<CharacterCarePage />} />
-        <Route
-          path={routes.shop}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-013"
-              title="상점"
-              description="스킨과 소모품을 별조각으로 구매하는 화면이에요."
-              apiNote="GET /api/item/v1/items?itemType=SKIN|CONSUMABLE"
-            />
-          }
-        />
+        <Route path={routes.shop} element={<ShopPage />} />
         <Route
           path={routes.inventory}
           element={
