@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getGoogleAuthorizationUrl } from "@/features/auth/api/authApi";
 import { demoAuthSession } from "@/features/auth/model/authFixtures";
+import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { brandAssets } from "@/shared/assets/polarisAssets";
@@ -17,6 +18,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const setSession = useAuthStore((state) => state.setSession);
+  const resetOnboardingFlow = useOnboardingSetupStore((state) => state.resetFlow);
   const { showToast } = useToast();
 
   const handleGoogleLogin = async () => {
@@ -25,8 +27,9 @@ export function LoginPage() {
     try {
       if (runtimeConfig.useApiFixtures) {
         setSession(demoAuthSession);
-        showToast("개발용 로그인으로 홈 화면을 열었어요.");
-        navigate(routes.home, { replace: true });
+        resetOnboardingFlow();
+        showToast("개발용 로그인으로 온보딩을 시작해요.");
+        navigate(routes.onboardingCharacter, { replace: true });
         return;
       }
 
@@ -70,7 +73,7 @@ export function LoginPage() {
             </p>
             <span className="login-page__dev-note">
               <Sparkles size={14} strokeWidth={1.8} />
-              API fixture 모드에서는 버튼 클릭 시 개발용 세션으로 이동합니다.
+              API fixture 모드에서는 버튼 클릭 시 캐릭터 선택으로 이동합니다.
             </span>
           </div>
         </section>

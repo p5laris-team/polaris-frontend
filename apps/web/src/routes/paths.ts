@@ -1,5 +1,8 @@
 export const routes = {
   login: "/login",
+  onboardingCharacter: "/onboarding/character",
+  onboardingCharacterName: "/onboarding/character-name",
+  onboardingQuestions: "/onboarding/questions",
   home: "/app/home",
   missions: "/app/missions",
   missionAnswer: "/app/missions/current/answer",

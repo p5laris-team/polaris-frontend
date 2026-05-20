@@ -4,6 +4,10 @@ import { LoginPage } from "@/features/auth/ui/LoginPage";
 import { HomePage } from "@/features/home/ui/HomePage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
+import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
+import { CharacterSelectPage } from "@/features/onboarding/ui/CharacterSelectPage";
+import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyPage";
+import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
 import { DesignSystemPreviewPage } from "@/pages/DesignSystemPreviewPage";
 import { RoutePlaceholderPage } from "@/pages/RoutePlaceholderPage";
 import { routes } from "@/routes/paths";
@@ -18,6 +22,9 @@ export function AppRouter() {
       <Route path={routes.designSystem} element={<DesignSystemPreviewPage />} />
 
       <Route element={<ProtectedRoute />}>
+        <Route path={routes.onboardingCharacter} element={<CharacterSelectPage />} />
+        <Route path={routes.onboardingCharacterName} element={<CharacterNamePage />} />
+        <Route path={routes.onboardingQuestions} element={<OnboardingSurveyPage />} />
         <Route path={routes.home} element={<HomePage />} />
         <Route
           path={routes.missions}
@@ -129,8 +136,14 @@ export function AppRouter() {
 
 function RootRedirect() {
   const hasSession = useAuthStore((state) => state.hasSession());
+  const onboardingCompleted = useOnboardingSetupStore((state) => state.completed);
 
-  return <Navigate to={hasSession || runtimeConfig.useApiFixtures ? routes.home : routes.login} replace />;
+  if (!hasSession && !runtimeConfig.useApiFixtures) {
+    return <Navigate to={routes.login} replace />;
+  }
+
+  // SCR-003~005가 끝나기 전에는 홈보다 온보딩 시작점을 먼저 보여준다.
+  return <Navigate to={onboardingCompleted ? routes.home : routes.onboardingCharacter} replace />;
 }
 
 function ProtectedRoute() {
