@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import { LoginPage } from "@/features/auth/ui/LoginPage";
+import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
 import { HomePage } from "@/features/home/ui/HomePage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
@@ -39,17 +40,7 @@ export function AppRouter() {
         />
         <Route path={routes.missionAnswer} element={<MissionAnswerPage />} />
         <Route path={routes.missionResult} element={<MissionResultPage />} />
-        <Route
-          path={routes.character}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-012"
-              title="별친구 돌봄"
-              description="포만감, 기운, 애정을 확인하고 밥 주기·재우기·놀아주기를 실행할 화면이에요."
-              apiNote="GET /api/character/v1/characters/me, POST /api/character/v1/characters/{characterId}/care-logs"
-            />
-          }
-        />
+        <Route path={routes.character} element={<CharacterCarePage />} />
         <Route
           path={routes.shop}
           element={

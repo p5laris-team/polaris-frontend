@@ -1,6 +1,7 @@
 .character-stage {
   position: relative;
   overflow: hidden;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,6 +10,25 @@
   background: linear-gradient(180deg, var(--bg-character) 0%, var(--bg-2) 95%);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-character);
+}
+
+.character-stage--button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.character-stage--button:hover {
+  transform: translateY(-1px);
+}
+
+.character-stage--button:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary), var(--shadow-character);
 }
 
 .character-stage::before {

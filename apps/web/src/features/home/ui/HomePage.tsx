@@ -121,6 +121,8 @@ export function HomePage() {
           mood={home.character.mood}
           name={home.character.name}
           bubble={home.character.bubble}
+          ariaLabel="별친구 돌봄 화면 열기"
+          onClick={() => navigate(routes.character)}
           stats={[
             { label: "애정", value: `${home.character.gauges[2]?.value ?? 0}%` },
             { label: "별조각", value: home.walletStarPiece },
