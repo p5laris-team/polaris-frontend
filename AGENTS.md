@@ -256,8 +256,35 @@ API 클라이언트 지침:
 - 서버 상태는 TanStack Query로 관리한다.
 - 로그인 세션, 선택 테마, 앱 설정 같은 클라이언트 상태는 Zustand에 둔다.
 - 화면 내부 임시 상태만 `useState`로 둔다.
-- 중복 보상/구매/돌봄/출석 같은 API는 `idempotencyKey`를 고려한다.
+- 중복 보상/구매/돌봄/출석 같은 API는 멱등성 키를 반드시 고려한다.
 - 서버 오류 문구가 너무 기술적이면 사용자 노출 문구는 Polaris 톤으로 다듬는다.
+
+멱등성 키 위치는 API마다 다를 수 있으므로 이름만 보고 임의로 처리하지 않는다.
+
+- 캐릭터 돌봄 액션 `POST /api/character/v1/characters/{characterId}/care-logs`는 요청 헤더 `Idempotency-Key`를 사용한다.
+- 공유 이벤트 `POST /api/share/v1/share-events`는 request body의 `idempotencyKey`를 사용한다.
+- 다른 동시성 민감 API는 `docs/01-API-spec.md`의 해당 endpoint 상세를 확인해 header인지 body인지 맞춘다.
+- `DUPLICATED_IDEMPOTENCY_KEY` 응답은 중복 요청으로 처리하고, 사용자에게 같은 보상을 또 지급된 것처럼 표시하지 않는다.
+
+커서 페이지네이션 구현 규칙:
+
+- 상점 `GET /api/item/v1/items`, 인벤토리 `GET /api/item/v1/user-items`, 알림 `GET /api/notification/v1/notifications`는 cursor 기반 목록으로 구현한다.
+- 요청에는 `cursor`와 `size`를 사용한다. 첫 요청의 `cursor`는 `null` 또는 생략 가능한 명세인지 endpoint별로 확인한다.
+- 응답의 `pageInfo.nextCursor`와 `pageInfo.hasNext`를 기준으로 다음 페이지를 요청한다.
+- 무한 스크롤/더보기 구현 시 같은 cursor로 중복 요청하지 않도록 loading 상태를 잠근다.
+- 새로고침 시 cursor 목록을 초기화하고 첫 페이지부터 다시 조회한다.
+
+공유 카드 구현 규칙:
+
+- 공유 카드 플로우는 `컴포넌트 렌더링 -> 이미지 캡처 -> presigned-url 발급 -> R2/S3로 PUT 업로드 -> share-card 생성 -> share-event 기록` 순서로 구현한다.
+- presigned URL은 `GET /api/share/v1/presigned-url`로 발급받는다.
+- 프론트엔드는 발급받은 `presignedUrl`에 이미지 파일을 HTTP `PUT`으로 직접 업로드한다.
+- 업로드 완료 후 서버가 내려준 공개 `imageUrl`을 사용해 `POST /api/share/v1/share-cards`를 호출한다.
+- 사용자가 실제 공유 버튼을 눌렀을 때 `POST /api/share/v1/share-events`를 호출하고, body에 `idempotencyKey`를 포함한다.
+- 공유 카드 캡처 이미지 권장 크기는 1200 x 630px이다.
+- `og:image`로 쓰이는 이미지 URL은 반드시 `https://...` 형태의 절대 URL이어야 한다.
+- 공유 링크 미리보기용 OG 태그는 프론트 SPA에서 동적으로 처리하지 않는다. `og:title`, `og:description`, `og:image`, `og:url`은 서버가 공유 링크 HTML의 `head`에 렌더링해야 한다.
+- 프론트는 공유 링크 화면 UI를 구현할 수 있지만, 메신저/소셜 미리보기 보장을 위해 OG 메타 태그 책임을 가져오지 않는다.
 
 ## 12. 권장 폴더 구조
 
@@ -324,6 +351,7 @@ src/
 - 터치 영역은 모바일에서 충분히 크게 둔다.
 - 접근성 라벨을 넣을 수 있는 버튼/이미지에는 `accessibilityLabel`을 제공한다.
 - 텍스트 입력은 글자 수 제한, 에러 문구, 비활성 상태를 함께 고려한다.
+- 캐릭터 이름 입력은 1~10자 제한을 적용한다. 빈 값, 공백만 있는 값, 10자를 초과한 값은 제출하지 않는다.
 - 컴포넌트 스타일은 디자인 원본의 spacing/radius/color/shadow를 따른다.
 
 ## 14. 바이브코딩 작업 규칙
