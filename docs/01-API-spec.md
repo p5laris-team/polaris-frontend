@@ -126,7 +126,7 @@ Base Pattern: /api/{domain}/v1/{resource}
 | PATCH  | `/api/character/v1/characters/{characterId}`                    | 캐릭터 이름 수정     | path + body | character | 🔐 |
 | GET    | `/api/character/v1/characters/{characterId}/status`             | 캐릭터 상태 조회     | path | status | 🔐 |
 | POST   | `⚠️ /api/character/v1/characters/{characterId}/care-logs`       | 돌봄 액션 수행      | path + body | care result | 🔐 |
-| PUT    | `⚠️ /api/character/v1/characters/{characterId}/equipped-skin`   | 캐릭터 스킨 장착     | path + body | equipped skin | 🔐 |
+| PUT    | `⚠️ /api/character/v1/characters/{characterId}/equipped-skin`   | 캐릭터 스킨 장착/해제 | path + body | equipped skin | 🔐 |
 | GET    | `💾 /api/onboarding/v1/questions`                               | 온보딩 질문 목록 조회  | none | questions | 🔐 |
 | GET    | `/api/onboarding/v1/profiles/me`                                | 내 온보딩 프로필 조회  | none | profile | 🔐 |
 | PUT    | `/api/onboarding/v1/profiles/me`                                | 내 온보딩 프로필 저장/완료 | body | profile | 🔐 |
@@ -565,9 +565,15 @@ Refresh Token으로 Access Token을 재발급한다.
 ### 4.8 PUT `⚠️ /api/character/v1/characters/{characterId}/equipped-skin` 🔐
 
 **설명**  
-캐릭터에 스킨을 장착한다. 스킨은 한 번에 하나만 적용한다.
+캐릭터에 스킨을 장착하거나 기본 외형으로 해제한다. 스킨은 한 번에 하나만 적용한다.
+
+- `itemId`가 숫자이면 해당 보유 스킨을 장착한다.
+- `itemId`가 `null`이면 현재 장착 스킨을 해제하고 기본 외형으로 되돌린다.
+- 클라이언트는 `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId`와 `GET /api/item/v1/user-items` 응답의 `itemId`를 비교해 장착 여부를 표시한다.
 
 **Request**
+
+장착:
 
 ```json
 {
@@ -575,7 +581,17 @@ Refresh Token으로 Access Token을 재발급한다.
 }
 ```
 
+해제:
+
+```json
+{
+  "itemId": null
+}
+```
+
 **Response**
+
+장착:
 
 ```json
 {
@@ -585,6 +601,16 @@ Refresh Token으로 Access Token을 재발급한다.
     "name": "말랑 별빛 스킨"
   },
   "updatedAt": "2026-05-15T18:40:00+09:00"
+}
+```
+
+해제:
+
+```json
+{
+  "characterId": 10,
+  "equippedSkin": null,
+  "updatedAt": "2026-05-15T18:45:00+09:00"
 }
 ```
 
@@ -1034,6 +1060,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 > `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId` 와  
 > 이 API 응답의 `itemId` 를 클라이언트에서 비교합니다.  
 > `itemId === equippedSkin.itemId` → 장착된 스킨
+> `equippedSkin === null` → 기본 외형 상태
 
 **Request (Query Parameters)**
 
