@@ -13,6 +13,8 @@ type CharacterStageProps = {
   name: string;
   bubble?: string;
   stats?: StageStat[];
+  onClick?: () => void;
+  ariaLabel?: string;
 };
 
 export function CharacterStage({
@@ -21,10 +23,11 @@ export function CharacterStage({
   name,
   bubble,
   stats = [],
+  onClick,
+  ariaLabel,
 }: CharacterStageProps) {
-  return (
-    // 홈/돌봄/완료 화면에서 캐릭터 이미지, 이름, 말풍선, 요약 상태를 묶어 보여준다.
-    <section className="character-stage" aria-label={`${name} 캐릭터`}>
+  const content = (
+    <>
       <div className="character-stage__image">
         <img src={characterAssets[character][mood]} alt="" />
       </div>
@@ -39,6 +42,27 @@ export function CharacterStage({
           ))}
         </div>
       ) : null}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      // 홈 캐릭터 영역처럼 상세 화면 진입점이 될 때는 같은 무대 스타일을 버튼으로 재사용한다.
+      <button
+        aria-label={ariaLabel ?? `${name} 캐릭터 자세히 보기`}
+        className="character-stage character-stage--button"
+        onClick={onClick}
+        type="button"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    // 홈/돌봄/완료 화면에서 캐릭터 이미지, 이름, 말풍선, 요약 상태를 묶어 보여준다.
+    <section className="character-stage" aria-label={`${name} 캐릭터`}>
+      {content}
     </section>
   );
 }

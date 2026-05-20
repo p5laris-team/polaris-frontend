@@ -1,5 +1,9 @@
 import { type HomeResponse } from "@/entities/home/types";
-import { type CharacterTypeCode } from "@/entities/character/types";
+import {
+  type CharacterStates,
+  type CharacterStatusValue,
+  type CharacterTypeCode,
+} from "@/entities/character/types";
 import {
   type CurrentMissionResponse,
   type MissionCompletionQuestionResponse,
@@ -49,6 +53,14 @@ const missionTemplates: CurrentMissionResponse[] = [
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+const careActionCost = {
+  FEED: 3,
+  SLEEP: 0,
+  PLAY: 2,
+} as const;
+
+type DemoCareActionType = keyof typeof careActionCost;
+
 const initialHomeResponse: HomeResponse = {
   user: {
     id: 1,
@@ -81,6 +93,14 @@ export function getDemoHomeResponse() {
   return clone(demoHomeState);
 }
 
+export function getDemoActiveCharacter() {
+  return clone(demoHomeState.character);
+}
+
+export function getDemoWalletStarPiece() {
+  return demoHomeState.wallet.starPiece;
+}
+
 export function demoApplyCreatedCharacter({
   id,
   name,
@@ -97,6 +117,26 @@ export function demoApplyCreatedCharacter({
     name,
     characterTypeCode,
     currentAssetUrl: `https://cdn.polaris.app/${characterTypeCode.toLowerCase()}/idle.png`,
+  };
+}
+
+export function demoCareForCharacter(actionType: DemoCareActionType) {
+  const cost = careActionCost[actionType];
+
+  if (demoHomeState.wallet.starPiece < cost) {
+    throw new Error("별조각이 부족해요. 미션을 완료해서 별조각을 모아봐요!");
+  }
+
+  const beforeStates = toNumericStates(demoHomeState.character.states);
+  const nextStates = applyCareToStates(beforeStates, actionType);
+
+  demoHomeState.wallet.starPiece -= cost;
+  demoHomeState.character.states = toCharacterStates(nextStates);
+
+  return {
+    beforeStates,
+    afterStates: nextStates,
+    starPiece: demoHomeState.wallet.starPiece,
   };
 }
 
@@ -121,6 +161,79 @@ export function demoStartCompletionSession(missionId: number): MissionCompletion
       maxLength: 300,
     },
   };
+}
+
+function applyCareToStates(
+  states: Record<keyof CharacterStates, number>,
+  actionType: DemoCareActionType,
+) {
+  if (actionType === "FEED") {
+    return {
+      ...states,
+      hunger: clampStatus(states.hunger + 30),
+    };
+  }
+
+  if (actionType === "SLEEP") {
+    return {
+      ...states,
+      energy: clampStatus(states.energy + 30),
+    };
+  }
+
+  return {
+    ...states,
+    affection: clampStatus(states.affection + 25),
+  };
+}
+
+function toNumericStates(states: CharacterStates): Record<keyof CharacterStates, number> {
+  return {
+    hunger: states.hunger.value,
+    energy: states.energy.value,
+    affection: states.affection.value,
+  };
+}
+
+function toCharacterStates(states: Record<keyof CharacterStates, number>): CharacterStates {
+  return {
+    hunger: toStatusValue("hunger", states.hunger),
+    energy: toStatusValue("energy", states.energy),
+    affection: toStatusValue("affection", states.affection),
+  };
+}
+
+function toStatusValue(kind: keyof CharacterStates, value: number): CharacterStatusValue {
+  const clamped = clampStatus(value);
+  const grade = clamped <= 30 ? "BAD" : clamped <= 70 ? "NORMAL" : "GOOD";
+
+  return {
+    value: clamped,
+    label: getStatusLabel(kind, clamped),
+    grade,
+  };
+}
+
+function getStatusLabel(kind: keyof CharacterStates, value: number) {
+  if (kind === "hunger") {
+    if (value <= 30) return "배고파요";
+    if (value <= 70) return "배불러요";
+    return "완전 배불러요";
+  }
+
+  if (kind === "energy") {
+    if (value <= 30) return "피곤해요";
+    if (value <= 70) return "괜찮아요";
+    return "활기차요";
+  }
+
+  if (value <= 30) return "쓸쓸해요";
+  if (value <= 70) return "좋아요";
+  return "너무 좋아요";
+}
+
+function clampStatus(value: number) {
+  return Math.max(0, Math.min(100, value));
 }
 
 export function demoRejectMission(missionId: number): MissionRejectionResponse {
