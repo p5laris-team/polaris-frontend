@@ -1,0 +1,33 @@
+.icon-button {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: var(--fg-1);
+  background: transparent;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.icon-button:hover {
+  background: var(--bg-3);
+}
+
+.icon-button:active {
+  transform: scale(0.94);
+}
+
+.icon-button:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.icon-button:disabled {
+  color: var(--fg-4);
+  cursor: not-allowed;
+}
