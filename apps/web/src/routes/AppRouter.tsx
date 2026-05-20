@@ -1,5 +1,6 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
+import { AttendancePage } from "@/features/attendance/ui/AttendancePage";
 import { LoginPage } from "@/features/auth/ui/LoginPage";
 import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
 import { HomePage } from "@/features/home/ui/HomePage";
@@ -85,17 +86,7 @@ export function AppRouter() {
             />
           }
         />
-        <Route
-          path={routes.attendance}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-019"
-              title="출석 체크"
-              description="오늘 출석 보상과 월별 출석 기록을 보여줄 화면이에요."
-              apiNote="POST /api/attendance/v1/attendance-records, GET /api/attendance/v1/attendance-records"
-            />
-          }
-        />
+        <Route path={routes.attendance} element={<AttendancePage />} />
         <Route
           path={routes.notifications}
           element={

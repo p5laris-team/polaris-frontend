@@ -140,6 +140,25 @@ export function demoCareForCharacter(actionType: DemoCareActionType) {
   };
 }
 
+export function demoApplyAttendanceReward({
+  rewardStarPiece,
+  affection = 3,
+}: {
+  rewardStarPiece: number;
+  affection?: number;
+}) {
+  // SCR-019 fixture 출석 보상은 홈의 별조각과 캐릭터 애정도에 바로 반영해 화면 간 상태를 이어준다.
+  const nextAffection = clampStatus(demoHomeState.character.states.affection.value + affection);
+
+  demoHomeState.wallet.starPiece += rewardStarPiece;
+  demoHomeState.character.states.affection = toStatusValue("affection", nextAffection);
+
+  return {
+    starPiece: demoHomeState.wallet.starPiece,
+    affection: nextAffection,
+  };
+}
+
 export function demoStartCompletionSession(missionId: number): MissionCompletionQuestionResponse {
   const mission = demoHomeState.currentMission;
 
