@@ -4,6 +4,7 @@ import { AttendancePage } from "@/features/attendance/ui/AttendancePage";
 import { LoginPage } from "@/features/auth/ui/LoginPage";
 import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
 import { HomePage } from "@/features/home/ui/HomePage";
+import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
 import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
@@ -44,17 +45,7 @@ export function AppRouter() {
         <Route path={routes.missionResult} element={<MissionResultPage />} />
         <Route path={routes.character} element={<CharacterCarePage />} />
         <Route path={routes.shop} element={<ShopPage />} />
-        <Route
-          path={routes.inventory}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-014"
-              title="인벤토리"
-              description="보유 스킨 장착과 소모품 사용 흐름을 붙일 화면이에요."
-              apiNote="GET /api/item/v1/user-items, PUT /api/character/v1/characters/{characterId}/equipped-skin"
-            />
-          }
-        />
+        <Route path={routes.inventory} element={<InventoryPage />} />
         <Route
           path={routes.wallet}
           element={

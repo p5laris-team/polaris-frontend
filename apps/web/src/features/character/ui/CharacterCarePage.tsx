@@ -132,6 +132,7 @@ export function CharacterCarePage() {
             { label: "포만감", value: `${states.hunger.value}%` },
             { label: "기운", value: `${states.energy.value}%` },
             { label: "애정", value: `${states.affection.value}%` },
+            { label: "스킨", value: character.equippedSkin?.name ?? "기본" },
           ]}
         />
 
@@ -184,8 +185,8 @@ export function CharacterCarePage() {
 
         <Card className="character-care-page__inventory-callout">
           <div>
-            <strong>스킨과 소모품은 다음 흐름에서 이어져요.</strong>
-            <p>이번 PR은 별조각/무료 돌봄 액션까지만 붙이고, 보유 아이템 사용은 SCR-014에서 연결합니다.</p>
+            <strong>스킨은 보관함에서 바꿀 수 있어요.</strong>
+            <p>보유 스킨을 장착하거나 기본 외형으로 되돌릴 수 있습니다.</p>
           </div>
           <Button variant="secondary" onClick={() => navigate(routes.inventory)}>
             <Shirt size={18} strokeWidth={1.8} />

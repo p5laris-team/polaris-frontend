@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
+import { inventoryQueryKeys } from "@/features/inventory/api/inventoryApi";
 import {
   demoGetShopItems,
   demoPurchaseShopItem,
@@ -72,6 +73,7 @@ export function usePurchaseShopItemMutation() {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: shopQueryKeys.skins() }),
+        queryClient.invalidateQueries({ queryKey: inventoryQueryKeys.skins() }),
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
       ]);
     },
