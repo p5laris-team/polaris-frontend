@@ -159,6 +159,19 @@ export function demoApplyAttendanceReward({
   };
 }
 
+export function demoApplyItemPurchase({ price }: { price: number }) {
+  if (demoHomeState.wallet.starPiece < price) {
+    throw new Error("별조각이 부족해요. 미션을 완료해서 별조각을 모아봐요!");
+  }
+
+  // SCR-013 fixture 구매는 홈 지갑을 함께 차감해 상점과 홈의 별조각 숫자가 어긋나지 않게 한다.
+  demoHomeState.wallet.starPiece -= price;
+
+  return {
+    starPiece: demoHomeState.wallet.starPiece,
+  };
+}
+
 export function demoStartCompletionSession(missionId: number): MissionCompletionQuestionResponse {
   const mission = demoHomeState.currentMission;
 

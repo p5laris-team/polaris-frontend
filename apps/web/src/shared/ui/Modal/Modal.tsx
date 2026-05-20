@@ -9,6 +9,7 @@ type ModalProps = {
   children: ReactNode;
   confirmText?: string;
   cancelText?: string;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel?: () => void;
 };
@@ -19,6 +20,7 @@ export function Modal({
   children,
   confirmText = "확인",
   cancelText = "취소",
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: ModalProps) {
@@ -41,7 +43,9 @@ export function Modal({
               {cancelText}
             </Button>
           ) : null}
-          <Button onClick={onConfirm}>{confirmText}</Button>
+          <Button disabled={confirmDisabled} onClick={onConfirm}>
+            {confirmText}
+          </Button>
         </div>
       </section>
     </div>
