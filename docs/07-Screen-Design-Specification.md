@@ -84,7 +84,7 @@
 | SCR-007 | 미션 카드 | UC-006, UC-007, UC-008 | 미션 1개 제안, 완료/거절 선택                     | `GET /api/mission/v1/missions/current`, `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/rejections`, `POST /api/mission/v1/missions/today-focus/next` |
 | SCR-009 | 미션 완료 질문 | UC-008, UC-009 | 캐릭터 질문 1개, 텍스트 답변 입력                   | `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/completion-answers` |
 | SCR-010 | 미션 완료 결과 | UC-009, UC-021 | 별조각 지급 애니메이션, 캐릭터 반응         | `POST /api/mission/v1/missions/{missionId}/completion-answers`, `GET /api/wallet/v1/wallets/me` |
-| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회 (최대 15개)          | MVP API 미제공(클라이언트 세션 기록 또는 후속 API 필요) |
+| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회 (최대 15개)          | `GET /api/mission/v1/missions/today` |
 | SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태 3개 확인, 밥 주기/재우기/놀아주기            | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `POST /api/character/v1/characters/{characterId}/care-logs` |
 | SCR-013 | 상점 | UC-015, UC-016, UC-017, UC-023 | 스킨·소모품 목록 조회, 별조각으로 구매       | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me` |
 | SCR-014 | 인벤토리 | UC-018, UC-019 | 보유 아이템 조회, 스킨 장착, 소모품 사용               | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin`, `POST /api/character/v1/characters/{characterId}/care-logs` |
@@ -470,7 +470,7 @@
 | **화면 이름** | 미션 히스토리 |
 | **진입 경로** | SCR-006 홈 하단 "오늘 완료 N개" 탭 |
 | **관련 UC** | UC-006 |
-| **호출 API** | MVP API 미제공(클라이언트 세션 기록 또는 후속 API 필요) |
+| **호출 API** | `GET /api/mission/v1/missions/today` |
 
 #### 화면 구성
 
@@ -478,19 +478,37 @@
 [상단]
 - "오늘의 미션 기록" 제목
 - 오늘 날짜
+- 오늘 제안 수 / 최대 15개 / 남은 제안 수
+
+[요약]
+- 완료 수
+- 거절 수
+- 현재 진행 중 미션 (`currentMissionId` 기준 강조)
 
 [목록 — 오늘 미션 스택]
 각 항목:
+├── stackOrder
 ├── 미션 제목
-├── 상태 배지: 완료(초록) / 거절(회색) / 제안됨(파랑)
-├── 완료 시각 or 거절 시각
+├── 상태 배지: 완료(초록) / 거절(회색) / 제안됨(파랑) / 답변 중(노랑)
+├── 생성 시각 / 완료 시각 or 거절 시각
 └── 완료 항목: 보상 별조각 표시
+
+[진행 중 항목]
+- `currentMissionId`와 같은 미션은 강조 표시
+- 탭 시 SCR-006 홈으로 이동해 현재 미션을 이어서 처리
 
 [빈 상태]
 - "아직 오늘의 미션이 없어요. 홈에서 시작해봐요!"
 
 [하단]
 - [홈으로] 버튼
+```
+
+#### API 정책
+
+```
+하루 미션 제안은 최대 15개이므로 pagination을 사용하지 않는다.
+`currentMissionId`는 현재 `OFFERED` 또는 `ANSWERING` 상태 미션을 명시하기 위한 필드다.
 ```
 
 ---
