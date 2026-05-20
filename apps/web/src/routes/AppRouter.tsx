@@ -8,6 +8,7 @@ import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
 import { MyPage } from "@/features/my-page/ui/MyPage";
+import { NotificationsPage } from "@/features/notifications/ui/NotificationsPage";
 import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
 import { CharacterSelectPage } from "@/features/onboarding/ui/CharacterSelectPage";
 import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyPage";
@@ -70,17 +71,7 @@ export function AppRouter() {
           }
         />
         <Route path={routes.attendance} element={<AttendancePage />} />
-        <Route
-          path={routes.notifications}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-020"
-              title="알림"
-              description="알림 목록과 읽음 처리를 연결할 화면이에요."
-              apiNote="GET /api/notification/v1/notifications, PATCH /api/notification/v1/notifications/{notificationId}"
-            />
-          }
-        />
+        <Route path={routes.notifications} element={<NotificationsPage />} />
         <Route path={routes.myPage} element={<MyPage />} />
       </Route>
 
