@@ -11,6 +11,8 @@
 | 상태 | Draft |
 | 작성자 | Backend Architecture Team |
 
+> UI/UX 에셋 제작 항목은 [08. UI/UX 에셋 제작 가이드](./08-UIUX-Asset-Production-Guide.md)를 기준으로 별도 관리한다.
+
 ---
 
 ## 목차
