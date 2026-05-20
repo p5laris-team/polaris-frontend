@@ -7,6 +7,7 @@ import { HomePage } from "@/features/home/ui/HomePage";
 import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
+import { MyPage } from "@/features/my-page/ui/MyPage";
 import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
 import { CharacterSelectPage } from "@/features/onboarding/ui/CharacterSelectPage";
 import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyPage";
@@ -80,17 +81,7 @@ export function AppRouter() {
             />
           }
         />
-        <Route
-          path={routes.myPage}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-021"
-              title="마이페이지"
-              description="내 정보, 알림 로컬 설정, 로그아웃을 모을 화면이에요."
-              apiNote="GET /api/user/v1/users/me, DELETE /api/auth/v1/sessions/current"
-            />
-          }
-        />
+        <Route path={routes.myPage} element={<MyPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
