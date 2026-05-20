@@ -101,6 +101,11 @@ export function getDemoWalletStarPiece() {
   return demoHomeState.wallet.starPiece;
 }
 
+export function demoSetUnreadNotificationCount(unreadCount: number) {
+  // 알림 fixture에서 읽음 상태가 바뀌면 홈의 알림 요약 숫자도 같은 기준으로 맞춘다.
+  demoHomeState.notifications.unreadCount = Math.max(0, unreadCount);
+}
+
 export function demoApplyCreatedCharacter({
   id,
   name,
