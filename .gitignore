@@ -4,6 +4,7 @@ node_modules/
 # 빌드 산출물
 dist/
 apps/*/dist/
+apps/*/.vite/
 
 # 로컬 개발 로그
 *.log

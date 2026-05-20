@@ -1,4 +1,5 @@
 import { type HomeResponse } from "@/entities/home/types";
+import { type CharacterTypeCode } from "@/entities/character/types";
 import {
   type CurrentMissionResponse,
   type MissionCompletionQuestionResponse,
@@ -78,6 +79,25 @@ let lastClosedMissionStackOrder = initialHomeResponse.currentMission?.stackOrder
 
 export function getDemoHomeResponse() {
   return clone(demoHomeState);
+}
+
+export function demoApplyCreatedCharacter({
+  id,
+  name,
+  characterTypeCode,
+}: {
+  id: number;
+  name: string;
+  characterTypeCode: CharacterTypeCode;
+}) {
+  // 온보딩 fixture에서 만든 캐릭터를 홈 fixture에도 반영해 최초 진입 흐름이 이어져 보이게 한다.
+  demoHomeState.character = {
+    ...demoHomeState.character,
+    id,
+    name,
+    characterTypeCode,
+    currentAssetUrl: `https://cdn.polaris.app/${characterTypeCode.toLowerCase()}/idle.png`,
+  };
 }
 
 export function demoStartCompletionSession(missionId: number): MissionCompletionQuestionResponse {
