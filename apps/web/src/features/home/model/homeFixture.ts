@@ -230,6 +230,15 @@ export function demoApplyAttendanceReward({
   };
 }
 
+export function demoApplyShareReward(rewardStarPiece: number) {
+  // SCR-016 공유 보상 fixture는 홈 지갑과 함께 움직여 공유 직후 별조각 숫자가 어긋나지 않게 한다.
+  demoHomeState.wallet.starPiece += rewardStarPiece;
+
+  return {
+    starPiece: demoHomeState.wallet.starPiece,
+  };
+}
+
 export function demoApplyItemPurchase({ price }: { price: number }) {
   if (demoHomeState.wallet.starPiece < price) {
     throw new Error("별조각이 부족해요. 미션을 완료해서 별조각을 모아봐요!");

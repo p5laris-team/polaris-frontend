@@ -14,6 +14,7 @@ import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
 import { CharacterSelectPage } from "@/features/onboarding/ui/CharacterSelectPage";
 import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyPage";
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
+import { ShareCardPage } from "@/features/share/ui/ShareCardPage";
 import { ShopPage } from "@/features/shop/ui/ShopPage";
 import { DesignSystemPreviewPage } from "@/pages/DesignSystemPreviewPage";
 import { RoutePlaceholderPage } from "@/pages/RoutePlaceholderPage";
@@ -50,17 +51,7 @@ export function AppRouter() {
             />
           }
         />
-        <Route
-          path={routes.share}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-016"
-              title="공유 카드"
-              description="캐릭터 카드를 이미지로 만들고 공유 보상 이벤트를 기록할 화면이에요."
-              apiNote="GET /api/share/v1/presigned-url → PUT upload → POST /api/share/v1/share-cards"
-            />
-          }
-        />
+        <Route path={routes.share} element={<ShareCardPage />} />
         <Route path={routes.attendance} element={<AttendancePage />} />
         <Route path={routes.notifications} element={<NotificationsPage />} />
         <Route path={routes.myPage} element={<MyPage />} />
