@@ -140,7 +140,7 @@ Base Pattern: /api/{domain}/v1/{resource}
 | GET    | `/api/item/v1/user-items`                                       | 내 보유 아이템 조회   | query cursor | user items | 🔐 |
 | POST   | `⚠️ /api/item/v1/item-purchases`                                | 아이템 구매        | body | purchase result | 🔐 |
 | GET    | `/api/share/v1/presigned-url`                                   | 프론트엔드 R2 직접 업로드용 임시 URL 발급 | query | presigned url | 🔐 |
-| POST   | `/api/share/v1/share-cards`                                     | 공유 카드 생성 (멘트 포함) | body | share card | 🔐 |
+| POST   | `/api/share/v1/share-cards`                                     | 공유 카드 생성 (업로드 이미지 URL 포함) | body | share card | 🔐 |
 | POST   | `⚠️ /api/share/v1/share-events`                                 | 공유 시도 이벤트 생성 및 보상 처리 | body | share event | 🔐 |
 | GET    | `/api/share/v1/share-events/today`                              | 오늘 공유 보상 여부 조회 | none | share status | 🔐 |
 | GET    | `💾 /api/share/v1/share-links/{shareId}`                        | 공개 공유 링크 정보 조회 (클릭 로그 내재화) | path | shared card | Public |
@@ -517,7 +517,14 @@ Refresh Token으로 Access Token을 재발급한다.
 ### 4.7 POST `⚠️ /api/character/v1/characters/{characterId}/care-logs` 🔐
 
 **설명**  
-밥 주기, 재우기, 놀아주기 같은 돌봄 액션을 수행한다. 별조각 차감 또는 소모품 수량 차감이 발생할 수 있다.
+밥 주기, 재우기, 놀아주기 같은 돌봄 액션을 수행한다. 별조각 차감 또는 소모품 수량 차감이 발생할 수 있다.  
+중복 요청 및 재시도를 방지하기 위해 반드시 `Idempotency-Key` 헤더를 함께 전송해야 합니다.
+
+**Headers**
+
+| Name | Type | Description | Required |
+|---|---|---|---|
+| `Idempotency-Key` | String | 중복 요청 및 재시도 방지용 고유 멱등키 (예: UUID 또는 고유 문자열) | Yes |
 
 **Request**
 
@@ -694,6 +701,16 @@ MVP 정책:
 완료 답변은 1자 이상 300자 이하로 입력한다.
 ```
 
+입력 검증:
+
+```text
+missionId path variable은 1 이상의 숫자여야 한다.
+다음 미션 요청의 characterId는 필수이며 1 이상의 숫자여야 한다.
+다음 미션 요청의 lastMissionId는 선택값이며, 전달하는 경우 0 이상의 숫자여야 한다.
+완료 답변 answer는 공백만으로 구성될 수 없고 300자를 초과할 수 없다.
+입력값 형식 오류, JSON body 누락/파싱 오류, path variable 타입 오류는 INVALID_INPUT_VALUE로 응답한다.
+```
+
 ### 6.1 GET `/api/mission/v1/missions/current` 🔐
 
 **설명**
@@ -739,11 +756,12 @@ MVP 정책:
 
 ```json
 {
+  "characterId": 10,
   "lastMissionId": 101
 }
 ```
 
-`lastMissionId`는 클라이언트가 마지막으로 보고 있던 미션을 함께 보내기 위한 필드다. 진행 중 미션 존재 여부는 서버 상태 기준으로 확인한다.
+`characterId`는 미션 제안 캐릭터를 기록하기 위해 전달한다. `lastMissionId`는 클라이언트가 마지막으로 보고 있던 미션을 함께 보내기 위한 필드다. 진행 중 미션 존재 여부는 서버 상태 기준으로 확인한다.
 
 **Response**
 
@@ -878,6 +896,10 @@ AI는 seed 미션의 제목, 설명, 카테고리, 난이도, 보상을 임의�
 
 외부 provider 오류, 응답 구조 오류, 정책 위반 등으로 생성 결과를 사용할 수 없으면 미션 템플릿의 fallback 문구를 사용한다.
 
+`requestId`는 AI 생성 요청의 멱등 기준이다. 같은 `requestId`와 같은 요청 본문이 다시 들어오면 기존 `ai_mission_generations` 결과를 반환하고, 같은 `requestId`가 다른 요청 본문과 함께 들어오면 충돌로 처리한다. mission 모듈은 매 호출마다 랜덤 UUID를 만들지 않고, 같은 미션 문구 생성 시도에 같은 `requestId`를 사용한다.
+
+외부 AI provider를 사용하는 경우 ai 모듈은 `requestId` 멱등 결과를 먼저 확인한 뒤 Redis 기반 rate limit을 확인한다. rate limit 초과 또는 Redis rate limit 저장소 장애가 발생하면 외부 provider를 호출하지 않고 fallback 문구를 반환한다.
+
 **gRPC Request**
 
 ```json
@@ -895,7 +917,7 @@ AI는 seed 미션의 제목, 설명, 카테고리, 난이도, 보상을 임의�
   "fallbackCompletionResponse": "잘했어. 오늘의 작은 수분 보충을 별조각으로 기억할게.",
   "onboardingContextJson": "{\"routineGoal\":\"SELF_CARE\"}",
   "recentMissionContextJson": "{\"recentRejected\":[]}",
-  "requestId": "mission-text-1-12-20260520"
+  "requestId": "MISSION_TEXT:2f3a4b..."
 }
 ```
 
@@ -909,7 +931,7 @@ AI는 seed 미션의 제목, 설명, 카테고리, 난이도, 보상을 임의�
   "completionQuestion": "물 마시고 나서 기분이 조금 달라졌어?",
   "completionCharacterResponse": "잘했어. 오늘의 작은 수분 보충을 별조각으로 기억할게.",
   "fallbackUsed": false,
-  "requestId": "mission-text-1-12-20260520"
+  "requestId": "MISSION_TEXT:2f3a4b..."
 }
 ```
 
@@ -924,11 +946,11 @@ fallback 응답 예시:
   "completionCharacterResponse": "잘했어. 오늘의 작은 수분 보충을 별조각으로 기억할게.",
   "fallbackUsed": true,
   "errorType": "INVALID_OUTPUT",
-  "requestId": "mission-text-1-12-20260520"
+  "requestId": "MISSION_TEXT:2f3a4b..."
 }
 ```
 
-AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`에 저장한다. fallback이 사용되면 event-log에 `AI_FALLBACK_USED`를 남긴다.
+AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`에 저장한다. `ai_mission_generations.request_id`는 생성 결과 재사용 기준이고, `ai_usage_logs.request_id`는 해당 생성 시도의 사용량/지연 추적 기준이다. fallback이 사용되면 event-log에 `AI_FALLBACK_USED`를 남긴다.
 
 ---
 
@@ -961,7 +983,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 ### 8.1 GET `💾 /api/item/v1/items` 🔐
 
 **설명**  
-판매 중인 아이템 목록을 조회한다. 가격은 현금이 아니라 별조각 가격이다.  
+판매 중인 아이템 목록을 조회한다. 가격은 현금이 아니라 별조각 가격이다.
 - **모바일 스크롤 UI 대응**: 페이지 누락이나 중복 노출을 방지하기 위해 **커서(Cursor) 기반 페이징**을 적용합니다.
 - **탭 필터링**: 화면에 탭(`SKIN`, `CONSUMABLE`) 별로 구분하여 보여주기 위해 쿼리 파라미터 `itemType` 필터링을 제공합니다.
 
@@ -1003,9 +1025,15 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 ### 8.2 GET `/api/item/v1/user-items` 🔐
 
 **설명**  
-내가 보유한 아이템과 수량, 장착 여부를 조회한다.  
+내가 보유한 아이템과 수량을 조회한다.
+
 - **소모성 아이템**: 보유 개수(`quantity`)가 표현됩니다.
-- **장착형 아이템(스킨 등)**: 대표 캐릭터의 장착 여부(`equipped`)가 표현됩니다.
+- **장착형 아이템(스킨)**: 장착 여부는 이 API에 포함되지 않습니다. 클라이언트가 보유한 캐릭터 정보(`equipped_skin_id`)와 비교하여 장착 상태를 판단합니다.
+
+> **장착 여부 판단 방식 (클라이언트 싱크)**  
+> `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId` 와  
+> 이 API 응답의 `itemId` 를 클라이언트에서 비교합니다.  
+> `itemId === equippedSkin.itemId` → 장착된 스킨
 
 **Request (Query Parameters)**
 
@@ -1028,8 +1056,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
       "name": "별사탕밥",
       "itemType": "CONSUMABLE",
       "effectType": "FOOD",
-      "quantity": 2,     
-      "equipped": false   
+      "quantity": 2
     }
   ],
   "pageInfo": {
@@ -1045,7 +1072,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 ### 8.3 POST `⚠️ /api/item/v1/item-purchases` 🔐
 
 **설명**  
-별조각으로 아이템을 구매한다.  
+별조각으로 아이템을 구매한다.
 - **스킨 아이템 구매 정책**: 유저당 최대 **1개**만 구매 가능합니다. 이미 보유 중인 경우 `ITEM_ALREADY_OWNED` (400) 에러가 발생합니다.
 - **소모성 아이템 구매 정책**: 수량(`quantity`)을 선택하여 다량 구매가 가능하며, 구매 시 기존 보유량에 누적됩니다.
 - **트랜잭션**: 별조각 차감, 거래 내역 기록(`star_piece_transactions`), 보유 아이템(`user_items`) 추가/업데이트는 단일 트랜잭션으로 처리되어 정합성을 유지합니다.
@@ -1107,14 +1134,14 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 ### 9.2 POST `/api/share/v1/share-cards` 🔐
 
 **설명**  
-내 캐릭터 공유 카드를 생성한다. 한 줄 다짐/메시지(`headline`)를 입력받아 카드에 기록한다.
+내 캐릭터 공유 카드를 생성한다. 프론트엔드가 9.1에서 발급받은 `presignedUrl`로 이미지를 업로드한 뒤, 함께 받은 공개 URL(`imageUrl`)을 이 API에 전달한다.
 
 **Request**
 
 ```json
 {
   "characterId": 10,
-  "headline": "오늘도 조금 반짝였음."
+  "imageUrl": "https://cdn.polaris.app/share-cards/UUID.png"
 }
 ```
 
@@ -1339,7 +1366,30 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
   "updatedAt": "2026-05-15T18:45:00+09:00"
 }
 ```
+---
 
+### 11.3 POST `/api/notification/v1/subscriptions/` 🔐
+
+**설명**  
+FCM 푸쉬 알림을 허용하고 토큰을 저장해 구독을 시작한다.
+
+**Request**
+
+```json
+{
+  "token": "FCM-token"
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 600,
+  "read": true,
+  "createdAt": "2026-05-15T18:45:00+09:00"
+}
+```
 ---
 
 ## 12. 주요 상태 / Enum
@@ -1395,6 +1445,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 |---|---|
 | `TIMEOUT` | provider 응답 지연 |
 | `RATE_LIMIT` | provider 요청 제한 |
+| `RATE_LIMIT_UNAVAILABLE` | rate limit 저장소 장애로 provider 호출 차단 |
 | `INVALID_OUTPUT` | 응답 구조 오류 |
 | `POLICY_VIOLATION` | 서비스 문구 정책 위반 |
 | `PROVIDER_ERROR` | provider 내부 오류 |
@@ -1419,6 +1470,7 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 | `MISSION_DAILY_LIMIT_EXCEEDED` | 일일 미션 제안 제한 초과 |
 | `MISSION_ALREADY_COMPLETED` | 이미 완료된 미션 |
 | `MISSION_ANSWER_INVALID` | 완료 답변 길이 오류 |
+| `MISSION_SERVICE_UNAVAILABLE` | 미션 서비스 일시 장애 |
 | `STAR_PIECE_NOT_ENOUGH` | 별조각 부족 |
 | `DUPLICATED_IDEMPOTENCY_KEY` | 중복 요청 |
 | `ITEM_NOT_FOUND` | 아이템 없음 |
