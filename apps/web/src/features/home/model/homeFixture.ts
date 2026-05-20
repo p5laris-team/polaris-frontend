@@ -10,13 +10,18 @@ import {
   type MissionCompletionResultResponse,
   type MissionRejectionResponse,
   type RequestNextMissionRequest,
+  type TodayMissionItem,
+  type TodayMissionsResponse,
 } from "@/entities/mission/types";
+
+const MAX_DAILY_MISSION_OFFERS = 15;
+const todayMissionDate = getTodayDateKey();
 
 const missionTemplates: CurrentMissionResponse[] = [
   {
-    id: 100,
-    missionDate: "2026-05-20",
-    stackOrder: 3,
+    id: 104,
+    missionDate: todayMissionDate,
+    stackOrder: 4,
     title: "창문 열고 숨 고르기",
     description: "지금 자리에서 창문을 열고 공기를 한 번 바꿔보세요.",
     characterMessage: "무... 오늘의 작은 별을 찾은 것 같아요.",
@@ -26,9 +31,9 @@ const missionTemplates: CurrentMissionResponse[] = [
     status: "OFFERED",
   },
   {
-    id: 101,
-    missionDate: "2026-05-20",
-    stackOrder: 4,
+    id: 105,
+    missionDate: todayMissionDate,
+    stackOrder: 5,
     title: "책상 위 물건 하나 치우기",
     description: "눈에 보이는 물건 하나만 제자리로 옮겨보세요.",
     characterMessage: "무... 공간이 조금 숨을 쉬게 될 것 같아요.",
@@ -38,9 +43,9 @@ const missionTemplates: CurrentMissionResponse[] = [
     status: "OFFERED",
   },
   {
-    id: 102,
-    missionDate: "2026-05-20",
-    stackOrder: 5,
+    id: 106,
+    missionDate: todayMissionDate,
+    stackOrder: 6,
     title: "좋았던 문장 저장하기",
     description: "읽던 글이나 떠오른 생각에서 한 줄만 남겨보세요.",
     characterMessage: "무... 문장도 별조각처럼 남을 수 있대요.",
@@ -86,7 +91,51 @@ const initialHomeResponse: HomeResponse = {
   },
 };
 
+const initialTodayMissions: TodayMissionItem[] = [
+  {
+    id: 101,
+    stackOrder: 1,
+    title: "물 한 컵 마시기",
+    category: "BASIC_ROUTINE",
+    difficulty: "EASY",
+    rewardStarPiece: 10,
+    status: "COMPLETED",
+    characterMessage: "잘했어. 작은 시작도 별조각이 됐어.",
+    createdAt: toTodayIsoTime("09:10"),
+    completedAt: toTodayIsoTime("09:15"),
+    rejectedAt: null,
+  },
+  {
+    id: 102,
+    stackOrder: 2,
+    title: "햇빛 한 번 보기",
+    category: "OUTDOOR",
+    difficulty: "EASY",
+    rewardStarPiece: 10,
+    status: "COMPLETED",
+    characterMessage: "무... 빛을 봤으니 오늘도 조금 반짝였어요.",
+    createdAt: toTodayIsoTime("10:05"),
+    completedAt: toTodayIsoTime("10:12"),
+    rejectedAt: null,
+  },
+  {
+    id: 103,
+    stackOrder: 3,
+    title: "책장 한 칸 정리하기",
+    category: "SPACE_RESET",
+    difficulty: "NORMAL",
+    rewardStarPiece: 12,
+    status: "REJECTED",
+    characterMessage: "괜찮아요. 다른 별을 찾아볼게요.",
+    createdAt: toTodayIsoTime("10:40"),
+    completedAt: null,
+    rejectedAt: toTodayIsoTime("10:42"),
+  },
+  toTodayMissionItem(initialHomeResponse.currentMission!, toTodayIsoTime("11:30")),
+];
+
 let demoHomeState = clone(initialHomeResponse);
+let demoTodayMissions = clone(initialTodayMissions);
 let lastClosedMissionStackOrder = initialHomeResponse.currentMission?.stackOrder ?? 3;
 
 export function getDemoHomeResponse() {
@@ -99,6 +148,23 @@ export function getDemoActiveCharacter() {
 
 export function getDemoWalletStarPiece() {
   return demoHomeState.wallet.starPiece;
+}
+
+export function demoGetTodayMissions(): TodayMissionsResponse {
+  const missions = [...demoTodayMissions].sort((a, b) => a.stackOrder - b.stackOrder);
+  const completedCount = missions.filter((mission) => mission.status === "COMPLETED").length;
+  const rejectedCount = missions.filter((mission) => mission.status === "REJECTED").length;
+
+  return {
+    missionDate: todayMissionDate,
+    maxDailyOffers: MAX_DAILY_MISSION_OFFERS,
+    offeredCount: missions.length,
+    completedCount,
+    rejectedCount,
+    remainingOfferCount: Math.max(0, MAX_DAILY_MISSION_OFFERS - missions.length),
+    currentMissionId: demoHomeState.currentMission?.id ?? null,
+    missions: clone(missions),
+  };
 }
 
 export function demoSetUnreadNotificationCount(unreadCount: number) {
@@ -186,6 +252,7 @@ export function demoStartCompletionSession(missionId: number): MissionCompletion
 
   // 완료 버튼 이후에는 보상을 바로 지급하지 않고 ANSWERING 상태와 질문 1개만 만든다.
   demoHomeState.currentMission = { ...mission, status: "ANSWERING" };
+  patchTodayMission(missionId, { status: "ANSWERING" });
 
   return {
     missionId,
@@ -282,21 +349,30 @@ export function demoRejectMission(missionId: number): MissionRejectionResponse {
 
   demoHomeState.currentMission = null;
   lastClosedMissionStackOrder = mission.stackOrder;
+  const rejectedAt = new Date().toISOString();
+  patchTodayMission(missionId, {
+    status: "REJECTED",
+    rejectedAt,
+  });
 
   return {
     missionId,
     status: "REJECTED",
-    rejectedAt: new Date().toISOString(),
+    rejectedAt,
     characterMessage: "괜찮아요. 다른 별을 찾아볼게요.",
   };
 }
 
 export function demoRequestNextMission(body: RequestNextMissionRequest): CurrentMissionResponse {
+  if (demoTodayMissions.length >= MAX_DAILY_MISSION_OFFERS) {
+    throw new Error("오늘 제안 가능한 미션을 모두 확인했어요. 내일 다시 찾아올게요.");
+  }
+
   const lastOrder =
     missionTemplates.find((mission) => mission.id === body.lastMissionId)?.stackOrder ??
     demoHomeState.currentMission?.stackOrder ??
     lastClosedMissionStackOrder;
-  const nextOrder = Math.min(lastOrder + 1, 15);
+  const nextOrder = Math.min(lastOrder + 1, MAX_DAILY_MISSION_OFFERS);
   const template = missionTemplates[(nextOrder - 3) % missionTemplates.length];
   const nextMission = {
     ...template,
@@ -307,6 +383,7 @@ export function demoRequestNextMission(body: RequestNextMissionRequest): Current
 
   demoHomeState.currentMission = nextMission;
   lastClosedMissionStackOrder = nextMission.stackOrder;
+  upsertTodayMission(toTodayMissionItem(nextMission));
 
   return clone(nextMission);
 }
@@ -326,6 +403,7 @@ export function demoSubmitCompletionAnswer(
     throw new Error("답변은 1자 이상 300자 이하로 남겨주세요.");
   }
 
+  const answeredAt = new Date().toISOString();
   const rewardStarPiece = mission.rewardStarPiece;
   demoHomeState.wallet.starPiece += rewardStarPiece;
   demoHomeState.character.states.affection = {
@@ -335,13 +413,17 @@ export function demoSubmitCompletionAnswer(
   };
   demoHomeState.currentMission = null;
   lastClosedMissionStackOrder = mission.stackOrder;
+  patchTodayMission(missionId, {
+    status: "COMPLETED",
+    completedAt: answeredAt,
+  });
 
   return {
     missionId,
     status: "COMPLETED",
     answer: {
       text: trimmedAnswer,
-      answeredAt: new Date().toISOString(),
+      answeredAt,
     },
     reward: {
       starPiece: rewardStarPiece,
@@ -352,4 +434,52 @@ export function demoSubmitCompletionAnswer(
     },
     characterMessage: "무! 오늘의 작은 행동을 별조각으로 남겨둘게요.",
   };
+}
+
+function toTodayMissionItem(
+  mission: CurrentMissionResponse,
+  createdAt = new Date().toISOString(),
+): TodayMissionItem {
+  return {
+    id: mission.id,
+    stackOrder: mission.stackOrder,
+    title: mission.title,
+    category: mission.category,
+    difficulty: mission.difficulty,
+    rewardStarPiece: mission.rewardStarPiece,
+    status: mission.status,
+    characterMessage: mission.characterMessage,
+    createdAt,
+    completedAt: null,
+    rejectedAt: null,
+  };
+}
+
+function upsertTodayMission(mission: TodayMissionItem) {
+  const existingIndex = demoTodayMissions.findIndex((item) => item.id === mission.id);
+
+  if (existingIndex >= 0) {
+    demoTodayMissions[existingIndex] = mission;
+    return;
+  }
+
+  demoTodayMissions = [...demoTodayMissions, mission];
+}
+
+function patchTodayMission(missionId: number, updates: Partial<TodayMissionItem>) {
+  demoTodayMissions = demoTodayMissions.map((mission) =>
+    mission.id === missionId ? { ...mission, ...updates } : mission,
+  );
+}
+
+function getTodayDateKey() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function toTodayIsoTime(time: string) {
+  return `${todayMissionDate}T${time}:00+09:00`;
 }

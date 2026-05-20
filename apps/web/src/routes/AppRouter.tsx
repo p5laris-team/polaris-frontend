@@ -6,6 +6,7 @@ import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
 import { HomePage } from "@/features/home/ui/HomePage";
 import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
+import { MissionHistoryPage } from "@/features/mission/ui/MissionHistoryPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
 import { MyPage } from "@/features/my-page/ui/MyPage";
 import { NotificationsPage } from "@/features/notifications/ui/NotificationsPage";
@@ -32,17 +33,7 @@ export function AppRouter() {
         <Route path={routes.onboardingCharacterName} element={<CharacterNamePage />} />
         <Route path={routes.onboardingQuestions} element={<OnboardingSurveyPage />} />
         <Route path={routes.home} element={<HomePage />} />
-        <Route
-          path={routes.missions}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-011"
-              title="미션 기록"
-              description="오늘 제안·거절·완료한 미션 스택을 보여줄 자리예요."
-              apiNote="MVP API 미제공: 우선 클라이언트 세션 기록 또는 후속 API 확인 필요"
-            />
-          }
-        />
+        <Route path={routes.missions} element={<MissionHistoryPage />} />
         <Route path={routes.missionAnswer} element={<MissionAnswerPage />} />
         <Route path={routes.missionResult} element={<MissionResultPage />} />
         <Route path={routes.character} element={<CharacterCarePage />} />

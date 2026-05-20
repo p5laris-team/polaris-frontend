@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  demoGetTodayMissions,
   demoRejectMission,
   demoRequestNextMission,
   demoStartCompletionSession,
@@ -14,9 +15,25 @@ import {
   type MissionRejectionResponse,
   type RequestNextMissionRequest,
   type SubmitMissionCompletionAnswerRequest,
+  type TodayMissionsResponse,
 } from "@/entities/mission/types";
 import { apiClient, unwrapApiResponse } from "@/shared/api";
 import { runtimeConfig } from "@/shared/config/env";
+
+export const missionQueryKeys = {
+  all: ["missions"] as const,
+  today: () => [...missionQueryKeys.all, "today"] as const,
+};
+
+export function getTodayMissions() {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoGetTodayMissions());
+  }
+
+  return unwrapApiResponse<TodayMissionsResponse>(
+    apiClient.get("/api/mission/v1/missions/today"),
+  );
+}
 
 export function startMissionCompletionSession(missionId: number) {
   if (runtimeConfig.useApiFixtures) {
@@ -61,9 +78,21 @@ export function submitMissionCompletionAnswer(
   );
 }
 
+export function useTodayMissionsQuery() {
+  return useQuery({
+    queryKey: missionQueryKeys.today(),
+    queryFn: getTodayMissions,
+  });
+}
+
 export function useStartMissionCompletionSessionMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: startMissionCompletionSession,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: missionQueryKeys.all });
+    },
   });
 }
 
@@ -85,7 +114,10 @@ export function useRejectAndRequestNextMissionMutation() {
       return { rejection, nextMission };
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: homeQueryKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: homeQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: missionQueryKeys.all }),
+      ]);
     },
   });
 }
@@ -97,7 +129,10 @@ export function useSubmitMissionCompletionAnswerMutation() {
     mutationFn: ({ missionId, answer }: { missionId: number; answer: string }) =>
       submitMissionCompletionAnswer(missionId, { answer }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: homeQueryKeys.all });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: homeQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: missionQueryKeys.all }),
+      ]);
     },
   });
 }
