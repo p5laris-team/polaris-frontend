@@ -277,6 +277,7 @@ API 클라이언트 지침:
 공유 카드 구현 규칙:
 
 - 공유 카드 플로우는 `컴포넌트 렌더링 -> 이미지 캡처 -> presigned-url 발급 -> R2/S3로 PUT 업로드 -> share-card 생성 -> share-event 기록` 순서로 구현한다.
+- 이미지 캡처 라이브러리는 웹에서 `html2canvas` 또는 `dom-to-image`, React Native에서 `react-native-view-shot`을 우선 검토한다.
 - presigned URL은 `GET /api/share/v1/presigned-url`로 발급받는다.
 - 프론트엔드는 발급받은 `presignedUrl`에 이미지 파일을 HTTP `PUT`으로 직접 업로드한다.
 - 업로드 완료 후 서버가 내려준 공개 `imageUrl`을 사용해 `POST /api/share/v1/share-cards`를 호출한다.
