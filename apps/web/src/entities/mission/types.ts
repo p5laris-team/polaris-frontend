@@ -21,6 +21,31 @@ export type CurrentMissionResponse = {
   status: MissionStatus;
 };
 
+export type TodayMissionItem = {
+  id: number;
+  stackOrder: number;
+  title: string;
+  category: string;
+  difficulty: MissionDifficulty;
+  rewardStarPiece: number;
+  status: MissionStatus;
+  characterMessage: string;
+  createdAt: string;
+  completedAt: string | null;
+  rejectedAt: string | null;
+};
+
+export type TodayMissionsResponse = {
+  missionDate: string;
+  maxDailyOffers: number;
+  offeredCount: number;
+  completedCount: number;
+  rejectedCount: number;
+  remainingOfferCount: number;
+  currentMissionId: number | null;
+  missions: TodayMissionItem[];
+};
+
 export type MissionCompletionQuestionResponse = {
   missionId: number;
   status: "ANSWERING";
