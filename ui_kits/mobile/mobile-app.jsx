@@ -79,23 +79,28 @@ function MobileApp() {
     } else if (tab === "shop") {
       content = <ShopScreen coins={coins} onBack={() => setTab("home")} />;
     } else {
-      content = (
-        <>
-          <Header title="나" />
-          <div className="screen-body">
-            <div className="card" style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-              <div style={{ width: 56, height: 56, borderRadius: 999, background: "var(--bg-character)", display: "grid", placeItems: "center", overflow: "hidden" }}>
-                <img src={`../../assets/character-${character || "byeori"}.svg`} style={{ width: 56, height: 56 }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, color: "var(--fg-1)" }}>polaris_user</div>
-                <div style={{ fontSize: 13, color: "var(--fg-3)" }}>별이와 7일째 함께</div>
-              </div>
-            </div>
-            <Button variant="ghost" onClick={reset}>로그아웃</Button>
-          </div>
-        </>
-      );
+            const charName = character === "nova" ? "노바" : character === "jjori" ? "쪼리" : character === "mumu" ? "무무" : "노바";
+            content = (
+              <>
+                <Header title="나" />
+                <div className="screen-body">
+                  <div className="card" style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                    <div style={{ width: 56, height: 56, borderRadius: 999, background: "var(--bg-character)", display: "grid", placeItems: "center", overflow: "hidden" }}>
+                      {(() => {
+                        const charId = character || "nova";
+                        const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
+                        return <img src={`../../assets/character-${charId}.${ext}`} style={{ width: 56, height: 56 }} />;
+                      })()}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, color: "var(--fg-1)" }}>polaris_user</div>
+                      <div style={{ fontSize: 13, color: "var(--fg-3)" }}>{charName}와(과) 7일째 함께</div>
+                    </div>
+                  </div>
+                  <Button variant="ghost" onClick={reset}>로그아웃</Button>
+                </div>
+              </>
+            );
     }
 
     return (
@@ -154,9 +159,9 @@ function MobileApp() {
         />
         <TweakSection label="프로토타입 흐름" />
         <TweakButton label="로그인부터" onClick={() => setFlow("login")} />
-        <TweakButton label="캐릭터 선택부터" onClick={() => { setCharacter("byeori"); setFlow("charSelect"); }} />
-        <TweakButton label="온보딩부터" onClick={() => { setCharacter("byeori"); setFlow("onboarding"); }} />
-        <TweakButton label="홈으로 점프" onClick={() => { setCharacter(character || "byeori"); setFlow("app"); setTab("home"); setAppView("tabs"); }} />
+        <TweakButton label="캐릭터 선택부터" onClick={() => { setCharacter("nova"); setFlow("charSelect"); }} />
+        <TweakButton label="온보딩부터" onClick={() => { setCharacter("nova"); setFlow("onboarding"); }} />
+        <TweakButton label="홈으로 점프" onClick={() => { setCharacter(character || "nova"); setFlow("app"); setTab("home"); setAppView("tabs"); }} />
       </TweaksPanel>
     </>
   );

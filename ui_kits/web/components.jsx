@@ -85,7 +85,9 @@ function MissionCard({ mission, onToggle }) {
 
 /* ----------- Character Stage ----------- */
 function CharacterStage({ character, name, level, bubble, hearts = 78, coins = 240, streak = 7 }) {
-  const moodImg = `../../assets/character-${character || "byeori"}.svg`;
+  const charId = character || "nova";
+  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
+  const moodImg = `../../assets/character-${charId}.${ext}`;
   return (
     <div className="stage">
       <div className="character-img">
@@ -212,9 +214,10 @@ function Dots({ total, current }) {
 
 /* ----------- Character Select Card ----------- */
 function CharCard({ id, name, desc, selected, onClick }) {
+  const ext = ["nova", "jjori", "mumu"].includes(id) ? "png" : "svg";
   return (
     <button className={`char-card ${selected ? "selected" : ""}`} onClick={onClick}>
-      <img src={`../../assets/character-${id}.svg`} alt="" />
+      <img src={`../../assets/character-${id}.${ext}`} alt="" />
       <div className="name">{name}</div>
       <div className="desc">{desc}</div>
     </button>

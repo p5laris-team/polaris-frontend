@@ -72,9 +72,9 @@ function CharacterSelectScreen({ onNext, onBack }) {
   const [selected, setSelected] = React.useState(null);
 
   const chars = [
-    { id: "byeori",  name: "별이",   desc: "통통한 별친구" },
-    { id: "gureumi", name: "구름이", desc: "부드러운 구름친구" },
-    { id: "kongi",   name: "콩이",   desc: "새싹 친구" },
+    { id: "nova",    name: "노바",   desc: "별이 내려앉은 알친구" },
+    { id: "jjori",   name: "쪼리",   desc: "모험을 좋아하는 생쥐친구" },
+    { id: "mumu",    name: "무무",   desc: "새싹이 돋아난 나무밑둥" },
   ];
 
   return (
@@ -106,9 +106,9 @@ function CharacterSelectScreen({ onNext, onBack }) {
         {selected && (
           <div style={{ marginTop: 24, padding: 18, background: "var(--bg-2)", border: "1px solid var(--border-1)", borderRadius: 18 }}>
             <div className="stage-bubble" style={{ borderRadius: "18px 18px 18px 4px", marginBottom: 0, maxWidth: "100%" }}>
-              {selected === "byeori" && "안녕하세요! 만나서 반가워요."}
-              {selected === "gureumi" && "처음 뵙겠어요. 잘 지내봐요."}
-              {selected === "kongi"   && "오늘부터 같이 자라봐요!"}
+              {selected === "nova" && "안녕하세요! 만나서 반가워요."}
+              {selected === "jjori" && "처음 뵙겠어요. 잘 지내봐요."}
+              {selected === "mumu"   && "오늘부터 같이 자라봐요!"}
             </div>
           </div>
         )}

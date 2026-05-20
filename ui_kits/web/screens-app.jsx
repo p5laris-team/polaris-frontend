@@ -15,6 +15,8 @@ function HomeScreen({ character, onOpenMissions, onOpenCharacter, missions, onTo
   ];
   const bubble = bubbles[new Date().getDate() % bubbles.length];
 
+  const charName = character === "nova" ? "노바" : character === "jjori" ? "쪼리" : character === "mumu" ? "무무" : "노바";
+
   return (
     <div className="screen-enter">
       <Header
@@ -25,8 +27,8 @@ function HomeScreen({ character, onOpenMissions, onOpenCharacter, missions, onTo
       <div className="screen-body" style={{ paddingTop: 12 }}>
         <div onClick={onOpenCharacter} style={{ cursor: "pointer" }}>
           <CharacterStage
-            character={character}
-            name="별이"
+            character={character || "nova"}
+            name={charName}
             level={3}
             bubble={bubble}
             hearts={78}
@@ -134,10 +136,15 @@ function CharacterDetailScreen({ character, onBack, coins }) {
   const [mood, setMood] = React.useState("default");
   const [bubble, setBubble] = React.useState("오늘도 와줘서 고마워요.");
 
-  const moodImg = mood === "default" ? `../../assets/character-${character}.svg`
-                : mood === "happy"   ? `../../assets/character-${character}-happy.svg`
-                : mood === "sleepy"  ? `../../assets/character-${character}-sleepy.svg`
-                : `../../assets/character-${character}.svg`;
+  const charId = character || "nova";
+  const charName = charId === "nova" ? "노바" : charId === "jjori" ? "쪼리" : charId === "mumu" ? "무무" : "노바";
+
+  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
+
+  const moodImg = mood === "default" ? `../../assets/character-${charId}.${ext}`
+                : mood === "happy"   ? `../../assets/character-${charId}-happy.${ext}`
+                : mood === "sleepy"  ? `../../assets/character-${charId}-sleepy.${ext}`
+                : `../../assets/character-${charId}.${ext}`;
 
   const care = (label, msg, newMood) => {
     setMood(newMood);
@@ -148,7 +155,7 @@ function CharacterDetailScreen({ character, onBack, coins }) {
   return (
     <div className="screen-enter">
       <Header
-        title="별이"
+        title={charName}
         onBack={onBack}
         right={<button className="icon-btn"><Icon name="more" size={22}/></button>}
       />
@@ -158,7 +165,7 @@ function CharacterDetailScreen({ character, onBack, coins }) {
           <div className="character-img" style={{ width: 180, height: 180 }}>
             <img src={moodImg} alt="" style={{ width: "100%", height: "100%" }} />
           </div>
-          <div className="stage-name" style={{ fontSize: 22 }}>별이 · Lv.3</div>
+          <div className="stage-name" style={{ fontSize: 22 }}>{charName} · Lv.3</div>
           <div className="stage-bubble">{bubble}</div>
         </div>
 
