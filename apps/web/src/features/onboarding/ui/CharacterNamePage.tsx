@@ -16,6 +16,7 @@ export function CharacterNamePage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const selectedCharacter = useOnboardingSetupStore((state) => state.selectedCharacter);
+  const createdCharacter = useOnboardingSetupStore((state) => state.createdCharacter);
   const setCreatedCharacter = useOnboardingSetupStore((state) => state.setCreatedCharacter);
   const createCharacterMutation = useCreateCharacterMutation();
   const [name, setName] = useState("");
@@ -31,10 +32,15 @@ export function CharacterNamePage() {
   }, [touched, trimmedName]);
 
   useEffect(() => {
+    if (createdCharacter) {
+      navigate(routes.onboardingQuestions, { replace: true });
+      return;
+    }
+
     if (!selectedCharacter) {
       navigate(routes.onboardingCharacter, { replace: true });
     }
-  }, [navigate, selectedCharacter]);
+  }, [createdCharacter, navigate, selectedCharacter]);
 
   const handleSubmit = async () => {
     setTouched(true);
