@@ -1,4 +1,4 @@
-export type CharacterTypeCode = "NOVA" | "MUMU" | "JJORI";
+export type CharacterTypeCode = "NOVA" | "MUMU" | "JJORI" | "JJORY";
 export type CharacterKey = "nova" | "mumu" | "jjori";
 export type CharacterStateGrade = "GOOD" | "NORMAL" | "BAD";
 
@@ -18,12 +18,14 @@ const codeToKey: Record<CharacterTypeCode, CharacterKey> = {
   NOVA: "nova",
   MUMU: "mumu",
   JJORI: "jjori",
+  JJORY: "jjori",
 };
 
 const codeToCharacterTypeId: Record<CharacterTypeCode, number> = {
   NOVA: 1,
   MUMU: 2,
   JJORI: 3,
+  JJORY: 3,
 };
 
 const characterTypeLabelById: Record<number, string> = {
@@ -34,7 +36,7 @@ const characterTypeLabelById: Record<number, string> = {
 
 export function toCharacterKey(code: CharacterTypeCode | string | null | undefined): CharacterKey {
   if (code === "MUMU" || code === "mumu") return "mumu";
-  if (code === "JJORI" || code === "jjori") return "jjori";
+  if (code === "JJORI" || code === "jjori" || code === "JJORY" || code === "jjory") return "jjori";
   if (code === "NOVA" || code === "nova") return "nova";
 
   return codeToKey.NOVA;
@@ -42,7 +44,7 @@ export function toCharacterKey(code: CharacterTypeCode | string | null | undefin
 
 export function toCharacterTypeId(code: CharacterTypeCode | string | null | undefined) {
   if (code === "MUMU" || code === "mumu") return codeToCharacterTypeId.MUMU;
-  if (code === "JJORI" || code === "jjori") return codeToCharacterTypeId.JJORI;
+  if (code === "JJORI" || code === "jjori" || code === "JJORY" || code === "jjory") return codeToCharacterTypeId.JJORI;
   if (code === "NOVA" || code === "nova") return codeToCharacterTypeId.NOVA;
 
   return null;

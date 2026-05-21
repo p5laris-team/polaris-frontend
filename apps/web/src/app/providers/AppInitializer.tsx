@@ -74,11 +74,17 @@ export function AppInitializer({ children }: AppInitializerProps) {
             name: activeCharacter.name,
             characterTypeCode: activeCharacter.characterTypeCode,
             active: activeCharacter.id > 0,
-            states: {
-              hunger: activeCharacter.states.hunger.value,
-              energy: activeCharacter.states.energy.value,
-              affection: activeCharacter.states.affection.value,
-            },
+            states: activeCharacter.states
+              ? {
+                  hunger: activeCharacter.states.hunger?.value ?? 0,
+                  energy: activeCharacter.states.energy?.value ?? 0,
+                  affection: activeCharacter.states.affection?.value ?? 0,
+                }
+              : {
+                  hunger: 0,
+                  energy: 0,
+                  affection: 0,
+                },
             createdAt: new Date().toISOString(),
           });
         }

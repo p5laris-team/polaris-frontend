@@ -47,7 +47,7 @@ export function InventoryPage() {
     isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
   );
   const characterMood = useMemo(
-    () => (character ? toCharacterMood(character.states) : "idle"),
+    () => toCharacterMood(character?.states),
     [character],
   );
   const inventoryError = activeCharacterQuery.isError
@@ -298,14 +298,19 @@ function InventoryLoadingPage() {
   );
 }
 
-function toCharacterMood(states: CharacterStates): CharacterMood {
-  if (states.energy.grade === "BAD") return "sleepy";
-  if (states.affection.grade === "GOOD") return "happy";
+function toCharacterMood(states?: CharacterStates): CharacterMood {
+  if (!states) return "idle";
+  if (states.energy?.grade === "BAD") return "sleepy";
+  if (states.affection?.grade === "GOOD") return "happy";
   return "idle";
 }
 
 function isVisibleForCharacter(itemCharacterTypeId: number | null, activeCharacterTypeId: number | null) {
-  return itemCharacterTypeId === null || itemCharacterTypeId === activeCharacterTypeId;
+  return (
+    itemCharacterTypeId === null ||
+    itemCharacterTypeId === 0 ||
+    itemCharacterTypeId === activeCharacterTypeId
+  );
 }
 
 function getSkinScopeLabel(characterTypeId: number | null) {

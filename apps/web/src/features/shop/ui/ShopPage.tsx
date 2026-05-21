@@ -469,6 +469,7 @@ function isVisibleForCharacter(
   return (
     itemCharacterTypeId === undefined ||
     itemCharacterTypeId === null ||
+    itemCharacterTypeId === 0 ||
     itemCharacterTypeId === activeCharacterTypeId
   );
 }

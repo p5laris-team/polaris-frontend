@@ -295,8 +295,9 @@ function toGaugeTone(grade: CharacterStates[keyof CharacterStates]["grade"]) {
   return "normal";
 }
 
-function toCharacterMood(states: CharacterStates): CharacterMood {
-  if (states.energy.grade === "BAD") return "sleepy";
-  if (states.affection.grade === "GOOD") return "happy";
+function toCharacterMood(states?: CharacterStates): CharacterMood {
+  if (!states) return "idle";
+  if (states.energy?.grade === "BAD") return "sleepy";
+  if (states.affection?.grade === "GOOD") return "happy";
   return "idle";
 }

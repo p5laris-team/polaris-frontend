@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { toCharacterKey } from "@/entities/character/types";
 import {
   type CharacterTypeListResponse,
   type CreateCharacterRequest,
@@ -41,11 +42,15 @@ export async function getCharacterTypes() {
   );
 
   if (response && Array.isArray(response.items)) {
-    response.items = response.items.map((item) => ({
-      ...item,
-      tags: item.tags || CHARACTER_METADATA[item.code]?.tags || [],
-      description: item.description || CHARACTER_METADATA[item.code]?.description || "",
-    }));
+    response.items = response.items.map((item) => {
+      const key = toCharacterKey(item.code).toUpperCase();
+      const meta = CHARACTER_METADATA[key];
+      return {
+        ...item,
+        tags: item.tags || meta?.tags || [],
+        description: item.description || meta?.description || "",
+      };
+    });
   }
 
   return response;
