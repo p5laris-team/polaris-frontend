@@ -9,6 +9,8 @@ import { brandAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, useToast } from "@/shared/ui";
 import { useAuthStore } from "@/stores/authStore";
 
+const calledCodes = new Set<string>();
+
 export function GoogleCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -18,20 +20,22 @@ export function GoogleCallbackPage() {
   const calledRef = useRef(false);
 
   useEffect(() => {
-    // React 18 StrictMode runs useEffect twice in dev. Use a ref to prevent double calls.
-    if (calledRef.current) return;
+    const code = searchParams.get("code");
+    const state = searchParams.get("state");
+
+    if (!code) {
+      showToast("로그인 인증 코드가 누락되었습니다.");
+      navigate(routes.login, { replace: true });
+      return;
+    }
+
+    // React 18 StrictMode runs useEffect twice in dev.
+    // Use a local ref and a module-level Set to prevent double requests for the same code.
+    if (calledRef.current || calledCodes.has(code)) return;
     calledRef.current = true;
+    calledCodes.add(code);
 
     const handleCallback = async () => {
-      const code = searchParams.get("code");
-      const state = searchParams.get("state");
-
-      if (!code) {
-        showToast("로그인 인증 코드가 누락되었습니다.");
-        navigate(routes.login, { replace: true });
-        return;
-      }
-
       try {
         const session = await createGoogleSession({
           code,
