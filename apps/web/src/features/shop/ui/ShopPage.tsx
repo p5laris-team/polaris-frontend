@@ -19,6 +19,7 @@ import {
   getCharacterTypeLabelById,
   toCharacterTypeId,
 } from "@/entities/character/types";
+import { resolveItemImageUrl } from "@/features/item/model/itemAssetResolver";
 import {
   usePurchaseShopItemMutation,
   useShopConsumableItemsQuery,
@@ -202,12 +203,12 @@ export function ShopPage() {
             <div className="shop-page__skin-grid" role="list">
               {skinItems.map((item, index) => {
                 const cantAfford = walletStarPiece < item.price;
+                const imageUrl = resolveItemImageUrl(item);
 
                 return (
                   <Card className="shop-page__skin-card" key={item.id} role="listitem">
                     <div className={`shop-page__skin-preview shop-page__skin-preview--${index % 3}`}>
-                      <img alt="" src={item.imageUrl} />
-                      <Sparkles size={26} strokeWidth={1.7} />
+                      <img alt="" src={imageUrl} />
                     </div>
 
                     <div className="shop-page__skin-info">
@@ -263,12 +264,13 @@ export function ShopPage() {
             <div className="shop-page__consumable-list" role="list">
               {consumableItems.map((item) => {
                 const cantAfford = walletStarPiece < item.price;
-                const { Icon, label } = getConsumableMeta(item.effectType, item.name);
+                const { label } = getConsumableMeta(item.effectType, item.name);
+                const imageUrl = resolveItemImageUrl(item);
 
                 return (
                   <Card className="shop-page__consumable-card" key={item.id} role="listitem">
                     <span className="shop-page__consumable-icon" aria-hidden="true">
-                      <Icon size={22} strokeWidth={1.8} />
+                      <img alt="" src={imageUrl} />
                     </span>
                     <div className="shop-page__consumable-info">
                       <strong>{item.name}</strong>
@@ -376,7 +378,7 @@ function PurchaseConfirmModal({
   if (!item) return null;
 
   const isConsumable = item.itemType === "CONSUMABLE";
-  const { Icon } = getConsumableMeta(item.effectType, item.name);
+  const imageUrl = resolveItemImageUrl(item);
 
   return (
     <Modal
@@ -394,12 +396,7 @@ function PurchaseConfirmModal({
             isConsumable ? " shop-page__purchase-preview--consumable" : ""
           }`}
         >
-          <img alt="" src={item.imageUrl} />
-          {isConsumable ? (
-            <Icon size={28} strokeWidth={1.7} />
-          ) : (
-            <Sparkles size={28} strokeWidth={1.7} />
-          )}
+          <img alt="" src={imageUrl} />
         </div>
         <strong>{item.name}</strong>
         <p>
