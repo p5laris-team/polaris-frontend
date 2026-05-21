@@ -1,6 +1,5 @@
 import { type ReactNode, useState } from "react";
 import {
-  Bell,
   CalendarCheck,
   Check,
   ChevronRight,
@@ -24,6 +23,7 @@ import {
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
+import { emptyStateAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
 
 import "./NotificationsPage.css";
@@ -117,7 +117,11 @@ export function NotificationsPage() {
           </ul>
         ) : (
           <Card className="notifications-page__empty-card">
-            <Bell size={34} strokeWidth={1.7} />
+            <img
+              alt=""
+              className="notifications-page__empty-illustration"
+              src={emptyStateAssets.notification}
+            />
             <strong>{filter === "unread" ? "읽지 않은 알림이 없어요." : "새 알림이 없어요."}</strong>
             <p>새로운 미션이나 상태 변화가 생기면 이곳에 차곡차곡 쌓일 거예요.</p>
           </Card>

@@ -21,7 +21,7 @@ import { type ShareCardResponse, type SharePlatform, type ShareType } from "@/fe
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { createIdempotencyKey } from "@/shared/api/idempotency";
-import { characterAssets } from "@/shared/assets/polarisAssets";
+import { characterAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
 
 import "./ShareCardPage.css";
@@ -227,7 +227,19 @@ export function ShareCardPage() {
             </span>
             <Tag variant="primary">생성 완료</Tag>
           </Card>
-        ) : null}
+        ) : (
+          <Card className="share-card-page__empty-card">
+            <img
+              alt=""
+              className="share-card-page__empty-illustration"
+              src={emptyStateAssets.share}
+            />
+            <span>
+              <strong>아직 공유 링크가 없어요.</strong>
+              <small>카드를 만들면 여기서 바로 공유할 수 있어요.</small>
+            </span>
+          </Card>
+        )}
 
         <div className="share-card-page__actions">
           <Button

@@ -2,7 +2,6 @@ import { type ReactNode, useMemo, useState } from "react";
 import {
   CheckCircle2,
   ChevronRight,
-  CircleEllipsis,
   Clock3,
   ListChecks,
   RotateCcw,
@@ -24,6 +23,7 @@ import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
+import { emptyStateAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
 
 import "./MissionHistoryPage.css";
@@ -198,7 +198,11 @@ export function MissionHistoryPage() {
           </ol>
         ) : (
           <Card className="mission-history__empty-card">
-            <CircleEllipsis size={34} strokeWidth={1.7} />
+            <img
+              alt=""
+              className="mission-history__empty-illustration"
+              src={emptyStateAssets.mission}
+            />
             <strong>아직 조건에 맞는 미션이 없어요.</strong>
             <p>홈에서 오늘의 작은 미션을 하나씩 만나봐요.</p>
             <Button onClick={() => navigate(routes.home)} size="compact" variant="secondary">

@@ -165,8 +165,10 @@
   text-align: center;
 }
 
-.inventory-page__empty-card svg {
-  color: var(--fg-3);
+.inventory-page__empty-illustration {
+  width: min(148px, 48vw);
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
 }
 
 .inventory-page__empty-card strong {

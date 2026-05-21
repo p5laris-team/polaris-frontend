@@ -16,6 +16,7 @@ import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
+import { emptyStateAssets } from "@/shared/assets/polarisAssets";
 import {
   AppShell,
   Button,
@@ -237,6 +238,11 @@ export function HomePage() {
             </div>
           ) : (
             <Card className="home-page__state">
+              <img
+                alt=""
+                className="home-page__empty-illustration"
+                src={emptyStateAssets.mission}
+              />
               <h2>오늘 미션은 여기까지예요.</h2>
               <p>내일 또 새 미션을 들고 올게요.</p>
             </Card>

@@ -5,6 +5,7 @@ type CategoryKey = "morning" | "fitness" | "reading" | "mind";
 type SkinThumbnailKey = "starlight" | "dawn" | "nightSky";
 type CharacterSkinKey = SkinThumbnailKey;
 type ConsumableItemAssetKey = "FOOD" | "REST" | "PLAY";
+type EmptyStateAssetKey = "mission" | "inventory" | "notification" | "share";
 
 // Vite가 번들에 포함할 수 있도록 frontend 루트 assets/를 참조한다.
 const assetUrl = (fileName: string) =>
@@ -194,6 +195,13 @@ export const consumableItemAssets: Record<ConsumableItemAssetKey, string> = {
   PLAY: assetUrl("items/consumables/item-star-toy.png"),
 };
 
+export const emptyStateAssets: Record<EmptyStateAssetKey, string> = {
+  mission: assetUrl("empty-states/empty-mission.png"),
+  inventory: assetUrl("empty-states/empty-inventory.png"),
+  notification: assetUrl("empty-states/empty-notification.png"),
+  share: assetUrl("empty-states/empty-share.png"),
+};
+
 export type {
   CategoryKey,
   CharacterKey,
@@ -201,6 +209,7 @@ export type {
   CharacterSkinKey,
   CharacterVisualState,
   ConsumableItemAssetKey,
+  EmptyStateAssetKey,
   SkinThumbnailKey,
 };
 
