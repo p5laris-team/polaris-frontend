@@ -1,15 +1,17 @@
 import { type CSSProperties, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { routes } from "@/routes/paths";
-import { characterAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card } from "@/shared/ui";
 
 import "./MissionResultPage.css";
 
 export function MissionResultPage() {
   const navigate = useNavigate();
+  const activeCharacterQuery = useActiveCharacterQuery();
   const { activeMission, character, completionResult, clearMissionFlow } = useMissionFlowStore();
   const sparkles = useMemo(
     () =>
@@ -43,6 +45,13 @@ export function MissionResultPage() {
     );
   }
 
+  const characterImageUrl = resolveCharacterImageUrl({
+    character: character.key,
+    mood: "happy",
+    equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
+    fallbackUrl: activeCharacterQuery.data?.currentAssetUrl,
+  });
+
   return (
     <main className="app-page mission-result">
       <AppShell>
@@ -63,7 +72,7 @@ export function MissionResultPage() {
                 ✦
               </span>
             ))}
-            <img src={characterAssets[character.key].happy} alt="" />
+            <img src={characterImageUrl} alt="" />
           </div>
 
           <div className="mission-result__headline">

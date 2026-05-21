@@ -2,6 +2,8 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { toCharacterKey } from "@/entities/character/types";
+import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import {
   useCurrentMissionQuery,
@@ -21,6 +23,7 @@ export function MissionAnswerPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const homeQuery = useHomeQuery();
+  const activeCharacterQuery = useActiveCharacterQuery();
   const currentMissionQuery = useCurrentMissionQuery();
   const startSessionMutation = useStartMissionCompletionSessionMutation();
   const submitAnswerMutation = useSubmitMissionCompletionAnswerMutation();
@@ -45,6 +48,16 @@ export function MissionAnswerPage() {
 
     return character;
   }, [character, homeQuery.data?.character]);
+  const characterImageUrl = currentCharacter
+    ? resolveCharacterImageUrl({
+        character: currentCharacter.key,
+        mood: "happy",
+        equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
+        fallbackUrl:
+          activeCharacterQuery.data?.currentAssetUrl ??
+          homeQuery.data?.character.currentAssetUrl,
+      })
+    : undefined;
 
   useEffect(() => {
     if (!currentMission || !currentCharacter || completionQuestion || startedRef.current) {
@@ -123,6 +136,7 @@ export function MissionAnswerPage() {
         {/* SCR-009 완료 질문: 완료 버튼 직후 보상 지급 전, 질문 1개와 1~300자 답변만 받는다. */}
         <CharacterStage
           character={currentCharacter.key}
+          imageUrl={characterImageUrl}
           mood="happy"
           name={currentCharacter.name}
           bubble={completionQuestion?.question.text ?? "방금 한 일을 짧게 남겨볼까요?"}

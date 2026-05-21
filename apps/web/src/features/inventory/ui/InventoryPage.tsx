@@ -9,6 +9,7 @@ import {
   type CharacterStates,
 } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { resolveItemImageUrl } from "@/features/item/model/itemAssetResolver";
 import {
   useInventorySkinItemsQuery,
@@ -51,6 +52,16 @@ export function InventoryPage() {
     () => toCharacterMood(character?.states),
     [character],
   );
+  const characterKey = toCharacterKey(character?.characterTypeCode);
+  const characterImageUrl = character
+    ? resolveCharacterImageUrl({
+        character: characterKey,
+        mood: characterMood,
+        states: character.states,
+        equippedSkin,
+        fallbackUrl: character.currentAssetUrl,
+      })
+    : undefined;
   const inventoryError = activeCharacterQuery.isError
     ? activeCharacterQuery.error
     : skinsQuery.isError
@@ -117,7 +128,8 @@ export function InventoryPage() {
               ? `${equippedSkin.name}을 입고 있어요.`
               : "지금은 기본 외형으로 있어요."
           }
-          character={toCharacterKey(character.characterTypeCode)}
+          character={characterKey}
+          imageUrl={characterImageUrl}
           mood={characterMood}
           name={character.name}
           stats={[

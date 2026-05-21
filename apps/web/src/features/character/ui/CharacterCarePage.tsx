@@ -8,6 +8,7 @@ import {
   useCharacterStatusQuery,
   useCreateCareLogMutation,
 } from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { type CareActionType } from "@/features/character/model/characterCareTypes";
 import { useInventoryConsumableItemsQuery } from "@/features/inventory/api/inventoryApi";
 import {
@@ -144,6 +145,13 @@ export function CharacterCarePage() {
 
   const characterKey = toCharacterKey(character.characterTypeCode);
   const mood = toCharacterMood(states);
+  const characterImageUrl = resolveCharacterImageUrl({
+    character: characterKey,
+    mood,
+    states,
+    equippedSkin: character.equippedSkin ?? null,
+    fallbackUrl: character.currentAssetUrl,
+  });
 
   return (
     <CharacterCareFrame>
@@ -152,6 +160,7 @@ export function CharacterCarePage() {
         <CharacterStage
           bubble={careMessage}
           character={characterKey}
+          imageUrl={characterImageUrl}
           mood={mood}
           name={character.name}
         />
