@@ -5,6 +5,7 @@ import { useActiveCharacterQuery } from "@/features/character/api/characterCareA
 import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { routes } from "@/routes/paths";
+import { effectAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card } from "@/shared/ui";
 
 import "./MissionResultPage.css";
@@ -15,12 +16,11 @@ export function MissionResultPage() {
   const { activeMission, character, completionResult, clearMissionFlow } = useMissionFlowStore();
   const sparkles = useMemo(
     () =>
-      Array.from({ length: 14 }, (_, index) => ({
-        id: index,
-        x: `${(index % 7) * 34 - 100}px`,
-        y: `${Math.floor(index / 7) * 42 - 78}px`,
-        delay: `${index * 0.06}s`,
-      })),
+      [
+        { id: 0, x: "-138px", y: "-74px", size: "112px", rotate: "-14deg", delay: "0s" },
+        { id: 1, x: "118px", y: "-58px", size: "96px", rotate: "18deg", delay: "0.12s" },
+        { id: 2, x: "-112px", y: "76px", size: "92px", rotate: "12deg", delay: "0.24s" },
+      ],
     [],
   );
 
@@ -34,7 +34,12 @@ export function MissionResultPage() {
       <main className="app-page mission-result">
         <AppShell>
           <div className="mission-result__empty">
-            <Card>
+            <Card className="mission-result__empty-card">
+              <img
+                alt=""
+                className="mission-result__empty-illustration"
+                src={emptyStateAssets.mission}
+              />
               <h2>완료 결과가 없어요.</h2>
               <p>홈에서 미션을 완료한 뒤 다시 확인해 주세요.</p>
               <Button onClick={handleGoHome}>홈으로</Button>
@@ -58,21 +63,28 @@ export function MissionResultPage() {
         <section className="mission-result__body">
           {/* SCR-010 완료 결과: 답변 제출 이후에만 보상, 지갑 스냅샷, 캐릭터 반응을 보여준다. */}
           <div className="mission-result__celebration" aria-label="미션 완료 축하">
+            <img
+              alt=""
+              className="mission-result__burst"
+              src={effectAssets.sparkleBurst}
+            />
             {sparkles.map((sparkle) => (
-              <span
+              <img
                 aria-hidden="true"
+                alt=""
                 className="mission-result__spark"
                 key={sparkle.id}
+                src={effectAssets.starParticle}
                 style={{
                   "--spark-x": sparkle.x,
                   "--spark-y": sparkle.y,
+                  "--spark-size": sparkle.size,
+                  "--spark-rotate": sparkle.rotate,
                   animationDelay: sparkle.delay,
                 } as CSSProperties}
-              >
-                ✦
-              </span>
+              />
             ))}
-            <img src={characterImageUrl} alt="" />
+            <img className="mission-result__character" src={characterImageUrl} alt="" />
           </div>
 
           <div className="mission-result__headline">
@@ -81,9 +93,21 @@ export function MissionResultPage() {
           </div>
 
           <Card className="mission-result__reward">
-            <span>보상 내역</span>
-            <strong>+{completionResult.reward.starPiece} 별조각</strong>
-            <small>{character.name}의 애정 +{completionResult.reward.affection}</small>
+            <img
+              alt=""
+              className="mission-result__reward-stamp"
+              src={effectAssets.rewardStamp}
+            />
+            <div className="mission-result__reward-copy">
+              <span>보상 내역</span>
+              <strong className="mission-result__reward-amount">
+                <span>+{completionResult.reward.starPiece}</span>
+                <em>별조각</em>
+              </strong>
+              {completionResult.reward.affection > 0 ? (
+                <small>{character.name}의 애정 +{completionResult.reward.affection}</small>
+              ) : null}
+            </div>
           </Card>
 
           <Card className="mission-result__summary">
