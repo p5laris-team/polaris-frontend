@@ -12,19 +12,25 @@ type AppInitializerProps = {
 };
 
 export function AppInitializer({ children }: AppInitializerProps) {
-  const hasSession = useAuthStore((state) => state.hasSession());
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hasSession = !!accessToken;
   const markCompleted = useOnboardingSetupStore((state) => state.markCompleted);
   const setCreatedCharacter = useOnboardingSetupStore((state) => state.setCreatedCharacter);
   const selectCharacter = useOnboardingSetupStore((state) => state.selectCharacter);
-  const [isInitializing, setIsInitializing] = useState(true);
+
+  const [initializedToken, setInitializedToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isInitializing = hasSession && (initializedToken !== accessToken || isLoading);
 
   useEffect(() => {
     async function initializeSession() {
-      if (!hasSession) {
-        setIsInitializing(false);
+      if (!accessToken) {
+        setInitializedToken(null);
         return;
       }
 
+      setIsLoading(true);
       try {
         // Fetch onboarding profile and active character in parallel
         const [profile, activeCharacter] = await Promise.all([
@@ -91,12 +97,13 @@ export function AppInitializer({ children }: AppInitializerProps) {
       } catch (err) {
         console.error("Error during session initialization:", err);
       } finally {
-        setIsInitializing(false);
+        setInitializedToken(accessToken);
+        setIsLoading(false);
       }
     }
 
     initializeSession();
-  }, [hasSession, markCompleted, selectCharacter, setCreatedCharacter]);
+  }, [accessToken, markCompleted, selectCharacter, setCreatedCharacter]);
 
   if (isInitializing && hasSession) {
     return (
