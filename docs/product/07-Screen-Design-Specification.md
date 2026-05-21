@@ -11,7 +11,7 @@
 | 상태 | Draft |
 | 작성자 | Backend Architecture Team |
 
-> UI/UX 에셋 제작 항목은 [08. UI/UX 에셋 제작 가이드](./08-UIUX-Asset-Production-Guide.md)를 기준으로 별도 관리한다.
+> UI/UX 에셋 제작 항목은 [08. UI/UX 에셋 제작 가이드](../design/08-UIUX-Asset-Production-Guide.md)를 기준으로 별도 관리한다.
 
 ---
 
@@ -67,7 +67,7 @@
 ```
 1. 미션 1개 집중 — 리스트 나열 금지. 현재 미션 1개를 캐릭터 대화형으로 제안
 2. 캐릭터 말투 일관성 — 노바/무무/쪼리 각각 다른 말투로 모든 화면에 녹아남
-3. API는 `docs/01-API-spec.md`의 최신 `/api/{domain}/v1/...` 명세를 기준으로 한다
+3. API는 `docs/api/01-API-spec.md`의 최신 `/api/{domain}/v1/...` 명세를 기준으로 한다
 4. 거절 → 다음 미션 즉시 — 별도 사유 입력 없이 즉시 거절 API를 호출하고 다음 미션으로 전환 (하루 최대 15개)
 5. 공유 유입 추적 — 공유 링크 클릭 시 referral / UTM 파라미터 추적
 ```
