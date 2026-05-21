@@ -212,13 +212,15 @@ export function HomePage() {
             <div className="home-page__mission-box">
               <div className="home-page__mission-meta">
                 <Tag>{mission.difficultyLabel}</Tag>
-                <StarPieceAmount amount={mission.rewardStarPiece} prefix="+" size="sm" tone="accent" />
+                <span className="home-page__mission-reward" aria-label={`보상 별조각 ${mission.rewardStarPiece}개`}>
+                  보상
+                  <StarPieceAmount amount={mission.rewardStarPiece} prefix="+" size="sm" tone="accent" />
+                </span>
               </div>
               <MissionCard
                 title={mission.title}
                 description={mission.description}
                 category={mission.category}
-                rewardStarPiece={mission.rewardStarPiece}
                 status="active"
               />
               <div className="home-page__mission-actions">
