@@ -67,18 +67,39 @@
 }
 
 .character-stage__bubble {
+  position: relative;
   max-width: 84%;
+  margin-top: 12px;
   padding: 10px 14px;
   color: var(--fg-1);
-  background: var(--bg-2);
-  border: 1px solid var(--border-1);
-  border-radius: 18px 18px 18px 4px;
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 250, 239, 0.98);
+  border: 1px solid rgba(201, 160, 104, 0.34);
+  border-radius: 18px;
+  box-shadow:
+    0 8px 18px rgba(65, 42, 24, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
   font-family: var(--font-dialogue);
   font-size: 17px;
   font-weight: 750;
   line-height: 1.5;
   text-align: center;
+}
+
+.character-stage__bubble::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 250, 239, 0.98);
+  border-top: 1px solid rgba(201, 160, 104, 0.34);
+  border-left: 1px solid rgba(201, 160, 104, 0.34);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.character-stage__bubble::after {
+  content: none;
 }
 
 .character-stage__stats {
