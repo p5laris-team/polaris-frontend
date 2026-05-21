@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Shirt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -22,6 +22,7 @@ import {
   AppShell,
   Button,
   Card,
+  CareActionFeedback,
   CharacterStage,
   Header,
   StatusGauge,
@@ -38,6 +39,14 @@ type CareActionConfig = {
   effectType: InventoryItemEffectType;
   itemLabel: string;
   description: string;
+};
+
+type CareFeedbackTone = "feed" | "sleep" | "play";
+
+type CareFeedbackState = {
+  imageUrl: string;
+  mood: CharacterMood;
+  tone: CareFeedbackTone;
 };
 
 const careActions: CareActionConfig[] = [
@@ -64,6 +73,27 @@ const careActions: CareActionConfig[] = [
   },
 ];
 
+const careFeedbackPresets: Record<
+  CareActionType,
+  {
+    mood: CharacterMood;
+    tone: CareFeedbackTone;
+  }
+> = {
+  FEED: {
+    mood: "happy",
+    tone: "feed",
+  },
+  SLEEP: {
+    mood: "sleepy",
+    tone: "sleep",
+  },
+  PLAY: {
+    mood: "happy",
+    tone: "play",
+  },
+};
+
 export function CharacterCarePage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -73,11 +103,49 @@ export function CharacterCarePage() {
   const consumablesQuery = useInventoryConsumableItemsQuery();
   const careMutation = useCreateCareLogMutation();
   const [careMessage, setCareMessage] = useState("오늘 컨디션을 같이 살펴볼까요?");
+  const [careFeedback, setCareFeedback] = useState<CareFeedbackState | null>(null);
+  const careFeedbackTimeoutRef = useRef<number | null>(null);
 
   const character = activeCharacterQuery.data;
   const states = statusQuery.data?.states ?? character?.states;
   const gauges = useMemo(() => (states ? toCareGauges(states) : []), [states]);
   const consumableItems = consumablesQuery.data?.items ?? [];
+
+  useEffect(
+    () => () => {
+      if (careFeedbackTimeoutRef.current) {
+        window.clearTimeout(careFeedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const showCareFeedback = (action: CareActionConfig) => {
+    if (!character) return;
+
+    const preset = careFeedbackPresets[action.type];
+    const feedbackImageUrl = resolveCharacterImageUrl({
+      character: toCharacterKey(character.characterTypeCode),
+      mood: preset.mood,
+      equippedSkin: character.equippedSkin ?? null,
+      fallbackUrl: character.currentAssetUrl,
+    });
+
+    if (careFeedbackTimeoutRef.current) {
+      window.clearTimeout(careFeedbackTimeoutRef.current);
+    }
+
+    setCareFeedback({
+      imageUrl: feedbackImageUrl,
+      mood: preset.mood,
+      tone: preset.tone,
+    });
+
+    careFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setCareFeedback(null);
+      careFeedbackTimeoutRef.current = null;
+    }, 1600);
+  };
 
   const handleCare = (action: CareActionConfig, item: UserInventoryItem | null) => {
     if (!character) return;
@@ -98,6 +166,7 @@ export function CharacterCarePage() {
       {
         onSuccess: (result) => {
           setCareMessage(result.characterMessage);
+          showCareFeedback(action);
           showToast(result.characterMessage);
         },
         onError: (error) => {
@@ -229,6 +298,14 @@ export function CharacterCarePage() {
           </Button>
         </Card>
       </div>
+      {careFeedback ? (
+        <CareActionFeedback
+          imageUrl={careFeedback.imageUrl}
+          isOpen
+          mood={careFeedback.mood}
+          tone={careFeedback.tone}
+        />
+      ) : null}
     </CharacterCareFrame>
   );
 }

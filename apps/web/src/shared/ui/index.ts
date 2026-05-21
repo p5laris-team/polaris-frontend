@@ -2,6 +2,7 @@ export { AppShell } from "./AppShell/AppShell";
 export { BottomTabs, type BottomTabKey } from "./BottomTabs/BottomTabs";
 export { Button } from "./Button/Button";
 export { Card } from "./Card/Card";
+export { CareActionFeedback } from "./CareActionFeedback/CareActionFeedback";
 export { CharacterStage } from "./CharacterStage/CharacterStage";
 export { Chip } from "./Chip/Chip";
 export { Header } from "./Header/Header";
