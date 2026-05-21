@@ -7,7 +7,9 @@ import { mapHomeResponseToViewModel } from "@/features/home/model/homeMappers";
 import {
   useRejectAndRequestNextMissionMutation,
   useStartMissionCompletionSessionMutation,
+  useTodayFocusMissionQuery,
 } from "@/features/mission/api/missionApi";
+import { mapCurrentMissionToHomeMission } from "@/features/mission/model/missionMappers";
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
@@ -38,6 +40,12 @@ export function HomePage() {
     () => (homeQuery.data ? mapHomeResponseToViewModel(homeQuery.data) : null),
     [homeQuery.data],
   );
+  const focusMissionQuery = useTodayFocusMissionQuery(home?.character.id);
+  const focusMission = focusMissionQuery.data ?? null;
+  const mission = useMemo(
+    () => mapCurrentMissionToHomeMission(focusMission),
+    [focusMission],
+  );
 
   if (homeQuery.isLoading) {
     return <HomeLoadingPage />;
@@ -67,13 +75,13 @@ export function HomePage() {
   }
 
   const handleRejectMission = () => {
-    if (!home.mission) {
+    if (!mission) {
       return;
     }
 
     rejectAndNextMutation.mutate(
       {
-        missionId: home.mission.id,
+        missionId: mission.id,
         characterId: home.character.id,
       },
       {
@@ -88,17 +96,17 @@ export function HomePage() {
   };
 
   const handleStartCompletion = () => {
-    if (!home.mission || !homeQuery.data?.currentMission) {
+    if (!mission || !focusMission) {
       return;
     }
 
-    setActiveMission(homeQuery.data.currentMission, {
+    setActiveMission(focusMission, {
       id: home.character.id,
       key: home.character.key,
       name: home.character.name,
     });
 
-    startCompletionSessionMutation.mutate(home.mission.id, {
+    startCompletionSessionMutation.mutate(mission.id, {
       onSuccess: (question) => {
         setCompletionQuestion(question);
         navigate(routes.missionAnswer);
@@ -117,7 +125,7 @@ export function HomePage() {
           character={home.character.key}
           mood={home.character.mood}
           name={home.character.name}
-          bubble={home.character.bubble}
+          bubble={focusMission?.characterMessage ?? home.character.bubble}
           ariaLabel="별친구 돌봄 화면 열기"
           onClick={() => navigate(routes.character)}
         />
@@ -162,32 +170,43 @@ export function HomePage() {
         <section className="home-page__mission-section" aria-label="제안된 미션">
           <div className="home-page__section-title">
             <h2>제안된 미션</h2>
-            {home.mission ? <span>{home.mission.stackLabel}</span> : null}
+            {mission ? <span>{mission.stackLabel}</span> : null}
           </div>
 
-          {home.mission ? (
+          {focusMissionQuery.isLoading ? (
+            <Card className="home-page__state">
+              <h2>오늘의 작은 별을 찾는 중이에요.</h2>
+              <p>별친구가 지금 해볼 만한 미션을 고르고 있어요.</p>
+            </Card>
+          ) : focusMissionQuery.isError ? (
+            <Card className="home-page__state">
+              <h2>미션을 불러오지 못했어요.</h2>
+              <p>{getUserFacingErrorMessage(focusMissionQuery.error)}</p>
+              <Button onClick={() => void focusMissionQuery.refetch()}>다시 불러오기</Button>
+            </Card>
+          ) : mission ? (
             <div className="home-page__mission-box">
               <div className="home-page__mission-meta">
-                <Tag>{home.mission.difficultyLabel}</Tag>
-                <strong>+{home.mission.rewardStarPiece}✦</strong>
+                <Tag>{mission.difficultyLabel}</Tag>
+                <strong>+{mission.rewardStarPiece}✦</strong>
               </div>
               <MissionCard
-                title={home.mission.title}
-                description={home.mission.description}
-                category={home.mission.category}
-                rewardStarPiece={home.mission.rewardStarPiece}
+                title={mission.title}
+                description={mission.description}
+                category={mission.category}
+                rewardStarPiece={mission.rewardStarPiece}
                 status="active"
               />
               <div className="home-page__mission-actions">
                 <Button
                   variant="secondary"
-                  disabled={rejectAndNextMutation.isPending}
+                  disabled={rejectAndNextMutation.isPending || focusMissionQuery.isFetching}
                   onClick={handleRejectMission}
                 >
                   {rejectAndNextMutation.isPending ? "찾는 중..." : "다른 거 볼게요"}
                 </Button>
                 <Button
-                  disabled={startCompletionSessionMutation.isPending}
+                  disabled={startCompletionSessionMutation.isPending || focusMissionQuery.isFetching}
                   onClick={handleStartCompletion}
                 >
                   {startCompletionSessionMutation.isPending ? "질문 여는 중..." : "해냈어요"}
