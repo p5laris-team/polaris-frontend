@@ -93,19 +93,12 @@ export function CharacterSelectPage() {
                   })}
                 </div>
 
-                <div className="onboarding-flow__selected-note" aria-live="polite">
-                  {selectedCharacter ? (
-                    <>
-                      <strong>{selectedCharacter.sampleLine}</strong>
-                      <p>{selectedCharacter.description}</p>
-                    </>
-                  ) : (
-                    <>
-                      <strong>아직 선택하지 않았어요.</strong>
-                      <p>마음에 드는 별친구를 누르면 이름을 지어 줄 수 있어요.</p>
-                    </>
-                  )}
-                </div>
+                {selectedCharacter ? (
+                  <div className="onboarding-flow__selected-note" aria-live="polite">
+                    <strong>{selectedCharacter.sampleLine}</strong>
+                    <p>{selectedCharacter.description}</p>
+                  </div>
+                ) : null}
               </>
             ) : null}
           </section>

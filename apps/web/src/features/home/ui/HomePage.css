@@ -5,12 +5,6 @@
   padding: 12px 20px 96px;
 }
 
-.home-page__icon-count {
-  margin-left: 4px;
-  font-size: 12px;
-  font-weight: 800;
-}
-
 .home-page__notification-dot {
   position: absolute;
   top: 10px;

@@ -76,7 +76,7 @@
 }
 
 .character-care-page__care-action {
-  min-height: 126px;
+  min-height: 142px;
   padding: 14px 7px;
   display: flex;
   flex-direction: column;
@@ -112,6 +112,10 @@
   cursor: not-allowed;
 }
 
+.character-care-page__care-action--empty {
+  background: color-mix(in srgb, var(--bg-2) 72%, var(--bg-1));
+}
+
 .character-care-page__care-action strong {
   color: inherit;
   font-family: var(--font-display);
@@ -129,8 +133,15 @@
 
 .character-care-page__care-action span {
   color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.character-care-page__care-action em {
+  color: var(--fg-3);
+  font-size: 11px;
+  font-style: normal;
   font-weight: 800;
   line-height: 1.2;
 }

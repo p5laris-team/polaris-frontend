@@ -8,6 +8,11 @@
   gap: 16px;
 }
 
+.mission-answer__body .character-stage {
+  /* 인증 질문은 핵심 안내라 flex 압축으로 말풍선이 잘리지 않게 무대를 고정 높이로 둔다. */
+  flex: 0 0 auto;
+}
+
 .mission-answer__mission {
   display: grid;
   gap: 6px;

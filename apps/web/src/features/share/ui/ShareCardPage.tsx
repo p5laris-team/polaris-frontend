@@ -1,11 +1,8 @@
 import { type ReactNode, useMemo, useState } from "react";
 import {
-  CheckCircle2,
   Copy,
-  Gift,
   ImagePlus,
   MessageSquareText,
-  Send,
   Share2,
   Sparkles,
 } from "lucide-react";
@@ -61,7 +58,6 @@ export function ShareCardPage() {
   );
   const statusError = homeQuery.error ?? todayMissionsQuery.error ?? todayShareStatusQuery.error ?? null;
   const loading = homeQuery.isLoading || todayMissionsQuery.isLoading || todayShareStatusQuery.isLoading;
-  const rewardClaimed = Boolean(todayShareStatus?.rewardClaimed);
   const trimmedHeadline = headline.trim();
   const canCreateCard = Boolean(home && trimmedHeadline);
 
@@ -160,21 +156,6 @@ export function ShareCardPage() {
   return (
     <ShareCardFrame>
       <div className="share-card-page__body">
-        <Card className={`share-card-page__reward-card ${rewardClaimed ? "share-card-page__reward-card--done" : ""}`}>
-          <span className="share-card-page__reward-icon">
-            {rewardClaimed ? <CheckCircle2 size={24} strokeWidth={1.8} /> : <Gift size={24} strokeWidth={1.8} />}
-          </span>
-          <div>
-            <span className="share-card-page__eyebrow">오늘의 공유 보상</span>
-            <h1>{rewardClaimed ? "오늘 보상을 받았어요" : "카드를 공유하면 별조각 +10"}</h1>
-            <p>
-              {rewardClaimed
-                ? `마지막 공유 ${formatSharedAt(todayShareStatus.lastSharedAt)}`
-                : "외부 게시 성공 여부는 검증하지 않고, 하루 한 번 공유 시도 보상을 지급해요."}
-            </p>
-          </div>
-        </Card>
-
         <section className="share-card-page__section" aria-labelledby="share-card-preview-title">
           <div className="share-card-page__section-head">
             <span className="share-card-page__eyebrow">카드 미리보기</span>
@@ -289,7 +270,6 @@ function ShareCardLoadingPage() {
   return (
     <ShareCardFrame>
       <div className="share-card-page__body">
-        <div className="share-card-page__skeleton share-card-page__skeleton--reward" />
         <div className="share-card-page__skeleton share-card-page__skeleton--preview" />
         <div className="share-card-page__skeleton share-card-page__skeleton--field" />
       </div>
@@ -494,13 +474,4 @@ function wrapCanvasText(
   if (line) {
     context.fillText(line, x, currentY);
   }
-}
-
-function formatSharedAt(value: string | null) {
-  if (!value) return "오늘";
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
 }

@@ -1,11 +1,16 @@
 import { type CursorPage } from "@/shared/api";
 
-export type ShopItemType = "SKIN";
+export type ShopItemType = "SKIN" | "CONSUMABLE";
+
+export type ShopItemEffectType = "FOOD" | "REST" | "PLAY";
 
 export type ShopItem = {
   id: number;
   name: string;
+  description?: string;
   itemType: ShopItemType;
+  characterTypeId?: number | null;
+  effectType?: ShopItemEffectType | null;
   price: number;
   imageUrl: string;
   owned: boolean;

@@ -16,8 +16,8 @@ import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyP
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
 import { ShareCardPage } from "@/features/share/ui/ShareCardPage";
 import { ShopPage } from "@/features/shop/ui/ShopPage";
+import { WalletPage } from "@/features/wallet/ui/WalletPage";
 import { DesignSystemPreviewPage } from "@/pages/DesignSystemPreviewPage";
-import { RoutePlaceholderPage } from "@/pages/RoutePlaceholderPage";
 import { routes } from "@/routes/paths";
 import { runtimeConfig } from "@/shared/config/env";
 import { useAuthStore } from "@/stores/authStore";
@@ -40,17 +40,7 @@ export function AppRouter() {
         <Route path={routes.character} element={<CharacterCarePage />} />
         <Route path={routes.shop} element={<ShopPage />} />
         <Route path={routes.inventory} element={<InventoryPage />} />
-        <Route
-          path={routes.wallet}
-          element={
-            <RoutePlaceholderPage
-              screenId="SCR-015"
-              title="별조각"
-              description="현재 보유한 별조각은 상점과 마이페이지에서 바로 확인할 수 있어요."
-              supportText="자세한 사용 내역은 별조각 화면이 열리면 이곳에서 확인할 수 있어요."
-            />
-          }
-        />
+        <Route path={routes.wallet} element={<WalletPage />} />
         <Route path={routes.share} element={<ShareCardPage />} />
         <Route path={routes.attendance} element={<AttendancePage />} />
         <Route path={routes.notifications} element={<NotificationsPage />} />

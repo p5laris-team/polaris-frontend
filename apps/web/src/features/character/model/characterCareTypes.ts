@@ -34,8 +34,5 @@ export type CharacterCareResultResponse = {
   } | null;
   beforeStates: Record<keyof CharacterStates, number>;
   afterStates: Record<keyof CharacterStates, number>;
-  wallet: {
-    starPiece: number;
-  };
   characterMessage: string;
 };

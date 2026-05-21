@@ -27,6 +27,12 @@ export const inventoryQueryKeys = {
       cursor: null,
       size: DEFAULT_INVENTORY_PAGE_SIZE,
     }),
+  consumables: () =>
+    inventoryQueryKeys.items({
+      itemType: "CONSUMABLE",
+      cursor: null,
+      size: DEFAULT_INVENTORY_PAGE_SIZE,
+    }),
 };
 
 export function getUserItems(params: UserItemsRequest) {
@@ -52,6 +58,19 @@ export function updateEquippedSkin(characterId: number, body: UpdateEquippedSkin
 export function useInventorySkinItemsQuery() {
   const params: UserItemsRequest = {
     itemType: "SKIN",
+    cursor: null,
+    size: DEFAULT_INVENTORY_PAGE_SIZE,
+  };
+
+  return useQuery({
+    queryKey: inventoryQueryKeys.items(params),
+    queryFn: () => getUserItems(params),
+  });
+}
+
+export function useInventoryConsumableItemsQuery() {
+  const params: UserItemsRequest = {
+    itemType: "CONSUMABLE",
     cursor: null,
     size: DEFAULT_INVENTORY_PAGE_SIZE,
   };

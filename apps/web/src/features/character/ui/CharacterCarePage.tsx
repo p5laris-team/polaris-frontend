@@ -9,6 +9,11 @@ import {
   useCreateCareLogMutation,
 } from "@/features/character/api/characterCareApi";
 import { type CareActionType } from "@/features/character/model/characterCareTypes";
+import { useInventoryConsumableItemsQuery } from "@/features/inventory/api/inventoryApi";
+import {
+  type InventoryItemEffectType,
+  type UserInventoryItem,
+} from "@/features/inventory/model/inventoryTypes";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
@@ -29,7 +34,8 @@ import "./CharacterCarePage.css";
 type CareActionConfig = {
   type: CareActionType;
   label: string;
-  costLabel: string;
+  effectType: InventoryItemEffectType;
+  itemLabel: string;
   description: string;
   icon: LucideIcon;
 };
@@ -38,21 +44,24 @@ const careActions: CareActionConfig[] = [
   {
     type: "FEED",
     label: "밥 주기",
-    costLabel: "3✦",
+    effectType: "FOOD",
+    itemLabel: "먹이 아이템",
     description: "포만감을 회복해요",
     icon: Utensils,
   },
   {
     type: "SLEEP",
     label: "재우기",
-    costLabel: "무료",
+    effectType: "REST",
+    itemLabel: "휴식 아이템",
     description: "기운을 회복해요",
     icon: Moon,
   },
   {
     type: "PLAY",
     label: "놀아주기",
-    costLabel: "2✦",
+    effectType: "PLAY",
+    itemLabel: "장난감 아이템",
     description: "애정을 회복해요",
     icon: Gamepad2,
   },
@@ -64,20 +73,30 @@ export function CharacterCarePage() {
   const activeCharacterQuery = useActiveCharacterQuery();
   const characterId = activeCharacterQuery.data?.id ?? null;
   const statusQuery = useCharacterStatusQuery(characterId);
+  const consumablesQuery = useInventoryConsumableItemsQuery();
   const careMutation = useCreateCareLogMutation();
   const [careMessage, setCareMessage] = useState("오늘 컨디션을 같이 살펴볼까요?");
 
   const character = activeCharacterQuery.data;
   const states = statusQuery.data?.states ?? character?.states;
   const gauges = useMemo(() => (states ? toCareGauges(states) : []), [states]);
+  const consumableItems = consumablesQuery.data?.items ?? [];
 
-  const handleCare = (actionType: CareActionType) => {
+  const handleCare = (action: CareActionConfig, item: UserInventoryItem | null) => {
     if (!character) return;
+
+    if (!item || item.quantity <= 0) {
+      showToast(`${action.itemLabel} 수량이 부족해요.`);
+      return;
+    }
 
     careMutation.mutate(
       {
         characterId: character.id,
-        body: { actionType },
+        body: {
+          actionType: action.type,
+          itemId: item.itemId,
+        },
       },
       {
         onSuccess: (result) => {
@@ -91,12 +110,18 @@ export function CharacterCarePage() {
     );
   };
 
-  if (activeCharacterQuery.isLoading || statusQuery.isLoading) {
+  if (activeCharacterQuery.isLoading || statusQuery.isLoading || consumablesQuery.isLoading) {
     return <CharacterCareLoadingPage />;
   }
 
-  if (activeCharacterQuery.isError || statusQuery.isError || !character || !states) {
-    const error = activeCharacterQuery.error ?? statusQuery.error;
+  if (
+    activeCharacterQuery.isError ||
+    statusQuery.isError ||
+    consumablesQuery.isError ||
+    !character ||
+    !states
+  ) {
+    const error = activeCharacterQuery.error ?? statusQuery.error ?? consumablesQuery.error;
 
     return (
       <CharacterCareFrame>
@@ -107,6 +132,7 @@ export function CharacterCarePage() {
             onClick={() => {
               void activeCharacterQuery.refetch();
               void statusQuery.refetch();
+              void consumablesQuery.refetch();
             }}
           >
             다시 불러오기
@@ -128,12 +154,6 @@ export function CharacterCarePage() {
           character={characterKey}
           mood={mood}
           name={character.name}
-          stats={[
-            { label: "포만감", value: `${states.hunger.value}%` },
-            { label: "기운", value: `${states.energy.value}%` },
-            { label: "애정", value: `${states.affection.value}%` },
-            { label: "스킨", value: character.equippedSkin?.name ?? "기본" },
-          ]}
         />
 
         <Card className="character-care-page__status-card">
@@ -158,25 +178,30 @@ export function CharacterCarePage() {
         <section className="character-care-page__care-section" aria-label="돌봄 활동 선택">
           <div className="character-care-page__section-title">
             <h2>돌봄 활동 선택</h2>
-            <span>보유 별조각으로 바로 실행</span>
+            <span>보유 아이템으로 실행</span>
           </div>
 
           <div className="character-care-page__care-grid">
             {careActions.map((action) => {
               const Icon = action.icon;
+              const item = findCareConsumable(consumableItems, action.effectType);
+              const isUnavailable = !item || item.quantity <= 0;
 
               return (
                 <button
-                  className="character-care-page__care-action"
-                  disabled={careMutation.isPending}
+                  className={`character-care-page__care-action${
+                    isUnavailable ? " character-care-page__care-action--empty" : ""
+                  }`}
+                  disabled={careMutation.isPending || isUnavailable}
                   key={action.type}
-                  onClick={() => handleCare(action.type)}
+                  onClick={() => handleCare(action, item)}
                   type="button"
                 >
                   <Icon size={23} strokeWidth={1.8} />
                   <strong>{action.label}</strong>
                   <small>{action.description}</small>
-                  <span>{action.costLabel}</span>
+                  <span>{item ? item.name : action.itemLabel}</span>
+                  <em>{item ? `보유 ${item.quantity}개` : "보유 0개"}</em>
                 </button>
               );
             })}
@@ -233,7 +258,7 @@ function toCareGauges(states: CharacterStates) {
       value: states.hunger.value,
       description: states.hunger.label,
       tone: toGaugeTone(states.hunger.grade),
-      guide: "시간이 지나면 조금씩 배고파져요. 밥 주기로 든든하게 만들 수 있어요.",
+      guide: "시간이 지나면 조금씩 배고파져요. 먹이 아이템으로 든든하게 만들 수 있어요.",
     },
     {
       key: "energy",
@@ -242,7 +267,7 @@ function toCareGauges(states: CharacterStates) {
       value: states.energy.value,
       description: states.energy.label,
       tone: toGaugeTone(states.energy.grade),
-      guide: "기운이 낮아지면 졸린 표정이 돼요. 재우기는 별조각 없이 사용할 수 있어요.",
+      guide: "기운이 낮아지면 졸린 표정이 돼요. 휴식 아이템으로 푹 쉬게 할 수 있어요.",
     },
     {
       key: "affection",
@@ -251,9 +276,17 @@ function toCareGauges(states: CharacterStates) {
       value: states.affection.value,
       description: states.affection.label,
       tone: toGaugeTone(states.affection.grade),
-      guide: "미션 완료와 놀아주기로 조금씩 가까워져요.",
+      guide: "미션 완료와 장난감 아이템 사용으로 조금씩 가까워져요.",
     },
   ] as const;
+}
+
+function findCareConsumable(items: UserInventoryItem[], effectType: InventoryItemEffectType) {
+  const candidates = items.filter(
+    (item) => item.itemType === "CONSUMABLE" && item.effectType === effectType,
+  );
+
+  return candidates.find((item) => item.quantity > 0) ?? candidates[0] ?? null;
 }
 
 function toGaugeTone(grade: CharacterStates[keyof CharacterStates]["grade"]) {

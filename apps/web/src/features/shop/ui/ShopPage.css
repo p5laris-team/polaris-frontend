@@ -49,13 +49,6 @@
   line-height: 1.15;
 }
 
-.shop-page__wallet-copy p {
-  margin: 8px 0 0;
-  color: var(--fg-3);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .shop-page__wallet-icon {
   width: 58px;
   height: 58px;
@@ -66,6 +59,75 @@
   background: var(--bg-2);
   border-radius: 20px;
   box-shadow: var(--shadow-xs);
+}
+
+.shop-page__category-tabs {
+  margin-top: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--bg-2) 88%, transparent);
+  border: 1px solid var(--border-1);
+  border-radius: 20px;
+  box-shadow: var(--shadow-xs);
+}
+
+.shop-page__category-tab {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 10px;
+  color: var(--fg-3);
+  background: transparent;
+  border: 0;
+  border-radius: 15px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.shop-page__category-tab.is-active {
+  color: var(--fg-1);
+  background: var(--bg-1);
+  box-shadow: var(--shadow-xs);
+}
+
+.shop-page__category-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.shop-page__category-tab > svg {
+  flex: 0 0 auto;
+}
+
+.shop-page__category-tab span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.shop-page__category-tab strong {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.shop-page__category-tab small {
+  color: var(--fg-3);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .shop-page__section {
@@ -166,6 +228,14 @@
   color: var(--success);
 }
 
+.shop-page__skin-badges {
+  margin-top: 0 !important;
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
 .shop-page__skin-info span {
   display: block;
   margin-top: 4px;
@@ -180,6 +250,63 @@
 }
 
 .shop-page__skin-footer > span {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.shop-page__consumable-list {
+  display: grid;
+  gap: 10px;
+}
+
+.shop-page__consumable-card {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.shop-page__consumable-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  border-radius: 16px;
+}
+
+.shop-page__consumable-info {
+  min-width: 0;
+}
+
+.shop-page__consumable-info strong {
+  display: block;
+  color: var(--fg-1);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.shop-page__consumable-info span {
+  display: block;
+  margin-top: 3px;
+  color: var(--fg-3);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.shop-page__consumable-buy {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.shop-page__consumable-buy > strong {
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -208,23 +335,11 @@
   font-size: 15px;
 }
 
-.shop-page__empty-card p,
-.shop-page__notice-card p {
+.shop-page__empty-card p {
   margin: 0;
   color: var(--fg-3);
   font-size: 12px;
   line-height: 1.5;
-}
-
-.shop-page__notice-card {
-  margin-top: 14px;
-  display: grid;
-  gap: 6px;
-}
-
-.shop-page__notice-card strong {
-  color: var(--fg-1);
-  font-size: 14px;
 }
 
 .shop-page__purchase-modal {
@@ -244,6 +359,10 @@
   border-radius: 18px;
   background: linear-gradient(135deg, #f8e7ad 0%, #c7f0dc 100%);
   border: 1px solid var(--border-1);
+}
+
+.shop-page__purchase-preview--consumable {
+  background: linear-gradient(135deg, #fff0c8 0%, #d9f4ef 100%);
 }
 
 .shop-page__purchase-preview img {
@@ -271,6 +390,40 @@
   color: var(--fg-3);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.shop-page__quantity-control {
+  display: inline-grid;
+  grid-template-columns: 34px minmax(56px, auto) 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--bg-3);
+}
+
+.shop-page__quantity-control button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--fg-1);
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.shop-page__quantity-control button:disabled {
+  color: var(--fg-4);
+  cursor: not-allowed;
+}
+
+.shop-page__quantity-control > strong {
+  color: var(--fg-1);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
 }
 
 .shop-page__purchase-balance {

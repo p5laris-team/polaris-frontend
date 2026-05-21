@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
+import { walletQueryKeys } from "@/features/wallet/api/walletApi";
 import {
   demoCreateShareCard,
   demoCreateShareEvent,
@@ -120,6 +121,7 @@ export function useCreateShareEventMutation() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: shareQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
+        queryClient.invalidateQueries({ queryKey: walletQueryKeys.all }),
       ]);
     },
   });
