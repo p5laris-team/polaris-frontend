@@ -264,12 +264,16 @@ export function ShopPage() {
             <div className="shop-page__consumable-list" role="list">
               {consumableItems.map((item) => {
                 const cantAfford = walletStarPiece < item.price;
+                const effectClassName = getConsumableEffectClassName(item.effectType, item.name);
                 const { label } = getConsumableMeta(item.effectType, item.name);
                 const imageUrl = resolveItemImageUrl(item);
 
                 return (
                   <Card className="shop-page__consumable-card" key={item.id} role="listitem">
-                    <span className="shop-page__consumable-icon" aria-hidden="true">
+                    <span
+                      className={`shop-page__consumable-icon shop-page__consumable-icon--${effectClassName}`}
+                      aria-hidden="true"
+                    >
                       <img alt="" src={imageUrl} />
                     </span>
                     <div className="shop-page__consumable-info">
@@ -379,6 +383,9 @@ function PurchaseConfirmModal({
 
   const isConsumable = item.itemType === "CONSUMABLE";
   const imageUrl = resolveItemImageUrl(item);
+  const effectClassName = isConsumable
+    ? getConsumableEffectClassName(item.effectType, item.name)
+    : null;
 
   return (
     <Modal
@@ -394,6 +401,8 @@ function PurchaseConfirmModal({
         <div
           className={`shop-page__purchase-preview${
             isConsumable ? " shop-page__purchase-preview--consumable" : ""
+          }${
+            effectClassName ? ` shop-page__purchase-preview--${effectClassName}` : ""
           }`}
         >
           <img alt="" src={imageUrl} />
@@ -490,6 +499,13 @@ function getConsumableMeta(
   }
 
   return { Icon: Gamepad2, label: "애정 회복" };
+}
+
+function getConsumableEffectClassName(
+  effectType: ShopItemEffectType | null | undefined,
+  name: string,
+) {
+  return (effectType ?? inferEffectTypeFromName(name)).toLowerCase();
 }
 
 function inferEffectTypeFromName(name: string): ShopItemEffectType {

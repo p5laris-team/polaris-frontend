@@ -76,13 +76,13 @@
 }
 
 .character-care-page__care-action {
-  min-height: 142px;
-  padding: 14px 7px;
+  min-height: 164px;
+  padding: 12px 7px 11px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   color: var(--fg-1);
   background: var(--bg-2);
   border: 1px solid var(--border-1);
@@ -116,6 +116,41 @@
   background: color-mix(in srgb, var(--bg-2) 72%, var(--bg-1));
 }
 
+.character-care-page__care-action-asset {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.56), rgba(255, 239, 213, 0.24) 54%, rgba(255, 239, 213, 0) 73%);
+  box-shadow: none;
+}
+
+.character-care-page__care-action-asset img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  transform: translateY(-1px);
+  filter: drop-shadow(0 7px 8px rgba(65, 42, 24, 0.14));
+}
+
+.character-care-page__care-action-asset--food img {
+  transform: translateY(-1px) scale(1.12);
+}
+
+.character-care-page__care-action:disabled .character-care-page__care-action-asset {
+  opacity: 0.92;
+  filter: grayscale(0.08);
+}
+
+.character-care-page__care-action:disabled .character-care-page__care-action-asset img {
+  filter:
+    grayscale(0.1)
+    drop-shadow(0 6px 7px rgba(65, 42, 24, 0.12));
+}
+
 .character-care-page__care-action strong {
   color: inherit;
   font-family: var(--font-display);
@@ -131,11 +166,15 @@
   line-height: 1.35;
 }
 
-.character-care-page__care-action span {
+.character-care-page__care-action-item {
+  max-width: 100%;
+  overflow: hidden;
   color: var(--accent);
   font-size: 11px;
   font-weight: 800;
   line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .character-care-page__care-action em {
