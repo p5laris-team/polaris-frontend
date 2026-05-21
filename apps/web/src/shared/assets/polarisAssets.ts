@@ -184,8 +184,11 @@ export const categoryAssets: Record<CategoryKey, string> = {
 };
 
 export const brandAssets = {
-  logomark: assetUrl("logomark.svg"),
-  logoWordmark: assetUrl("logo-wordmark.svg"),
+  logomark: assetUrl("brand/logo/logomark.png"),
+  logoWordmark: assetUrl("brand/logo/logo-wordmark.png"),
+  logoWordmarkInverse: assetUrl("brand/logo/logo-wordmark-inverse.png"),
+  favicon: assetUrl("brand/favicon.png"),
+  ogImage: assetUrl("brand/og-image.png"),
   stardustPattern: assetUrl("pattern-stardust.svg"),
 };
 

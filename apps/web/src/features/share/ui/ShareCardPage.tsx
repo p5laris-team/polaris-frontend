@@ -22,6 +22,7 @@ import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { createIdempotencyKey } from "@/shared/api/idempotency";
 import {
+  brandAssets,
   emptyStateAssets,
   shareCardAssets,
   type ShareCardBackgroundKey,
@@ -79,6 +80,7 @@ export function ShareCardPage() {
       const imageBlob = await createShareCardImageBlob({
         backgroundKey,
         backgroundImageUrl,
+        brandLogoImageUrl: brandAssets.logoWordmark,
         characterName: home.character.name,
         characterImageUrl,
         completedCount,
@@ -194,7 +196,11 @@ export function ShareCardPage() {
               className="share-card-page__preview-frame"
               src={shareCardAssets.decorations.friendsFrame}
             />
-            <span className="share-card-page__preview-mark">Polaris</span>
+            <img
+              alt="Polaris"
+              className="share-card-page__preview-mark"
+              src={brandAssets.logoWordmark}
+            />
             {completedCount > 0 ? (
               <img
                 alt=""
@@ -360,6 +366,7 @@ function ShareCardLoadingPage() {
 async function createShareCardImageBlob({
   backgroundKey,
   backgroundImageUrl,
+  brandLogoImageUrl,
   characterName,
   characterImageUrl,
   completedCount,
@@ -371,6 +378,7 @@ async function createShareCardImageBlob({
 }: {
   backgroundKey: ShareCardBackgroundKey;
   backgroundImageUrl: string;
+  brandLogoImageUrl: string;
   characterName: string;
   characterImageUrl: string;
   completedCount: number;
@@ -393,12 +401,14 @@ async function createShareCardImageBlob({
 
   const [
     backgroundImage,
+    brandLogoImage,
     characterImage,
     friendsFrameImage,
     stampImage,
     stardustImage,
   ] = await Promise.all([
     loadCanvasImage(backgroundImageUrl),
+    loadCanvasImage(brandLogoImageUrl),
     loadCanvasImage(characterImageUrl),
     loadCanvasImage(friendsFrameImageUrl),
     loadCanvasImage(stampImageUrl),
@@ -422,10 +432,10 @@ async function createShareCardImageBlob({
   drawImageContain(context, friendsFrameImage, 56, 64, 968, 1228);
   context.restore();
 
-  context.fillStyle = inkColor;
-  context.font = "900 42px sans-serif";
-  context.textAlign = "center";
-  context.fillText("Polaris", 540, 154);
+  context.save();
+  context.filter = darkBackground ? "brightness(0) invert(1)" : "none";
+  drawImageContain(context, brandLogoImage, 435, 110, 210, 52);
+  context.restore();
 
   drawImageContain(context, characterImage, 312, 250, 456, 456);
 
