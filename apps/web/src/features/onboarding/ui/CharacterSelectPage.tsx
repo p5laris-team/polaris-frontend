@@ -78,11 +78,11 @@ export function CharacterSelectPage() {
                           <strong>{character.name}</strong>
                           <small>{character.summary}</small>
                           <span className="onboarding-character-option__tags">
-                            {character.tags.map((tag) => (
+                            {character.tags?.map((tag) => (
                               <Tag key={tag} variant="neutral">
                                 {tag}
                               </Tag>
-                            ))}
+                            )) || null}
                           </span>
                         </span>
                         <span className="onboarding-character-option__check" aria-hidden="true">
@@ -96,7 +96,7 @@ export function CharacterSelectPage() {
                 {selectedCharacter ? (
                   <div className="onboarding-flow__selected-note" aria-live="polite">
                     <strong>{selectedCharacter.sampleLine}</strong>
-                    <p>{selectedCharacter.description}</p>
+                    <p>{selectedCharacter.description || ""}</p>
                   </div>
                 ) : null}
               </>
