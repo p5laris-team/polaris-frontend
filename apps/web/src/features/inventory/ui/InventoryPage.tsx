@@ -1,5 +1,5 @@
 import { type ReactNode, useMemo, useState } from "react";
-import { Check, CircleOff, ShoppingBag, Sparkles, Store } from "lucide-react";
+import { Check, CircleOff, ShoppingBag, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -9,6 +9,7 @@ import {
   type CharacterStates,
 } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { resolveItemImageUrl } from "@/features/item/model/itemAssetResolver";
 import {
   useInventorySkinItemsQuery,
   useUpdateEquippedSkinMutation,
@@ -227,11 +228,12 @@ function OwnedSkinCard({
   pending: boolean;
   onEquip: () => void;
 }) {
+  const imageUrl = resolveItemImageUrl(item);
+
   return (
     <Card className={`inventory-page__skin-card ${equipped ? "inventory-page__skin-card--equipped" : ""}`} role="listitem">
       <div className={`inventory-page__skin-preview inventory-page__skin-preview--${index % 3}`}>
-        <img alt="" src={item.imageUrl} />
-        <Sparkles size={28} strokeWidth={1.7} />
+        <img alt="" src={imageUrl} />
       </div>
       <div className="inventory-page__skin-info">
         <div className="inventory-page__skin-title-row">

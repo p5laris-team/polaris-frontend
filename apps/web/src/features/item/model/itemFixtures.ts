@@ -1,4 +1,4 @@
-import { brandAssets } from "@/shared/assets/polarisAssets";
+import { consumableItemAssets, skinThumbnailAssets } from "@/shared/assets/polarisAssets";
 
 export type DemoSkinCatalogItem = {
   id: number;
@@ -55,7 +55,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 2,
     price: 60,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.starlight,
   },
   {
     id: 4,
@@ -63,7 +63,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 2,
     price: 90,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.dawn,
   },
   {
     id: 5,
@@ -71,7 +71,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 2,
     price: 120,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.starlight,
   },
   {
     id: 6,
@@ -79,7 +79,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 1,
     price: 80,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.nightSky,
   },
   {
     id: 7,
@@ -87,7 +87,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 1,
     price: 110,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.starlight,
   },
   {
     id: 8,
@@ -95,7 +95,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 3,
     price: 80,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.nightSky,
   },
   {
     id: 9,
@@ -103,7 +103,7 @@ const demoSkinCatalog: DemoSkinCatalogItem[] = [
     itemType: "SKIN",
     characterTypeId: 3,
     price: 110,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: skinThumbnailAssets.nightSky,
   },
 ];
 
@@ -115,7 +115,7 @@ const demoConsumableCatalog: DemoConsumableItem[] = [
     itemType: "CONSUMABLE",
     effectType: "FOOD",
     price: 10,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: consumableItemAssets.FOOD,
   },
   {
     id: 22,
@@ -124,7 +124,7 @@ const demoConsumableCatalog: DemoConsumableItem[] = [
     itemType: "CONSUMABLE",
     effectType: "REST",
     price: 15,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: consumableItemAssets.REST,
   },
   {
     id: 23,
@@ -133,7 +133,7 @@ const demoConsumableCatalog: DemoConsumableItem[] = [
     itemType: "CONSUMABLE",
     effectType: "PLAY",
     price: 15,
-    imageUrl: brandAssets.stardustPattern,
+    imageUrl: consumableItemAssets.PLAY,
   },
 ];
 

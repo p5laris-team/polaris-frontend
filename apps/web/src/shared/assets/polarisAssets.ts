@@ -1,8 +1,10 @@
 type CharacterKey = "nova" | "jjori" | "mumu";
 type CharacterMood = "idle" | "happy" | "sleepy";
 type CategoryKey = "morning" | "fitness" | "reading" | "mind";
+type SkinThumbnailKey = "starlight" | "dawn" | "nightSky";
+type ConsumableItemAssetKey = "FOOD" | "REST" | "PLAY";
 
-// 기존 디자인 기준 프로젝트의 assets/를 복사하지 않고 실제 앱에서 그대로 참조한다.
+// Vite가 번들에 포함할 수 있도록 frontend 루트 assets/를 참조한다.
 const assetUrl = (fileName: string) =>
   new URL(`../../../../../assets/${fileName}`, import.meta.url).href;
 
@@ -37,4 +39,22 @@ export const brandAssets = {
   stardustPattern: assetUrl("pattern-stardust.svg"),
 };
 
-export type { CategoryKey, CharacterKey, CharacterMood };
+export const skinThumbnailAssets: Record<SkinThumbnailKey, string> = {
+  starlight: assetUrl("skins/starlight/thumbnails/skin-starlight-thumbnail.png"),
+  dawn: assetUrl("skins/dawn/thumbnails/skin-dawn-thumbnail.png"),
+  nightSky: assetUrl("skins/night-sky/thumbnails/skin-night-sky-thumbnail.png"),
+};
+
+export const consumableItemAssets: Record<ConsumableItemAssetKey, string> = {
+  FOOD: assetUrl("items/consumables/item-star-candy-meal.png"),
+  REST: assetUrl("items/consumables/item-cloud-pillow.png"),
+  PLAY: assetUrl("items/consumables/item-star-toy.png"),
+};
+
+export type {
+  CategoryKey,
+  CharacterKey,
+  CharacterMood,
+  ConsumableItemAssetKey,
+  SkinThumbnailKey,
+};
