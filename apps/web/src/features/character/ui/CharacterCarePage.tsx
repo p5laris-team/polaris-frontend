@@ -1,5 +1,5 @@
 import { type ReactNode, useMemo, useState } from "react";
-import { Gamepad2, Moon, Shirt, Utensils, type LucideIcon } from "lucide-react";
+import { Shirt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { toCharacterKey, type CharacterStates } from "@/entities/character/types";
@@ -28,7 +28,7 @@ import {
   Tag,
   useToast,
 } from "@/shared/ui";
-import { type CharacterMood } from "@/shared/assets/polarisAssets";
+import { consumableItemAssets, type CharacterMood } from "@/shared/assets/polarisAssets";
 
 import "./CharacterCarePage.css";
 
@@ -38,7 +38,6 @@ type CareActionConfig = {
   effectType: InventoryItemEffectType;
   itemLabel: string;
   description: string;
-  icon: LucideIcon;
 };
 
 const careActions: CareActionConfig[] = [
@@ -46,25 +45,22 @@ const careActions: CareActionConfig[] = [
     type: "FEED",
     label: "밥 주기",
     effectType: "FOOD",
-    itemLabel: "먹이 아이템",
+    itemLabel: "별사탕밥",
     description: "포만감을 회복해요",
-    icon: Utensils,
   },
   {
     type: "SLEEP",
     label: "재우기",
     effectType: "REST",
-    itemLabel: "휴식 아이템",
+    itemLabel: "구름 베개",
     description: "기운을 회복해요",
-    icon: Moon,
   },
   {
     type: "PLAY",
     label: "놀아주기",
     effectType: "PLAY",
-    itemLabel: "장난감 아이템",
+    itemLabel: "별 장난감",
     description: "애정을 회복해요",
-    icon: Gamepad2,
   },
 ];
 
@@ -192,7 +188,6 @@ export function CharacterCarePage() {
 
           <div className="character-care-page__care-grid">
             {careActions.map((action) => {
-              const Icon = action.icon;
               const item = findCareConsumable(consumableItems, action.effectType);
               const isUnavailable = !item || item.quantity <= 0;
 
@@ -206,10 +201,16 @@ export function CharacterCarePage() {
                   onClick={() => handleCare(action, item)}
                   type="button"
                 >
-                  <Icon size={23} strokeWidth={1.8} />
+                  <span
+                    className={`character-care-page__care-action-asset character-care-page__care-action-asset--${action.effectType.toLowerCase()}`}
+                  >
+                    <img alt="" src={consumableItemAssets[action.effectType]} />
+                  </span>
                   <strong>{action.label}</strong>
                   <small>{action.description}</small>
-                  <span>{item ? item.name : action.itemLabel}</span>
+                  <span className="character-care-page__care-action-item">
+                    {item ? item.name : action.itemLabel}
+                  </span>
                   <em>{item ? `보유 ${item.quantity}개` : "보유 0개"}</em>
                 </button>
               );
