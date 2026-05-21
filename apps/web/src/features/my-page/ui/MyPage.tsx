@@ -257,7 +257,10 @@ export function MyPage() {
 
         <section className="my-page__section my-page__section--account" aria-label="계정">
           <Card className="my-page__account-card">
-            <div>
+            <span className="my-page__account-icon" aria-hidden="true">
+              <ShieldCheck size={20} strokeWidth={1.8} />
+            </span>
+            <div className="my-page__account-copy">
               <span className="my-page__eyebrow">계정</span>
               <strong>로그인 세션 관리</strong>
               <p>이 기기에서 Polaris 접속 상태를 정리해요.</p>
@@ -265,6 +268,7 @@ export function MyPage() {
             <Button
               disabled={logoutMutation.isPending}
               onClick={handleLogout}
+              size="compact"
               variant="secondary"
             >
               <LogOut size={18} strokeWidth={1.9} />
@@ -333,7 +337,7 @@ function SummaryButton({
   return (
     <button className="my-page__summary-card" onClick={onClick} type="button">
       <span className="my-page__summary-icon">{icon}</span>
-      <span>
+      <span className="my-page__summary-copy">
         <small>{label}</small>
         <strong>{value}</strong>
       </span>

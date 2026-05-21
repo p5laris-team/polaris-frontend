@@ -21,7 +21,6 @@ import {
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { currencyAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, Header, StarPieceAmount, Tag } from "@/shared/ui";
 
 import "./WalletPage.css";
@@ -61,9 +60,6 @@ export function WalletPage() {
       <div className="wallet-page__body">
         {/* SCR-015 별조각 내역: 지갑 잔액과 획득/사용 거래를 한 화면에서 확인한다. */}
         <Card className="wallet-page__balance-card">
-          <div className="wallet-page__balance-icon" aria-hidden="true">
-            <img alt="" src={currencyAssets.starPiece} />
-          </div>
           <div className="wallet-page__balance-copy">
             <span className="wallet-page__eyebrow">보유 별조각</span>
             <StarPieceAmount

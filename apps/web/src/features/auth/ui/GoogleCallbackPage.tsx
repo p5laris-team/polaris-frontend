@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { createGoogleSession } from "@/features/auth/api/authApi";
@@ -62,10 +62,15 @@ export function GoogleCallbackPage() {
       <AppShell>
         <section className="login-page__content" style={{ justifyContent: "center", alignItems: "center" }}>
           <div className="login-page__hero" style={{ textAlign: "center", marginBottom: 0 }}>
-            <img 
-              className="login-page__logo" 
-              src={brandAssets.logomark} 
-              alt="Polaris Logo" 
+            <span
+              aria-label="Polaris"
+              className="login-page__logo"
+              role="img"
+              style={
+                {
+                  "--login-logo-image": `url(${brandAssets.logoWordmarkInverse})`,
+                } as CSSProperties
+              }
             />
             <h2 style={{ marginTop: "24px", fontSize: "1.25rem", color: "var(--color-text-primary, #2d3748)" }}>
               구글 로그인 처리 중입니다...

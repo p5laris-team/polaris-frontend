@@ -16,7 +16,7 @@ import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { currencyAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { brandAssets, currencyAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
 import {
   AppShell,
   Button,
@@ -267,7 +267,7 @@ function HomeFrame({
     <main className="app-page home-page">
       <AppShell>
         <Header
-          title="Polaris"
+          title={<img alt="Polaris" className="home-page__brand-logo" src={brandAssets.logoWordmark} />}
           left={
             <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
               <img alt="" className="home-page__wallet-icon" src={currencyAssets.starPiece} />

@@ -5,7 +5,7 @@ import { IconButton } from "@/shared/ui/IconButton/IconButton";
 import "./Header.css";
 
 type HeaderProps = {
-  title: string;
+  title: ReactNode;
   left?: ReactNode;
   right?: ReactNode;
   onBack?: () => void;

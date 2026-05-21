@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getGoogleAuthorizationUrl } from "@/features/auth/api/authApi";
@@ -28,7 +27,7 @@ export function LoginPage() {
       if (runtimeConfig.useApiFixtures) {
         setSession(demoAuthSession);
         resetOnboardingFlow();
-        showToast("체험 모드로 온보딩을 시작해요.");
+        showToast("캐릭터 선택으로 이동해요.");
         navigate(routes.onboardingCharacter, { replace: true });
         return;
       }
@@ -48,7 +47,16 @@ export function LoginPage() {
         {/* SCR-002 Google 로그인: UI kit의 로고/슬로건/하단 약관 구조를 실제 라우트로 옮긴다. */}
         <section className="login-page__content">
           <div className="login-page__hero">
-            <img className="login-page__logo" src={brandAssets.logomark} alt="" />
+            <span
+              aria-label="Polaris"
+              className="login-page__logo"
+              role="img"
+              style={
+                {
+                  "--login-logo-image": `url(${brandAssets.logoWordmarkInverse})`,
+                } as CSSProperties
+              }
+            />
             <h1>
               오늘 한 게 없다고?
               <br />
@@ -71,10 +79,6 @@ export function LoginPage() {
             <p className="login-page__terms">
               가입 시 서비스 약관 및 개인정보 처리방침에 자동으로 동의하게 돼요.
             </p>
-            <span className="login-page__dev-note">
-              <Sparkles size={14} strokeWidth={1.8} />
-              체험 모드에서는 바로 캐릭터 선택으로 이동해요.
-            </span>
           </div>
         </section>
       </AppShell>

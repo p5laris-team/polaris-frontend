@@ -238,8 +238,19 @@ export function CharacterCarePage() {
           <div className="character-care-page__gauge-list">
             {gauges.map((gauge) => (
               <div className="character-care-page__gauge-item" key={gauge.key}>
+                <div className="character-care-page__gauge-heading">
+                  <span className={`character-care-page__gauge-icon character-care-page__gauge-icon--${gauge.key}`}>
+                    {gauge.icon}
+                  </span>
+                  <span className="character-care-page__gauge-copy">
+                    <strong>{gauge.label}</strong>
+                    <small>{gauge.description}</small>
+                  </span>
+                  <strong className="character-care-page__gauge-value">{gauge.value}%</strong>
+                </div>
                 <StatusGauge
-                  label={`${gauge.icon} ${gauge.label} · ${gauge.description}`}
+                  label={`${gauge.label} ${gauge.description}`}
+                  showLabel={false}
                   tone={gauge.tone}
                   value={gauge.value}
                 />
