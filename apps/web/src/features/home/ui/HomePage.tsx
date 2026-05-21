@@ -2,6 +2,8 @@ import { Bell, CalendarDays, Gem, Share2 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import { mapHomeResponseToViewModel } from "@/features/home/model/homeMappers";
 import {
@@ -33,6 +35,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const homeQuery = useHomeQuery();
+  const activeCharacterQuery = useActiveCharacterQuery();
   const rejectAndNextMutation = useRejectAndRequestNextMissionMutation();
   const startCompletionSessionMutation = useStartMissionCompletionSessionMutation();
   const { setActiveMission, setCompletionQuestion } = useMissionFlowStore();
@@ -46,6 +49,24 @@ export function HomePage() {
     () => mapCurrentMissionToHomeMission(focusMission),
     [focusMission],
   );
+  const characterImageUrl = useMemo(() => {
+    if (!home) {
+      return undefined;
+    }
+
+    return resolveCharacterImageUrl({
+      character: home.character.key,
+      mood: home.character.mood,
+      states: homeQuery.data?.character.states,
+      equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
+      fallbackUrl: homeQuery.data?.character.currentAssetUrl,
+    });
+  }, [
+    activeCharacterQuery.data?.equippedSkin,
+    home,
+    homeQuery.data?.character.currentAssetUrl,
+    homeQuery.data?.character.states,
+  ]);
 
   if (homeQuery.isLoading) {
     return <HomeLoadingPage />;
@@ -124,6 +145,7 @@ export function HomePage() {
         <CharacterStage
           character={home.character.key}
           mood={home.character.mood}
+          imageUrl={characterImageUrl}
           name={home.character.name}
           bubble={focusMission?.characterMessage ?? home.character.bubble}
           ariaLabel="별친구 돌봄 화면 열기"

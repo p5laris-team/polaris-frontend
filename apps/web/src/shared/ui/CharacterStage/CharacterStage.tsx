@@ -10,6 +10,7 @@ type StageStat = {
 type CharacterStageProps = {
   character: CharacterKey;
   mood?: CharacterMood;
+  imageUrl?: string;
   name: string;
   bubble?: string;
   stats?: StageStat[];
@@ -20,6 +21,7 @@ type CharacterStageProps = {
 export function CharacterStage({
   character,
   mood = "idle",
+  imageUrl,
   name,
   bubble,
   stats = [],
@@ -29,7 +31,7 @@ export function CharacterStage({
   const content = (
     <>
       <div className="character-stage__image">
-        <img src={characterAssets[character][mood]} alt="" />
+        <img src={imageUrl ?? characterAssets[character][mood]} alt="" />
       </div>
       <div className="character-stage__name">{name}</div>
       {bubble ? <div className="character-stage__bubble">{bubble}</div> : null}
