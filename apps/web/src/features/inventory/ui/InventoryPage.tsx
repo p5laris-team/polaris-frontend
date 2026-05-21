@@ -1,5 +1,5 @@
 import { type ReactNode, useMemo, useState } from "react";
-import { Check, CircleOff, ShoppingBag, Store } from "lucide-react";
+import { Check, CircleOff, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -28,7 +28,7 @@ import {
   Tag,
   useToast,
 } from "@/shared/ui";
-import { type CharacterMood } from "@/shared/assets/polarisAssets";
+import { emptyStateAssets, type CharacterMood } from "@/shared/assets/polarisAssets";
 
 import "./InventoryPage.css";
 
@@ -174,7 +174,11 @@ export function InventoryPage() {
 
           {skinItems.length === 0 ? (
             <Card className="inventory-page__empty-card">
-              <ShoppingBag size={30} strokeWidth={1.7} />
+              <img
+                alt=""
+                className="inventory-page__empty-illustration"
+                src={emptyStateAssets.inventory}
+              />
               <strong>아직 아이템이 없어요.</strong>
               <p>상점에서 마음에 드는 스킨을 먼저 골라봐요.</p>
               <Button onClick={() => navigate(routes.shop)} size="compact" variant="secondary">
