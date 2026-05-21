@@ -72,7 +72,12 @@
 .home-page__gauges {
   margin-top: 12px;
   display: grid;
-  gap: 10px;
+  gap: 13px;
+  padding-block: 22px;
+}
+
+.home-page__gauges .status-gauge {
+  gap: 6px;
 }
 
 .home-page__mission-section {
@@ -113,13 +118,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 
-.home-page__mission-meta .star-piece-amount {
+.home-page__mission-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 200, 79, 0.38);
+  border-radius: 999px;
+  color: var(--fg-2);
+  background: rgba(255, 248, 229, 0.78);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.home-page__mission-reward .star-piece-amount {
   color: var(--accent);
-  font-family: var(--font-mono);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
+  transform: translateY(-1px);
+}
+
+.home-page__mission-reward .star-piece-amount__icon {
+  transform: translateY(1px);
 }
 
 .home-page__mission-actions {

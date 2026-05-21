@@ -21,6 +21,12 @@ export function MissionCard({
   onClick,
 }: MissionCardProps) {
   const disabled = status === "locked";
+  const rewardContent =
+    status === "completed" ? (
+      "완료"
+    ) : rewardStarPiece ? (
+      <StarPieceAmount amount={rewardStarPiece} prefix="+" size="xs" tone="accent" />
+    ) : null;
 
   return (
     // 미션은 목록 선택 UX가 아니라 현재 제안된 작은 행동 1개를 명확히 보여주는 카드로 쓴다.
@@ -37,15 +43,7 @@ export function MissionCard({
         <span className="mission-card__title">{title}</span>
         <span className="mission-card__description">{description}</span>
       </span>
-      <span className="mission-card__reward">
-        {status === "completed" ? (
-          "완료"
-        ) : rewardStarPiece ? (
-          <StarPieceAmount amount={rewardStarPiece} prefix="+" size="xs" tone="accent" />
-        ) : (
-          ""
-        )}
-      </span>
+      {rewardContent ? <span className="mission-card__reward">{rewardContent}</span> : null}
     </button>
   );
 }

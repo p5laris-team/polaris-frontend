@@ -56,6 +56,7 @@ export function MissionResultPage() {
     equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
     fallbackUrl: activeCharacterQuery.data?.currentAssetUrl,
   });
+  const rewardAffection = completionResult.reward.affection;
 
   return (
     <main className="app-page mission-result">
@@ -89,17 +90,12 @@ export function MissionResultPage() {
 
           <div className="mission-result__headline">
             <h1>미션 달성 완료!</h1>
-            <p>꾸준한 실천이 별친구의 하루를 반짝이게 해요.</p>
+            <p>오늘의 작은 실천을 별조각으로 남겼어요.</p>
           </div>
 
           <Card className="mission-result__reward">
-            <img
-              alt=""
-              className="mission-result__reward-stamp"
-              src={effectAssets.rewardStamp}
-            />
             <div className="mission-result__reward-copy">
-              <span>보상 내역</span>
+              <span className="mission-result__eyebrow">보상 획득</span>
               <StarPieceAmount
                 amount={completionResult.reward.starPiece}
                 className="mission-result__reward-amount"
@@ -107,27 +103,39 @@ export function MissionResultPage() {
                 showLabel
                 size="lg"
               />
-              {completionResult.reward.affection > 0 ? (
-                <small>{character.name}의 애정 +{completionResult.reward.affection}</small>
+              <span className="mission-result__wallet-chip">
+                현재 보유
+                <StarPieceAmount
+                  amount={completionResult.wallet.starPiece}
+                  className="mission-result__wallet-amount"
+                  size="xs"
+                />
+              </span>
+              {rewardAffection > 0 ? (
+                <small>{character.name}의 애정 +{rewardAffection}</small>
               ) : null}
             </div>
+            <img
+              alt=""
+              className="mission-result__reward-stamp"
+              src={effectAssets.rewardStamp}
+            />
           </Card>
 
           <Card className="mission-result__summary">
-            <span>완료한 미션</span>
+            <span className="mission-result__eyebrow">완료한 미션</span>
             <strong>{activeMission.title}</strong>
-            <p>{completionResult.answer.text}</p>
+            <p className="mission-result__answer">{completionResult.answer.text}</p>
           </Card>
 
-          <div className="mission-result__bubble">{completionResult.characterMessage}</div>
-          <p className="mission-result__wallet">
-            보유 별조각{" "}
-            <StarPieceAmount
-              amount={completionResult.wallet.starPiece}
-              className="mission-result__wallet-amount"
-              size="sm"
-            />
-          </p>
+          <Card className="mission-result__message-card">
+            <img alt="" className="mission-result__message-avatar" src={characterImageUrl} />
+            <div className="mission-result__message-copy">
+              <span className="mission-result__eyebrow">{character.name}의 한마디</span>
+              <p>{completionResult.characterMessage}</p>
+            </div>
+          </Card>
+
           <Button onClick={handleGoHome}>홈 화면으로 돌아가기</Button>
         </section>
       </AppShell>
