@@ -10,6 +10,7 @@ import { type AttendanceRecord } from "@/features/attendance/model/attendanceTyp
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
+import { attendanceAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
 
 import "./AttendancePage.css";
@@ -34,6 +35,7 @@ export function AttendancePage() {
   ]);
   const todayRecord = records.find((record) => record.attendanceDate === todayKey);
   const streakCount = calculateCurrentStreak(records, todayKey);
+  const showWeeklyStreakBanner = streakCount >= 7;
 
   const handleCheckAttendance = () => {
     createAttendanceMutation.mutate(undefined, {
@@ -79,6 +81,17 @@ export function AttendancePage() {
           </Card>
         </div>
 
+        {showWeeklyStreakBanner ? (
+          <Card className="attendance-page__streak-banner">
+            <img alt="" src={attendanceAssets.streak7} />
+            <div>
+              <span>7일 연속 달성</span>
+              <strong>한 주를 반짝 채웠어요.</strong>
+              <p>오늘도 별친구와 약속을 이어가고 있어요.</p>
+            </div>
+          </Card>
+        ) : null}
+
         <Card className="attendance-page__calendar-card">
           <div className="attendance-page__calendar-head">
             <h2>{month}월 달력</h2>
@@ -107,8 +120,14 @@ export function AttendancePage() {
                     .join(" ")}
                   key={day.dateKey}
                 >
+                  {day.stamped ? (
+                    <img
+                      alt=""
+                      className="attendance-page__day-stamp"
+                      src={attendanceAssets.stamp}
+                    />
+                  ) : null}
                   <span>{day.day}</span>
-                  {day.stamped ? <strong>✦</strong> : null}
                 </div>
               ) : (
                 <div className="attendance-page__day attendance-page__day--empty" key={day.key} />
@@ -117,8 +136,19 @@ export function AttendancePage() {
           </div>
         </Card>
 
-        <Card className="attendance-page__reward-card">
-          <div>
+        <Card
+          className={`attendance-page__reward-card${
+            todayRecord ? " attendance-page__reward-card--done" : ""
+          }`}
+        >
+          {todayRecord ? (
+            <img
+              alt=""
+              className="attendance-page__reward-stamp"
+              src={attendanceAssets.stamp}
+            />
+          ) : null}
+          <div className="attendance-page__reward-copy">
             <strong>{todayRecord ? "오늘의 출석 보상을 받았어요." : "오늘 출석 보상이 기다리고 있어요."}</strong>
             <p>
               {todayRecord

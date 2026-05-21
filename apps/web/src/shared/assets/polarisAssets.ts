@@ -6,6 +6,7 @@ type SkinThumbnailKey = "starlight" | "dawn" | "nightSky";
 type CharacterSkinKey = SkinThumbnailKey;
 type ConsumableItemAssetKey = "FOOD" | "REST" | "PLAY";
 type EmptyStateAssetKey = "mission" | "inventory" | "notification" | "share";
+type AttendanceAssetKey = "stamp" | "streak7";
 type ShareCardBackgroundKey = "default" | "night" | "warm";
 type ShareCardDecorationKey = "stardust" | "friendsFrame";
 type ShareCardStampKey = "complete";
@@ -205,6 +206,11 @@ export const emptyStateAssets: Record<EmptyStateAssetKey, string> = {
   share: assetUrl("empty-states/empty-share.png"),
 };
 
+export const attendanceAssets: Record<AttendanceAssetKey, string> = {
+  stamp: assetUrl("attendance/stamps/attendance-stamp.png"),
+  streak7: assetUrl("attendance/banners/attendance-streak-7.png"),
+};
+
 export const shareCardAssets: {
   backgrounds: Record<ShareCardBackgroundKey, string>;
   characters: Record<CharacterKey, string>;
@@ -238,6 +244,7 @@ export type {
   CharacterVisualState,
   ConsumableItemAssetKey,
   EmptyStateAssetKey,
+  AttendanceAssetKey,
   ShareCardBackgroundKey,
   ShareCardDecorationKey,
   ShareCardStampKey,
