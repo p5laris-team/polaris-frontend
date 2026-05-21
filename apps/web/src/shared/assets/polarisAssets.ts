@@ -1,10 +1,12 @@
 type CharacterKey = "nova" | "jjori" | "mumu";
 type CharacterMood = "idle" | "happy" | "sleepy";
 type CharacterVisualState = CharacterMood | "hungry" | "lowEnergy" | "lonely";
+type AttendanceAssetKey = "stamp" | "streak7";
 type CategoryKey = "morning" | "fitness" | "reading" | "mind";
 type SkinThumbnailKey = "starlight" | "dawn" | "nightSky";
 type CharacterSkinKey = SkinThumbnailKey;
 type ConsumableItemAssetKey = "FOOD" | "REST" | "PLAY";
+type CurrencyAssetKey = "starPiece";
 type EmptyStateAssetKey = "mission" | "inventory" | "notification" | "share";
 type EffectAssetKey = "starParticle" | "sparkleBurst" | "rewardStamp";
 type ShareCardBackgroundKey = "default" | "night" | "warm";
@@ -199,6 +201,15 @@ export const consumableItemAssets: Record<ConsumableItemAssetKey, string> = {
   PLAY: assetUrl("items/consumables/item-star-toy.png"),
 };
 
+export const attendanceAssets: Record<AttendanceAssetKey, string> = {
+  stamp: assetUrl("attendance/stamps/attendance-stamp.png"),
+  streak7: assetUrl("attendance/banners/attendance-streak-7.png"),
+};
+
+export const currencyAssets: Record<CurrencyAssetKey, string> = {
+  starPiece: assetUrl("currency/star-piece-icon.png"),
+};
+
 export const emptyStateAssets: Record<EmptyStateAssetKey, string> = {
   mission: assetUrl("empty-states/empty-mission.png"),
   inventory: assetUrl("empty-states/empty-inventory.png"),
@@ -238,12 +249,14 @@ export const shareCardAssets: {
 };
 
 export type {
+  AttendanceAssetKey,
   CategoryKey,
   CharacterKey,
   CharacterMood,
   CharacterSkinKey,
   CharacterVisualState,
   ConsumableItemAssetKey,
+  CurrencyAssetKey,
   EmptyStateAssetKey,
   EffectAssetKey,
   ShareCardBackgroundKey,

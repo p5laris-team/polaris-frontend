@@ -10,7 +10,6 @@ import {
   ShoppingBag,
   Sparkles,
   Utensils,
-  WalletCards,
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -34,7 +33,8 @@ import { useHomeQuery } from "@/features/home/api/homeApi";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { AppShell, Button, Card, Header, Modal, Tag, useToast } from "@/shared/ui";
+import { currencyAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card, Header, Modal, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./ShopPage.css";
 
@@ -158,10 +158,14 @@ export function ShopPage() {
         <Card className="shop-page__wallet-card">
           <div className="shop-page__wallet-copy">
             <span className="shop-page__eyebrow">보유 별조각</span>
-            <strong>✦ {walletStarPiece}</strong>
+            <StarPieceAmount
+              amount={walletStarPiece}
+              className="shop-page__wallet-amount"
+              size="lg"
+            />
           </div>
           <div className="shop-page__wallet-icon" aria-hidden="true">
-            <WalletCards size={28} strokeWidth={1.8} />
+            <img alt="" src={currencyAssets.starPiece} />
           </div>
         </Card>
 
@@ -222,9 +226,12 @@ export function ShopPage() {
                     </div>
 
                     <div className="shop-page__skin-footer">
-                      <span className={cantAfford && !item.owned ? "shop-page__price--danger" : ""}>
-                        ✦ {item.price}
-                      </span>
+                      <StarPieceAmount
+                        amount={item.price}
+                        className="shop-page__price"
+                        size="sm"
+                        tone={cantAfford && !item.owned ? "danger" : "accent"}
+                      />
                       <Button
                         disabled={item.owned}
                         onClick={() => handleSelectItem(item)}
@@ -281,9 +288,12 @@ export function ShopPage() {
                       <span>{label}</span>
                     </div>
                     <div className="shop-page__consumable-buy">
-                      <strong className={cantAfford ? "shop-page__price--danger" : ""}>
-                        ✦ {item.price}
-                      </strong>
+                      <StarPieceAmount
+                        amount={item.price}
+                        className="shop-page__price"
+                        size="sm"
+                        tone={cantAfford ? "danger" : "accent"}
+                      />
                       <Button
                         onClick={() => handleSelectItem(item)}
                         size="compact"
@@ -434,15 +444,25 @@ function PurchaseConfirmModal({
         ) : null}
         <div className="shop-page__purchase-balance">
           <span>현재 별조각</span>
-          <strong>✦ {walletStarPiece}</strong>
+          <StarPieceAmount
+            amount={walletStarPiece}
+            className="shop-page__purchase-amount"
+            size="sm"
+          />
           <span>총 가격</span>
-          <strong className={afterBalance < 0 ? "shop-page__price--danger" : ""}>
-            ✦ {totalPrice}
-          </strong>
+          <StarPieceAmount
+            amount={totalPrice}
+            className="shop-page__purchase-amount"
+            size="sm"
+            tone={afterBalance < 0 ? "danger" : "default"}
+          />
           <span>구매 후</span>
-          <strong className={afterBalance < 0 ? "shop-page__price--danger" : ""}>
-            ✦ {Math.max(afterBalance, 0)}
-          </strong>
+          <StarPieceAmount
+            amount={Math.max(afterBalance, 0)}
+            className="shop-page__purchase-amount"
+            size="sm"
+            tone={afterBalance < 0 ? "danger" : "default"}
+          />
         </div>
         {afterBalance < 0 ? (
           <p className="shop-page__purchase-error">

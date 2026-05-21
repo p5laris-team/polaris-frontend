@@ -29,7 +29,7 @@ import {
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 import { useAuthStore } from "@/stores/authStore";
 
 import "./MyPage.css";
@@ -131,7 +131,7 @@ export function MyPage() {
             <SummaryButton
               icon={<WalletCards size={20} strokeWidth={1.8} />}
               label="보유 별조각"
-              value={`${home.wallet.starPiece}개`}
+              value={<StarPieceAmount amount={home.wallet.starPiece} size="sm" />}
               onClick={() => navigate(routes.wallet)}
             />
             <SummaryButton
@@ -327,7 +327,7 @@ function SummaryButton({
 }: {
   icon: ReactNode;
   label: string;
-  value: string;
+  value: ReactNode;
   onClick: () => void;
 }) {
   return (

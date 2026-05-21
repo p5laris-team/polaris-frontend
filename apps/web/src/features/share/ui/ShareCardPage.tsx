@@ -26,7 +26,7 @@ import {
   shareCardAssets,
   type ShareCardBackgroundKey,
 } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./ShareCardPage.css";
 
@@ -219,7 +219,9 @@ export function ShareCardPage() {
                 </span>
                 <span>
                   <small>오늘 별조각</small>
-                  <b>+{earnedStarPiece}</b>
+                  <b>
+                    <StarPieceAmount amount={earnedStarPiece} prefix="+" size="md" />
+                  </b>
                 </span>
               </div>
             </div>
@@ -449,9 +451,23 @@ async function createShareCardImageBlob({
   context.textAlign = "center";
   context.fillText(characterName, 540, 735);
 
+  context.save();
+  context.shadowColor = darkBackground ? "rgba(5, 12, 24, 0.28)" : "rgba(93, 61, 30, 0.1)";
+  context.shadowBlur = 24;
+  context.shadowOffsetY = 10;
+  context.fillStyle =
+    backgroundKey === "warm"
+      ? "rgba(255, 255, 255, 0.66)"
+      : darkBackground
+        ? "rgba(12, 24, 42, 0.58)"
+        : "rgba(255, 252, 239, 0.68)";
+  roundedRect(context, 166, 776, 748, 150, 38);
+  context.fill();
+  context.restore();
+
   context.fillStyle = mutedColor;
   context.font = "800 45px sans-serif";
-  wrapCanvasText(context, headline, 540, 815, 730, 62, 3);
+  wrapCanvasText(context, headline, 540, 828, 700, 58, 3);
 
   drawStatPill(context, {
     fillStyle: pillFill,

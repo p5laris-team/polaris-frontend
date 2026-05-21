@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, Gem, Share2 } from "lucide-react";
+import { Bell, CalendarDays, Share2 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +16,7 @@ import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { currencyAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
 import {
   AppShell,
   Button,
@@ -25,6 +25,7 @@ import {
   Header,
   IconButton,
   MissionCard,
+  StarPieceAmount,
   StatusGauge,
   Tag,
   useToast,
@@ -211,7 +212,7 @@ export function HomePage() {
             <div className="home-page__mission-box">
               <div className="home-page__mission-meta">
                 <Tag>{mission.difficultyLabel}</Tag>
-                <strong>+{mission.rewardStarPiece}✦</strong>
+                <StarPieceAmount amount={mission.rewardStarPiece} prefix="+" size="sm" tone="accent" />
               </div>
               <MissionCard
                 title={mission.title}
@@ -269,7 +270,7 @@ function HomeFrame({
           title="Polaris"
           left={
             <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
-              <Gem size={22} strokeWidth={1.75} />
+              <img alt="" className="home-page__wallet-icon" src={currencyAssets.starPiece} />
             </IconButton>
           }
           right={

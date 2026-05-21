@@ -6,7 +6,7 @@ import { resolveCharacterImageUrl } from "@/features/character/model/characterAs
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { routes } from "@/routes/paths";
 import { effectAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card } from "@/shared/ui";
+import { AppShell, Button, Card, StarPieceAmount } from "@/shared/ui";
 
 import "./MissionResultPage.css";
 
@@ -100,10 +100,13 @@ export function MissionResultPage() {
             />
             <div className="mission-result__reward-copy">
               <span>보상 내역</span>
-              <strong className="mission-result__reward-amount">
-                <span>+{completionResult.reward.starPiece}</span>
-                <em>별조각</em>
-              </strong>
+              <StarPieceAmount
+                amount={completionResult.reward.starPiece}
+                className="mission-result__reward-amount"
+                prefix="+"
+                showLabel
+                size="lg"
+              />
               {completionResult.reward.affection > 0 ? (
                 <small>{character.name}의 애정 +{completionResult.reward.affection}</small>
               ) : null}
@@ -118,7 +121,12 @@ export function MissionResultPage() {
 
           <div className="mission-result__bubble">{completionResult.characterMessage}</div>
           <p className="mission-result__wallet">
-            보유 별조각 <strong>✦ {completionResult.wallet.starPiece}</strong>
+            보유 별조각{" "}
+            <StarPieceAmount
+              amount={completionResult.wallet.starPiece}
+              className="mission-result__wallet-amount"
+              size="sm"
+            />
           </p>
           <Button onClick={handleGoHome}>홈 화면으로 돌아가기</Button>
         </section>

@@ -3,7 +3,6 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   CalendarCheck,
-  Gem,
   HeartHandshake,
   ShoppingBag,
   Sparkles,
@@ -22,7 +21,8 @@ import {
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { AppShell, Button, Card, Header, Tag } from "@/shared/ui";
+import { currencyAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card, Header, StarPieceAmount, Tag } from "@/shared/ui";
 
 import "./WalletPage.css";
 
@@ -62,11 +62,15 @@ export function WalletPage() {
         {/* SCR-015 별조각 내역: 지갑 잔액과 획득/사용 거래를 한 화면에서 확인한다. */}
         <Card className="wallet-page__balance-card">
           <div className="wallet-page__balance-icon" aria-hidden="true">
-            <Gem size={34} strokeWidth={1.8} />
+            <img alt="" src={currencyAssets.starPiece} />
           </div>
           <div className="wallet-page__balance-copy">
             <span className="wallet-page__eyebrow">보유 별조각</span>
-            <strong>{walletQuery.data.starPiece.toLocaleString("ko-KR")}</strong>
+            <StarPieceAmount
+              amount={walletQuery.data.starPiece}
+              className="wallet-page__balance-amount"
+              size="lg"
+            />
             <p>미션, 출석, 공유, 스킨 구매 흐름을 한 곳에서 확인해요.</p>
           </div>
         </Card>
@@ -75,14 +79,16 @@ export function WalletPage() {
           <SummaryCard
             icon={<ArrowDownCircle size={19} strokeWidth={1.8} />}
             label="획득"
+            amount={summary.earned}
+            prefix="+"
             tone="earn"
-            value={`+${summary.earned.toLocaleString("ko-KR")}`}
           />
           <SummaryCard
             icon={<ArrowUpCircle size={19} strokeWidth={1.8} />}
             label="사용"
+            amount={summary.spent}
+            prefix={summary.spent > 0 ? "-" : ""}
             tone="spend"
-            value={summary.spent > 0 ? `-${summary.spent.toLocaleString("ko-KR")}` : "0"}
           />
         </div>
 
@@ -115,21 +121,29 @@ export function WalletPage() {
 }
 
 function SummaryCard({
+  amount,
   icon,
   label,
+  prefix,
   tone,
-  value,
 }: {
+  amount: number;
   icon: ReactNode;
   label: string;
+  prefix?: string;
   tone: "earn" | "spend";
-  value: string;
 }) {
   return (
     <Card className={`wallet-page__summary-card wallet-page__summary-card--${tone}`}>
       {icon}
       <span>{label}</span>
-      <strong>{value}</strong>
+      <StarPieceAmount
+        amount={amount}
+        className="wallet-page__summary-amount"
+        prefix={prefix}
+        size="sm"
+        tone={tone === "earn" ? "success" : "muted"}
+      />
     </Card>
   );
 }
@@ -150,11 +164,22 @@ function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
             <Tag variant={transaction.amount >= 0 ? "accent" : "neutral"}>{meta.label}</Tag>
           </span>
           <small>{formatTransactionTime(transaction.occurredAt)}</small>
-          <em>거래 후 {transaction.balanceAfter.toLocaleString("ko-KR")}개</em>
+          <em>
+            거래 후
+            <StarPieceAmount
+              amount={transaction.balanceAfter}
+              className="wallet-page__balance-after"
+              size="xs"
+            />
+          </em>
         </span>
-        <strong className={`wallet-page__amount wallet-page__amount--${amountTone}`}>
-          {formatSignedAmount(transaction.amount)}
-        </strong>
+        <StarPieceAmount
+          amount={transaction.amount}
+          className={`wallet-page__amount wallet-page__amount--${amountTone}`}
+          prefix={transaction.amount >= 0 ? "+" : "-"}
+          size="sm"
+          tone={amountTone === "earn" ? "success" : "muted"}
+        />
       </Card>
     </li>
   );
@@ -252,12 +277,6 @@ function getReasonMeta(reason: WalletTransactionReason): {
     label: "돌봄",
     tone: "care",
   };
-}
-
-function formatSignedAmount(amount: number) {
-  const sign = amount >= 0 ? "+" : "-";
-
-  return `${sign}${Math.abs(amount).toLocaleString("ko-KR")}`;
 }
 
 function formatTransactionTime(value: string) {

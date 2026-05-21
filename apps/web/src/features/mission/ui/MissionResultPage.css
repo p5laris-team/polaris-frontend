@@ -103,23 +103,14 @@
 }
 
 .mission-result__reward-amount {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
   color: var(--neutral-800);
+  font-family: var(--font-display);
   font-weight: 900;
-  line-height: 1;
 }
 
-.mission-result__reward-amount > span {
-  font-size: 29px;
-}
-
-.mission-result__reward-amount em {
+.mission-result__reward-amount .star-piece-amount__label {
   color: var(--fg-2);
   font-size: 15px;
-  font-style: normal;
-  font-weight: 900;
 }
 
 .mission-result__reward-copy small {
@@ -174,8 +165,10 @@
   text-align: center;
 }
 
-.mission-result__wallet strong {
+.mission-result__wallet-amount {
   color: var(--fg-1);
+  font-family: var(--font-mono);
+  font-weight: 900;
 }
 
 .mission-result__empty {

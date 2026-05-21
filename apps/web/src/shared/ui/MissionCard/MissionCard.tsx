@@ -1,4 +1,5 @@
 import { categoryAssets, type CategoryKey } from "@/shared/assets/polarisAssets";
+import { StarPieceAmount } from "@/shared/ui/StarPieceAmount";
 
 import "./MissionCard.css";
 
@@ -37,7 +38,13 @@ export function MissionCard({
         <span className="mission-card__description">{description}</span>
       </span>
       <span className="mission-card__reward">
-        {status === "completed" ? "완료" : rewardStarPiece ? `+${rewardStarPiece}✦` : ""}
+        {status === "completed" ? (
+          "완료"
+        ) : rewardStarPiece ? (
+          <StarPieceAmount amount={rewardStarPiece} prefix="+" size="xs" tone="accent" />
+        ) : (
+          ""
+        )}
       </span>
     </button>
   );

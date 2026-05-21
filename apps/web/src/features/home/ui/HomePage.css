@@ -15,6 +15,16 @@
   background: var(--danger);
 }
 
+.home-page__wallet-icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+  filter:
+    saturate(1.16)
+    contrast(1.06)
+    drop-shadow(0 2px 3px rgba(123, 76, 15, 0.18));
+}
+
 .home-page__quick-row {
   margin-top: 16px;
   display: grid;
@@ -97,9 +107,11 @@
   justify-content: space-between;
 }
 
-.home-page__mission-meta strong {
+.home-page__mission-meta .star-piece-amount {
   color: var(--accent);
+  font-family: var(--font-mono);
   font-size: 13px;
+  font-weight: 800;
 }
 
 .home-page__mission-actions {

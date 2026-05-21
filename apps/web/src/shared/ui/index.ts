@@ -9,6 +9,7 @@ export { IconButton } from "./IconButton/IconButton";
 export { MissionCard } from "./MissionCard/MissionCard";
 export { Modal } from "./Modal/Modal";
 export { ProgressRing } from "./ProgressRing/ProgressRing";
+export { StarPieceAmount } from "./StarPieceAmount/StarPieceAmount";
 export { StatusGauge } from "./StatusGauge/StatusGauge";
 export { Tag } from "./Tag/Tag";
 export { TextField } from "./TextField/TextField";
