@@ -181,6 +181,12 @@
   font-weight: 900;
 }
 
+.mission-history__current-copy .star-piece-amount,
+.mission-history__item-meta .star-piece-amount {
+  color: var(--accent);
+  font-weight: 900;
+}
+
 .mission-history__current-card > svg {
   grid-column: 3;
   grid-row: 1;

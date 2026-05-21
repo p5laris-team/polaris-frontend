@@ -24,7 +24,7 @@ import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { emptyStateAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./MissionHistoryPage.css";
 
@@ -162,7 +162,12 @@ export function MissionHistoryPage() {
               <strong>{currentMission.title}</strong>
               <span>
                 <Tag variant="accent">{getDifficultyLabel(currentMission.difficulty)}</Tag>
-                <em>+{currentMission.rewardStarPiece} 별조각</em>
+                <StarPieceAmount
+                  amount={currentMission.rewardStarPiece}
+                  prefix="+"
+                  size="xs"
+                  tone="accent"
+                />
               </span>
             </span>
             <ChevronRight size={18} strokeWidth={1.8} />
@@ -252,7 +257,7 @@ function MissionHistoryItem({
           <span className="mission-history__item-message">{mission.characterMessage}</span>
           <span className="mission-history__item-meta">
             <span>{getDifficultyLabel(mission.difficulty)}</span>
-            <span>+{mission.rewardStarPiece} 별조각</span>
+            <StarPieceAmount amount={mission.rewardStarPiece} prefix="+" size="xs" tone="accent" />
             <span>{getMissionTimeLabel(mission)}</span>
           </span>
         </span>

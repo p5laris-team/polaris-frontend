@@ -237,6 +237,13 @@
   line-height: 1.5;
 }
 
+.attendance-page__reward-amount {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 900;
+  vertical-align: -2px;
+}
+
 .attendance-page__state {
   margin: auto;
   padding: 32px 20px;

@@ -11,7 +11,7 @@ import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { attendanceAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./AttendancePage.css";
 
@@ -40,7 +40,7 @@ export function AttendancePage() {
   const handleCheckAttendance = () => {
     createAttendanceMutation.mutate(undefined, {
       onSuccess: (record) => {
-        showToast(`출석 완료! ✦ +${record.rewardStarPiece}`);
+        showToast(`출석 완료! 별조각 +${record.rewardStarPiece}`);
       },
       onError: (error) => {
         showToast(getUserFacingErrorMessage(error));
@@ -151,9 +151,20 @@ export function AttendancePage() {
           <div className="attendance-page__reward-copy">
             <strong>{todayRecord ? "오늘의 출석 보상을 받았어요." : "오늘 출석 보상이 기다리고 있어요."}</strong>
             <p>
-              {todayRecord
-                ? `획득한 별조각: ✦ +${todayRecord.rewardStarPiece}`
-                : "출석하면 별조각이 지급되고 별친구의 애정도도 조금 올라가요."}
+              {todayRecord ? (
+                <>
+                  획득한 별조각:{" "}
+                  <StarPieceAmount
+                    amount={todayRecord.rewardStarPiece}
+                    className="attendance-page__reward-amount"
+                    prefix="+"
+                    size="sm"
+                    tone="accent"
+                  />
+                </>
+              ) : (
+                "출석하면 별조각이 지급되고 별친구의 애정도도 조금 올라가요."
+              )}
             </p>
           </div>
           <Button

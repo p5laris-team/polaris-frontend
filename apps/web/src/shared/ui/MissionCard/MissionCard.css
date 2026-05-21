@@ -79,6 +79,8 @@
 
 .mission-card__reward {
   min-width: 42px;
+  display: flex;
+  justify-content: flex-end;
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
