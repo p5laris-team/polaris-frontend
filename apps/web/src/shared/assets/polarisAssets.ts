@@ -6,6 +6,9 @@ type SkinThumbnailKey = "starlight" | "dawn" | "nightSky";
 type CharacterSkinKey = SkinThumbnailKey;
 type ConsumableItemAssetKey = "FOOD" | "REST" | "PLAY";
 type EmptyStateAssetKey = "mission" | "inventory" | "notification" | "share";
+type ShareCardBackgroundKey = "default" | "night" | "warm";
+type ShareCardDecorationKey = "stardust" | "friendsFrame";
+type ShareCardStampKey = "complete";
 
 // Vite가 번들에 포함할 수 있도록 frontend 루트 assets/를 참조한다.
 const assetUrl = (fileName: string) =>
@@ -202,6 +205,31 @@ export const emptyStateAssets: Record<EmptyStateAssetKey, string> = {
   share: assetUrl("empty-states/empty-share.png"),
 };
 
+export const shareCardAssets: {
+  backgrounds: Record<ShareCardBackgroundKey, string>;
+  characters: Record<CharacterKey, string>;
+  decorations: Record<ShareCardDecorationKey, string>;
+  stamps: Record<ShareCardStampKey, string>;
+} = {
+  backgrounds: {
+    default: assetUrl("share-card/background/share-card-bg-default.png"),
+    night: assetUrl("share-card/background/share-card-bg-night.png"),
+    warm: assetUrl("share-card/background/share-card-bg-warm.png"),
+  },
+  characters: {
+    nova: assetUrl("share-card/characters/share-card-character-nova.png"),
+    jjori: assetUrl("share-card/characters/share-card-character-jjori.png"),
+    mumu: assetUrl("share-card/characters/share-card-character-mumu.png"),
+  },
+  decorations: {
+    stardust: assetUrl("share-card/decorations/share-card-deco-stardust.png"),
+    friendsFrame: assetUrl("share-card/decorations/share-card-frame-friends.png"),
+  },
+  stamps: {
+    complete: assetUrl("share-card/stamps/share-card-stamp-complete.png"),
+  },
+};
+
 export type {
   CategoryKey,
   CharacterKey,
@@ -210,6 +238,9 @@ export type {
   CharacterVisualState,
   ConsumableItemAssetKey,
   EmptyStateAssetKey,
+  ShareCardBackgroundKey,
+  ShareCardDecorationKey,
+  ShareCardStampKey,
   SkinThumbnailKey,
 };
 

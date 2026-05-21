@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
 import {
   Copy,
   ImagePlus,
@@ -21,7 +21,11 @@ import { type ShareCardResponse, type SharePlatform, type ShareType } from "@/fe
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { createIdempotencyKey } from "@/shared/api/idempotency";
-import { characterAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
+import {
+  emptyStateAssets,
+  shareCardAssets,
+  type ShareCardBackgroundKey,
+} from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
 
 import "./ShareCardPage.css";
@@ -32,11 +36,17 @@ const presetMessages = [
   "작은 미션 하나가 하루를 바꿨어요.",
   "별친구와 오늘의 루틴을 지켰어요.",
 ];
+const shareCardBackgroundOptions: Array<{ key: ShareCardBackgroundKey; label: string }> = [
+  { key: "default", label: "기본" },
+  { key: "night", label: "밤하늘" },
+  { key: "warm", label: "따뜻한 빛" },
+];
 
 export function ShareCardPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [headline, setHeadline] = useState(presetMessages[0]);
+  const [backgroundKey, setBackgroundKey] = useState<ShareCardBackgroundKey>("default");
   const [shareCard, setShareCard] = useState<ShareCardResponse | null>(null);
   const homeQuery = useHomeQuery();
   const todayMissionsQuery = useTodayMissionsQuery();
@@ -47,7 +57,8 @@ export function ShareCardPage() {
   const todayMissions = todayMissionsQuery.data;
   const todayShareStatus = todayShareStatusQuery.data;
   const characterKey = toCharacterKey(home?.character.characterTypeCode);
-  const characterImageUrl = characterAssets[characterKey].happy;
+  const backgroundImageUrl = shareCardAssets.backgrounds[backgroundKey];
+  const characterImageUrl = shareCardAssets.characters[characterKey];
   const completedCount = todayMissions?.completedCount ?? 0;
   const earnedStarPiece = useMemo(
     () =>
@@ -66,10 +77,16 @@ export function ShareCardPage() {
 
     try {
       const imageBlob = await createShareCardImageBlob({
+        backgroundKey,
+        backgroundImageUrl,
         characterName: home.character.name,
+        characterImageUrl,
         completedCount,
         earnedStarPiece,
+        friendsFrameImageUrl: shareCardAssets.decorations.friendsFrame,
         headline: trimmedHeadline,
+        stampImageUrl: shareCardAssets.stamps.complete,
+        stardustImageUrl: shareCardAssets.decorations.stardust,
       });
 
       createShareCardMutation.mutate(
@@ -162,22 +179,68 @@ export function ShareCardPage() {
             <h2 id="share-card-preview-title">별친구와 함께한 하루</h2>
           </div>
 
-          <div className="share-card-page__preview" aria-label="공유 카드 미리보기">
-            <div className="share-card-page__preview-pattern" />
+          <div
+            className={`share-card-page__preview share-card-page__preview--${backgroundKey}`}
+            aria-label="공유 카드 미리보기"
+            style={{ "--share-card-background": `url(${backgroundImageUrl})` } as CSSProperties}
+          >
+            <img
+              alt=""
+              className="share-card-page__preview-stardust"
+              src={shareCardAssets.decorations.stardust}
+            />
+            <img
+              alt=""
+              className="share-card-page__preview-frame"
+              src={shareCardAssets.decorations.friendsFrame}
+            />
             <span className="share-card-page__preview-mark">Polaris</span>
-            <img alt="" src={characterImageUrl} />
-            <strong>{home.character.name}</strong>
-            <p>{trimmedHeadline || "오늘의 반짝였던 마음을 적어주세요."}</p>
-            <div className="share-card-page__preview-stats">
-              <span>
-                <small>완료 미션</small>
-                <b>{completedCount}개</b>
-              </span>
-              <span>
-                <small>오늘 별조각</small>
-                <b>+{earnedStarPiece}</b>
-              </span>
+            {completedCount > 0 ? (
+              <img
+                alt=""
+                className="share-card-page__preview-stamp"
+                src={shareCardAssets.stamps.complete}
+              />
+            ) : null}
+            <div className="share-card-page__preview-content">
+              <div className="share-card-page__preview-character-wrap">
+                <img
+                  alt=""
+                  className="share-card-page__preview-character"
+                  src={characterImageUrl}
+                />
+              </div>
+              <strong>{home.character.name}</strong>
+              <p>{trimmedHeadline || "오늘의 반짝였던 마음을 적어주세요."}</p>
+              <div className="share-card-page__preview-stats">
+                <span>
+                  <small>완료 미션</small>
+                  <b>{completedCount}개</b>
+                </span>
+                <span>
+                  <small>오늘 별조각</small>
+                  <b>+{earnedStarPiece}</b>
+                </span>
+              </div>
             </div>
+          </div>
+
+          <div className="share-card-page__background-row" aria-label="공유 카드 배경 선택">
+            {shareCardBackgroundOptions.map((option) => (
+              <button
+                aria-pressed={backgroundKey === option.key}
+                className={backgroundKey === option.key ? "share-card-page__background-button--active" : ""}
+                key={option.key}
+                onClick={() => {
+                  setBackgroundKey(option.key);
+                  setShareCard(null);
+                }}
+                type="button"
+              >
+                <img alt="" src={shareCardAssets.backgrounds[option.key]} />
+                <span>{option.label}</span>
+              </button>
+            ))}
           </div>
         </section>
 
@@ -192,7 +255,10 @@ export function ShareCardPage() {
               <button
                 className={headline === message ? "share-card-page__preset-button--active" : ""}
                 key={message}
-                onClick={() => setHeadline(message)}
+                onClick={() => {
+                  setHeadline(message);
+                  setShareCard(null);
+                }}
                 type="button"
               >
                 {message}
@@ -290,15 +356,27 @@ function ShareCardLoadingPage() {
 }
 
 async function createShareCardImageBlob({
+  backgroundKey,
+  backgroundImageUrl,
   characterName,
+  characterImageUrl,
   completedCount,
   earnedStarPiece,
+  friendsFrameImageUrl,
   headline,
+  stampImageUrl,
+  stardustImageUrl,
 }: {
+  backgroundKey: ShareCardBackgroundKey;
+  backgroundImageUrl: string;
   characterName: string;
+  characterImageUrl: string;
   completedCount: number;
   earnedStarPiece: number;
+  friendsFrameImageUrl: string;
   headline: string;
+  stampImageUrl: string;
+  stardustImageUrl: string;
 }) {
   const canvas = document.createElement("canvas");
   const width = 1080;
@@ -311,47 +389,88 @@ async function createShareCardImageBlob({
     throw new Error("공유 카드 이미지를 만들 수 없어요.");
   }
 
-  const gradient = context.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, "#fff8ec");
-  gradient.addColorStop(0.52, "#f8e7d8");
-  gradient.addColorStop(1, "#dff4e6");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, width, height);
+  const [
+    backgroundImage,
+    characterImage,
+    friendsFrameImage,
+    stampImage,
+    stardustImage,
+  ] = await Promise.all([
+    loadCanvasImage(backgroundImageUrl),
+    loadCanvasImage(characterImageUrl),
+    loadCanvasImage(friendsFrameImageUrl),
+    loadCanvasImage(stampImageUrl),
+    loadCanvasImage(stardustImageUrl),
+  ]);
 
-  context.fillStyle = "rgba(255, 255, 255, 0.68)";
-  roundedRect(context, 90, 90, 900, 1170, 60);
-  context.fill();
+  const darkBackground = backgroundKey === "night";
+  const inkColor = darkBackground ? "#fff6dc" : "#4d3025";
+  const mutedColor = darkBackground ? "rgba(255, 246, 220, 0.82)" : "#7a5746";
+  const pillFill = darkBackground ? "rgba(12, 24, 42, 0.62)" : "rgba(255, 255, 255, 0.72)";
 
-  context.fillStyle = "#8f4b3c";
-  context.font = "700 42px sans-serif";
-  context.fillText("Polaris", 150, 180);
+  drawImageCover(context, backgroundImage, 0, 0, width, height);
 
-  context.fillStyle = "#f4d7c9";
-  context.beginPath();
-  context.arc(540, 420, 150, 0, Math.PI * 2);
-  context.fill();
+  context.save();
+  context.globalAlpha = darkBackground ? 0.34 : 0.42;
+  drawImageContain(context, stardustImage, 128, 186, 824, 694);
+  context.restore();
 
-  context.fillStyle = "#5c332a";
-  context.font = "900 92px sans-serif";
+  context.save();
+  context.globalAlpha = darkBackground ? 0.58 : 0.92;
+  drawImageContain(context, friendsFrameImage, 56, 64, 968, 1228);
+  context.restore();
+
+  context.fillStyle = inkColor;
+  context.font = "900 42px sans-serif";
   context.textAlign = "center";
-  context.fillText(characterName, 540, 665);
+  context.fillText("Polaris", 540, 154);
 
-  context.font = "700 46px sans-serif";
-  wrapCanvasText(context, headline, 540, 760, 720, 64);
+  drawImageContain(context, characterImage, 312, 250, 456, 456);
 
-  context.fillStyle = "#fff4dc";
-  roundedRect(context, 190, 950, 300, 150, 36);
-  context.fill();
-  roundedRect(context, 590, 950, 300, 150, 36);
-  context.fill();
+  if (completedCount > 0) {
+    context.save();
+    context.translate(918, 330);
+    context.rotate((-9 * Math.PI) / 180);
+    const stampGlow = context.createRadialGradient(0, 0, 36, 0, 0, 118);
+    stampGlow.addColorStop(0, "rgba(255, 250, 235, 0.98)");
+    stampGlow.addColorStop(0.56, "rgba(255, 250, 235, 0.9)");
+    stampGlow.addColorStop(0.72, "rgba(255, 250, 235, 0.42)");
+    stampGlow.addColorStop(1, "rgba(255, 250, 235, 0)");
+    context.fillStyle = stampGlow;
+    context.beginPath();
+    context.arc(0, 0, 118, 0, Math.PI * 2);
+    context.fill();
+    drawImageContain(context, stampImage, -98, -98, 196, 196);
+    context.restore();
+  }
 
-  context.fillStyle = "#7a4a22";
-  context.font = "700 34px sans-serif";
-  context.fillText("완료 미션", 340, 1008);
-  context.fillText("오늘 별조각", 740, 1008);
-  context.font = "900 54px sans-serif";
-  context.fillText(`${completedCount}개`, 340, 1070);
-  context.fillText(`+${earnedStarPiece}`, 740, 1070);
+  context.fillStyle = inkColor;
+  context.font = "900 86px sans-serif";
+  context.textAlign = "center";
+  context.fillText(characterName, 540, 735);
+
+  context.fillStyle = mutedColor;
+  context.font = "800 45px sans-serif";
+  wrapCanvasText(context, headline, 540, 815, 730, 62, 3);
+
+  drawStatPill(context, {
+    fillStyle: pillFill,
+    label: "완료 미션",
+    labelColor: mutedColor,
+    value: `${completedCount}개`,
+    valueColor: inkColor,
+    x: 180,
+    y: 1030,
+  });
+  drawStatPill(context, {
+    fillStyle: pillFill,
+    label: "오늘 별조각",
+    labelColor: mutedColor,
+    value: `+${earnedStarPiece}`,
+    valueColor: inkColor,
+    x: 590,
+    y: 1030,
+  });
   context.textAlign = "left";
 
   // MVP에서는 별도 DOM 캡처 라이브러리 없이 canvas PNG를 만들어 presigned URL에 업로드한다.
@@ -436,6 +555,99 @@ async function copyShareUrl(shareUrl: string) {
   return copied;
 }
 
+function loadCanvasImage(source: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("공유 카드 에셋을 불러오지 못했어요."));
+    image.src = source;
+  });
+}
+
+function drawImageCover(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const imageWidth = image.naturalWidth || image.width;
+  const imageHeight = image.naturalHeight || image.height;
+  const scale = Math.max(width / imageWidth, height / imageHeight);
+  const drawWidth = imageWidth * scale;
+  const drawHeight = imageHeight * scale;
+
+  context.drawImage(
+    image,
+    x + (width - drawWidth) / 2,
+    y + (height - drawHeight) / 2,
+    drawWidth,
+    drawHeight,
+  );
+}
+
+function drawImageContain(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const imageWidth = image.naturalWidth || image.width;
+  const imageHeight = image.naturalHeight || image.height;
+  const scale = Math.min(width / imageWidth, height / imageHeight);
+  const drawWidth = imageWidth * scale;
+  const drawHeight = imageHeight * scale;
+
+  context.drawImage(
+    image,
+    x + (width - drawWidth) / 2,
+    y + (height - drawHeight) / 2,
+    drawWidth,
+    drawHeight,
+  );
+}
+
+function drawStatPill(
+  context: CanvasRenderingContext2D,
+  {
+    fillStyle,
+    label,
+    labelColor,
+    value,
+    valueColor,
+    x,
+    y,
+  }: {
+    fillStyle: string;
+    label: string;
+    labelColor: string;
+    value: string;
+    valueColor: string;
+    x: number;
+    y: number;
+  },
+) {
+  context.save();
+  context.shadowColor = "rgba(39, 29, 22, 0.12)";
+  context.shadowBlur = 24;
+  context.shadowOffsetY = 10;
+  context.fillStyle = fillStyle;
+  roundedRect(context, x, y, 310, 152, 36);
+  context.fill();
+  context.restore();
+
+  context.textAlign = "center";
+  context.fillStyle = labelColor;
+  context.font = "800 34px sans-serif";
+  context.fillText(label, x + 155, y + 58);
+  context.fillStyle = valueColor;
+  context.font = "900 58px sans-serif";
+  context.fillText(value, x + 155, y + 120);
+}
+
 function roundedRect(
   context: CanvasRenderingContext2D,
   x: number,
@@ -464,26 +676,86 @@ function wrapCanvasText(
   y: number,
   maxWidth: number,
   lineHeight: number,
+  maxLines = 3,
 ) {
-  const words = text.split(" ");
+  const lines: string[] = [];
+  const words = text.trim().split(/\s+/).filter(Boolean);
   let line = "";
-  let currentY = y;
 
   words.forEach((word) => {
-    const testLine = line ? `${line} ${word}` : word;
-    const metrics = context.measureText(testLine);
+    splitCanvasWord(context, word, maxWidth).forEach((part) => {
+      const testLine = line ? `${line} ${part}` : part;
+      const metrics = context.measureText(testLine);
 
-    if (metrics.width > maxWidth && line) {
-      context.fillText(line, x, currentY);
-      line = word;
-      currentY += lineHeight;
-      return;
-    }
+      if (metrics.width > maxWidth && line) {
+        lines.push(line);
+        line = part;
+        return;
+      }
 
-    line = testLine;
+      line = testLine;
+    });
   });
 
   if (line) {
-    context.fillText(line, x, currentY);
+    lines.push(line);
   }
+
+  const visibleLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    visibleLines[visibleLines.length - 1] = trimCanvasText(
+      context,
+      visibleLines[visibleLines.length - 1],
+      maxWidth,
+    );
+  }
+
+  visibleLines.forEach((visibleLine, index) => {
+    context.fillText(visibleLine, x, y + index * lineHeight);
+  });
+}
+
+function splitCanvasWord(
+  context: CanvasRenderingContext2D,
+  word: string,
+  maxWidth: number,
+) {
+  if (context.measureText(word).width <= maxWidth) {
+    return [word];
+  }
+
+  const parts: string[] = [];
+  let part = "";
+
+  Array.from(word).forEach((character) => {
+    const testPart = `${part}${character}`;
+
+    if (context.measureText(testPart).width > maxWidth && part) {
+      parts.push(part);
+      part = character;
+      return;
+    }
+
+    part = testPart;
+  });
+
+  if (part) {
+    parts.push(part);
+  }
+
+  return parts;
+}
+
+function trimCanvasText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+) {
+  let trimmedText = text;
+
+  while (trimmedText.length > 0 && context.measureText(`${trimmedText}...`).width > maxWidth) {
+    trimmedText = trimmedText.slice(0, -1);
+  }
+
+  return `${trimmedText}...`;
 }
