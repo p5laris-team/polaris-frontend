@@ -86,11 +86,11 @@
 | SCR-007 | 미션 카드 | UC-006, UC-007, UC-008 | 미션 1개 제안, 완료/거절 선택                     | `GET /api/mission/v1/missions/current`, `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/rejections`, `POST /api/mission/v1/missions/today-focus/next` |
 | SCR-009 | 미션 완료 질문 | UC-008, UC-009 | 캐릭터 질문 1개, 텍스트 답변 입력                   | `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/completion-answers` |
 | SCR-010 | 미션 완료 결과 | UC-009, UC-021 | 별조각 지급 애니메이션, 캐릭터 반응         | `POST /api/mission/v1/missions/{missionId}/completion-answers`, `GET /api/wallet/v1/wallets/me` |
-| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회 (최대 15개)          | `GET /api/mission/v1/missions/today` |
-| SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태 3개 확인, 밥 주기/재우기/놀아주기            | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `POST /api/character/v1/characters/{characterId}/care-logs` |
-| SCR-013 | 상점 | UC-015, UC-016, UC-017, UC-023 | 스킨·소모품 목록 조회, 별조각으로 구매       | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me` |
-| SCR-014 | 인벤토리 | UC-018, UC-019 | 보유 아이템 조회, 스킨 장착, 소모품 사용               | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin`, `POST /api/character/v1/characters/{characterId}/care-logs` |
-| SCR-015 | 별조각 내역 | UC-020 | 별조각 잔액 조회, 획득/사용 트랜잭션 목록               | `GET /api/wallet/v1/wallets/me` (거래 내역 API는 MVP 미제공) |
+| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회, 진행 중 미션 바로 수행 | `GET /api/mission/v1/missions/today`, `POST /api/mission/v1/missions/{missionId}/completion-sessions` |
+| SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태 3개 확인, 보유 소모품으로 밥 주기/재우기/놀아주기 | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `GET /api/item/v1/user-items?itemType=CONSUMABLE`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| SCR-013 | 상점 | UC-015, UC-016, UC-017, UC-023 | 현재 캐릭터용 스킨과 돌봄 소모품 조회, 별조각으로 구매 | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me` |
+| SCR-014 | 인벤토리 | UC-018, UC-019 | 보유 스킨 조회, 스킨 장착/해제                     | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin` |
+| SCR-015 | 별조각 내역 | UC-020 | 별조각 잔액 조회, 획득/사용 트랜잭션 목록               | `GET /api/wallet/v1/wallets/me`, `GET /api/wallet/v1/wallets/me/transactions` |
 | SCR-016 | 캐릭터 카드 공유 | UC-025, UC-026, UC-022 | 공유 카드 생성(멘트 지정), SNS 공유, 보상 여부 조회/지급 | `GET /api/share/v1/presigned-url`, `POST /api/share/v1/share-cards`, `POST /api/share/v1/share-events`, `GET /api/share/v1/share-events/today` |
 | SCR-017 | 공유 링크 랜딩 | UC-027 | 외부 공유 링크 진입 화면, 카드 정보 로드 및 클릭 로그 자동 적재 | `GET /api/share/v1/share-links/{shareId}` |
 | SCR-018 | 업적 | UC-029, UC-030 | MVP 제외/보류. 화면 구현 대상 아님 | API 미제공 |
@@ -294,7 +294,7 @@
 
 ```
 [상단 영역]
-- 별조각 잔액 (우측 상단, ✦ N개)
+- 별조각 아이콘 버튼 → SCR-015
 - 알림 아이콘 → SCR-020
 
 [캐릭터 영역]
@@ -302,9 +302,7 @@
   - 상태 우선순위: 애정 BAD > 기운 BAD > 포만감 BAD > NORMAL > GOOD
 - 캐릭터 이름
 - 오늘의 캐릭터 한마디 (캐릭터 말투 반영)
-- 상태 인디케이터 3개 (포만감 / 기운 / 애정)
-  - 각각 아이콘 + 바 형태
-  - BAD 상태: 빨간색 강조 + 흔들림 애니메이션
+- 캐릭터 하단에는 포만감/기운/애정/별조각/알림 숫자 요약을 노출하지 않음
 
 [미션 카드 영역]
 - 현재 미션 1개 (SCR-007로 이어짐)
@@ -472,7 +470,7 @@
 | **화면 이름** | 미션 히스토리 |
 | **진입 경로** | SCR-006 홈 하단 "오늘 완료 N개" 탭 |
 | **관련 UC** | UC-006 |
-| **호출 API** | `GET /api/mission/v1/missions/today` |
+| **호출 API** | `GET /api/mission/v1/missions/today`, `POST /api/mission/v1/missions/{missionId}/completion-sessions` |
 
 #### 화면 구성
 
@@ -497,7 +495,7 @@
 
 [진행 중 항목]
 - `currentMissionId`와 같은 미션은 강조 표시
-- 탭 시 SCR-006 홈으로 이동해 현재 미션을 이어서 처리
+- 탭 시 SCR-009 미션 완료 질문으로 바로 이동해 현재 미션을 이어서 처리
 
 [빈 상태]
 - "아직 오늘의 미션이 없어요. 홈에서 시작해봐요!"
@@ -523,7 +521,7 @@
 | **화면 이름** | 캐릭터 상세 / 돌봄 |
 | **진입 경로** | SCR-006 홈 캐릭터 이미지 탭 |
 | **관련 UC** | UC-010, UC-011, UC-012, UC-013 |
-| **호출 API** | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| **호출 API** | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `GET /api/item/v1/user-items?itemType=CONSUMABLE`, `POST /api/character/v1/characters/{characterId}/care-logs` |
 
 #### 화면 구성
 
@@ -547,10 +545,16 @@
 [돌봄 액션 패널]
 ┌─────────────────────────────────────┐
 │  밥 주기          재우기     놀아주기  │
-│  🍚 3✦ or 밥아이템  무료        5✦ or 비누 │
+│  별사탕밥 xN      구름 베개 xN 별 장난감 xN │
 └─────────────────────────────────────┘
-- 각 버튼 탭 → 해당 API 호출 + 결과 토스트
+- 각 버튼 탭 → 해당 `effectType` 소모품의 `itemId`를 포함해 API 호출 + 결과 토스트
   예: "포만감 +20! 냠냠 (무무 말투)"
+- 수량이 0개이면 버튼 비활성화, "보유 0개" 상태 표시
+
+[돌봄 소모품 매핑]
+- 밥 주기(`FEED`) → `effectType=FOOD`
+- 재우기(`SLEEP`) → `effectType=REST`
+- 놀아주기(`PLAY`) → `effectType=PLAY`
 
 [인벤토리 진입]
 - 장착 중인 스킨 미리보기
@@ -577,26 +581,33 @@
 ```
 [상단]
 - 별조각 잔액 표시 (✦ N개)
-- 탭 메뉴: 스킨 / 소모품
+- 카테고리 탭: 스킨 / 돌봄 소모품
+- 탭 전환 시 해당 카테고리 상품만 노출해 모바일 긴 스크롤을 줄임
 
 [스킨 탭]
 - 아이템 카드 그리드 (2열)
   각 카드:
   ├── 스킨 프리뷰 이미지
   ├── 스킨 이름
+  ├── 캐릭터 전용 배지 (`characterTypeId` 기준)
   ├── 가격 (✦ N개)
   ├── 보유 여부 배지
   └── [구매] or [보유 중] 버튼
+- 현재 캐릭터 타입과 일치하는 스킨 또는 공용 스킨만 노출
 
-[소모품 탭]
-- 밥 아이템 / 비누 등 소모품 목록
-- 수량 표시
+[돌봄 소모품 탭]
+- `GET /api/item/v1/items?itemType=CONSUMABLE`으로 구매 가능한 소모품 조회
+- 별사탕밥/구름 베개/별 장난감처럼 돌봄 액션에 연결되는 아이템 표시
+- 소모품은 반복 구매 가능하며 구매 확인 팝업에서 수량 선택
+- 구매 시 `POST /api/item/v1/item-purchases` body `{ "itemId": number, "quantity": number }`
+- 구매 완료 후 보유 수량은 SCR-012 돌봄 화면의 `GET /api/item/v1/user-items?itemType=CONSUMABLE` 결과에 반영
 
 [구매 확인 팝업]
 - "[아이템명]을 구매할까요?"
 - 현재 별조각 잔액 / 구매 후 잔액 미리보기
 - [확인] / [취소]
 - 잔액 부족 시: "별조각이 부족해요. 미션을 완료해서 별조각을 모아봐요!"
+- 상점 하단 별도 설명 카드는 두지 않고, 상품 카드에는 구매 판단에 필요한 최소 정보만 표시
 
 ```
 
@@ -610,19 +621,21 @@
 | **화면 이름** | 인벤토리 |
 | **진입 경로** | SCR-006 홈 하단 퀵 메뉴 "인벤토리" 아이콘 |
 | **관련 UC** | UC-018, UC-019 |
-| **호출 API** | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| **호출 API** | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin` |
 
 #### 화면 구성
 
 ```
 [상단]
-- 탭 메뉴: 스킨 / 소모품
+- 스킨 보관함 제목
+- MVP에서는 스킨 장착/해제를 우선 제공하고, 돌봄 소모품 사용은 SCR-012에서 실행
 
 [스킨 탭]
 - 보유 아이템 그리드
   각 카드:
   ├── 아이템 이미지
   ├── 아이템 이름
+  ├── 캐릭터 전용 배지 (`characterTypeId` 기준)
   ├── 장착 중 배지 (현재 장착된 아이템에 표시)
   └── [장착] / [장착 중] 버튼
 - "기본 외형" 카드
@@ -630,11 +643,11 @@
   └── 탭 시 `PUT /api/character/v1/characters/{characterId}/equipped-skin` body `{ "itemId": null }`로 스킨 해제
 - 장착 시 캐릭터 미리보기 갱신 (상단 소형 미리뷰)
 - 장착 여부는 `GET /api/character/v1/characters/me`의 `equippedSkin.itemId`와 보유 아이템 `itemId`를 클라이언트에서 비교해 판단
+- 현재 캐릭터 타입과 일치하는 스킨 또는 공용 스킨만 노출
 
-[소모품 탭]
-- 보유 소모품 + 수량 표시
-- [사용] 버튼 → `POST /api/character/v1/characters/{characterId}/care-logs` (`itemId` 포함)
-  - 소모품 사용 후 캐릭터 상태 변화 토스트
+[소모품]
+- 보유 소모품 수량 조회는 `GET /api/item/v1/user-items?itemType=CONSUMABLE`로 가능
+- 실제 사용 버튼은 캐릭터 상태와 함께 판단해야 하므로 SCR-012 돌봄 액션 패널에서 제공
 
 [빈 상태]
 - "아직 아이템이 없어요. 상점에서 골라봐요!"
@@ -651,7 +664,7 @@
 | **화면 이름** | 별조각 내역 |
 | **진입 경로** | SCR-006 홈 상단 별조각 잔액 탭 |
 | **관련 UC** | UC-020 |
-| **호출 API** | `GET /api/wallet/v1/wallets/me` |
+| **호출 API** | `GET /api/wallet/v1/wallets/me`, `GET /api/wallet/v1/wallets/me/transactions` |
 
 #### 화면 구성
 
@@ -687,10 +700,9 @@
 #### 화면 구성
 
 ```
-[공유 상태 헤더]
-- 오늘 공유 리워드 지급 상태 배너 (GET /api/share/v1/share-events/today로 확인)
-  - 미지급 시: "🎁 오늘 캐릭터 카드 공유하고 별조각 10개 받아가세요!"
-  - 지급 완료 시: "✔️ 오늘 공유 보상(별조각 10개) 획득 완료!" (비활성 배너)
+[공유 상태]
+- 오늘 공유 보상 요약 카드는 MVP 화면에서 노출하지 않음
+- 보상 지급 여부는 공유 버튼 처리와 토스트/지갑 내역에서만 확인
 
 [카드 만들기 / 입력 영역]
 - 한 줄 다짐/메시지 입력창 (최대 100자)
@@ -973,9 +985,10 @@ SCR-006 홈 퀵메뉴
 ```
 SCR-006 홈 캐릭터 이미지 탭
   → SCR-012 캐릭터 상세 / 돌봄
-    → [밥 주기] `POST /api/character/v1/characters/{characterId}/care-logs`
-    → [재우기] `POST /api/character/v1/characters/{characterId}/care-logs`
-    → [놀아주기] `POST /api/character/v1/characters/{characterId}/care-logs`
+    → `GET /api/item/v1/user-items?itemType=CONSUMABLE`로 보유 수량 조회
+    → [밥 주기] FOOD 아이템 `itemId` 포함 `POST /api/character/v1/characters/{characterId}/care-logs`
+    → [재우기] REST 아이템 `itemId` 포함 `POST /api/character/v1/characters/{characterId}/care-logs`
+    → [놀아주기] PLAY 아이템 `itemId` 포함 `POST /api/character/v1/characters/{characterId}/care-logs`
       → 상태 변화 토스트 → SCR-012 상태 갱신
 ```
 

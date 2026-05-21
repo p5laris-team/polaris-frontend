@@ -17,28 +17,6 @@
   white-space: nowrap;
 }
 
-.notifications-page__summary-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  align-items: start;
-}
-
-.notifications-page__summary-card .polaris-tag {
-  grid-column: 1 / -1;
-  width: fit-content;
-}
-
-.notifications-page__summary-icon {
-  width: 54px;
-  height: 54px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  color: var(--primary-strong);
-  background: var(--primary-soft);
-}
-
 .notifications-page__eyebrow {
   display: block;
   color: var(--primary-strong);
@@ -47,24 +25,8 @@
   line-height: 1.3;
 }
 
-.notifications-page__summary-card h1 {
-  margin: 4px 0 6px;
-  color: var(--fg-1);
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.notifications-page__summary-card p {
-  margin: 0;
-  color: var(--fg-3);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .notifications-page__filter {
-  margin: 14px 0;
+  margin-bottom: 14px;
   padding: 4px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -269,11 +231,6 @@
   background: linear-gradient(90deg, var(--bg-2), var(--bg-3), var(--bg-2));
   background-size: 220% 100%;
   animation: notifications-skeleton 1.2s ease-in-out infinite;
-}
-
-.notifications-page__skeleton--summary {
-  min-height: 152px;
-  margin-bottom: 14px;
 }
 
 .notifications-page__skeleton--item {

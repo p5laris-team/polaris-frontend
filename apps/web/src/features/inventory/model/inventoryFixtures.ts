@@ -1,5 +1,6 @@
 import { getDemoActiveCharacter } from "@/features/home/model/homeFixture";
 import {
+  demoGetUserConsumableItems,
   demoGetUserSkinItems,
   demoSetEquippedSkin,
 } from "@/features/item/model/itemFixtures";
@@ -12,7 +13,7 @@ import {
 } from "./inventoryTypes";
 
 export function demoGetUserItems({ itemType, size }: UserItemsRequest): UserItemsResponse {
-  const items = itemType === "SKIN" ? demoGetUserSkinItems() : [];
+  const items = itemType === "SKIN" ? demoGetUserSkinItems() : demoGetUserConsumableItems();
 
   return {
     items: items.slice(0, size),

@@ -17,6 +17,7 @@ import {
   type SubmitMissionCompletionAnswerRequest,
   type TodayMissionsResponse,
 } from "@/entities/mission/types";
+import { walletQueryKeys } from "@/features/wallet/api/walletApi";
 import { apiClient, unwrapApiResponse } from "@/shared/api";
 import { runtimeConfig } from "@/shared/config/env";
 
@@ -117,6 +118,7 @@ export function useRejectAndRequestNextMissionMutation() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: missionQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: walletQueryKeys.all }),
       ]);
     },
   });

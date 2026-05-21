@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, Share2, WalletCards } from "lucide-react";
+import { Bell, CalendarDays, Gem, Share2 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -110,10 +110,7 @@ export function HomePage() {
   };
 
   return (
-    <HomeFrame
-      walletStarPiece={home.walletStarPiece}
-      unreadNotificationCount={home.unreadNotificationCount}
-    >
+    <HomeFrame unreadNotificationCount={home.unreadNotificationCount}>
       <div className="home-page__body">
         {/* SCR-006 캐릭터 영역: 홈 API의 캐릭터 상태와 현재 미션 대사를 함께 보여준다. */}
         <CharacterStage
@@ -123,11 +120,6 @@ export function HomePage() {
           bubble={home.character.bubble}
           ariaLabel="별친구 돌봄 화면 열기"
           onClick={() => navigate(routes.character)}
-          stats={[
-            { label: "애정", value: `${home.character.gauges[2]?.value ?? 0}%` },
-            { label: "별조각", value: home.walletStarPiece },
-            { label: "알림", value: `${home.unreadNotificationCount}개` },
-          ]}
         />
 
         <div className="home-page__quick-row">
@@ -216,11 +208,9 @@ export function HomePage() {
 
 function HomeFrame({
   children,
-  walletStarPiece,
   unreadNotificationCount,
 }: {
   children: React.ReactNode;
-  walletStarPiece?: number;
   unreadNotificationCount?: number;
 }) {
   const navigate = useNavigate();
@@ -231,9 +221,8 @@ function HomeFrame({
         <Header
           title="Polaris"
           left={
-            <IconButton aria-label="별조각 지갑" onClick={() => navigate(routes.wallet)}>
-              <WalletCards size={22} strokeWidth={1.75} />
-              {walletStarPiece ? <span className="home-page__icon-count">{walletStarPiece}</span> : null}
+            <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
+              <Gem size={22} strokeWidth={1.75} />
             </IconButton>
           }
           right={

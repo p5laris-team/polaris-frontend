@@ -147,6 +147,13 @@
   line-height: 1.45;
 }
 
+.inventory-page__skin-meta {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
 .inventory-page__equip-button {
   width: 100%;
 }

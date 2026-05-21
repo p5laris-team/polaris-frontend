@@ -1,5 +1,5 @@
 import { type ReactNode, useMemo } from "react";
-import { CalendarCheck2, Flame, Sparkles } from "lucide-react";
+import { Flame, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -66,17 +66,6 @@ export function AttendancePage() {
     <AttendanceFrame>
       <div className="attendance-page__body">
         {/* SCR-019 출석 체크: 월간 기록 조회 결과로 오늘 강조와 출석 스탬프를 계산한다. */}
-        <Card className="attendance-page__summary-card">
-          <div className="attendance-page__summary-icon" aria-hidden="true">
-            <CalendarCheck2 size={26} strokeWidth={1.8} />
-          </div>
-          <div>
-            <span className="attendance-page__eyebrow">오늘의 작은 별 도장</span>
-            <h1>{year}년 {month}월의 출석 현황</h1>
-            <p>매일 첫 접속에 출석 도장을 찍고 별조각을 모아봐요.</p>
-          </div>
-        </Card>
-
         <div className="attendance-page__streak-row">
           <Card className="attendance-page__streak-card">
             <Flame size={20} strokeWidth={1.8} />
@@ -172,7 +161,7 @@ function AttendanceLoadingPage() {
   return (
     <AttendanceFrame>
       <div className="attendance-page__body">
-        <div className="attendance-page__skeleton attendance-page__skeleton--summary" />
+        <div className="attendance-page__skeleton" />
         <div className="attendance-page__skeleton attendance-page__skeleton--calendar" />
         <div className="attendance-page__skeleton" />
       </div>

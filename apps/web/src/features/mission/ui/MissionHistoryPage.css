@@ -130,7 +130,7 @@
   text-align: left;
 }
 
-.mission-history__current-card span {
+.mission-history__current-icon {
   width: 40px;
   height: 40px;
   display: grid;
@@ -140,31 +140,55 @@
   background: var(--primary-soft);
 }
 
-.mission-history__current-card strong,
-.mission-history__current-card small {
+.mission-history__current-copy {
   grid-column: 2;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.mission-history__current-copy strong,
+.mission-history__current-copy small {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mission-history__current-card strong {
+.mission-history__current-copy strong {
   color: var(--fg-1);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
 }
 
-.mission-history__current-card small {
-  color: var(--fg-3);
+.mission-history__current-copy small {
+  color: var(--primary-strong);
   font-size: 11px;
   font-weight: 800;
 }
 
+.mission-history__current-copy span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.mission-history__current-copy em {
+  color: var(--fg-3);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .mission-history__current-card > svg {
   grid-column: 3;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   color: var(--fg-4);
+}
+
+.mission-history__current-card:disabled {
+  cursor: wait;
 }
 
 .mission-history__filter {

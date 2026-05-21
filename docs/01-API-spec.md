@@ -1,7 +1,7 @@
 # Polaris REST API 명세서
 
-> 기준일: 2026-05-15  
-> 기준 문서: Polaris v0.7 PRD, 최신 ERD, 기존 API 초안
+> 기준일: 2026-05-21
+> 기준 문서: Polaris v0.7 PRD, 최신 ERD, 기존 API 초안, `polaris` 백엔드 gateway/proto 코드 대조
 
 ---
 
@@ -29,6 +29,7 @@ Base Pattern: /api/{domain}/v1/{resource}
 | 🔐 | 인증 필요. `Authorization: Bearer {accessToken}` 필요 |
 | 💾 | 캐싱 권장 API. 자주 바뀌지 않는 조회성 데이터 |
 | ⚠️ | 동시성 민감 API. 중복 지급, 잔액 차감, 수량 차감, 일일 제한 처리 주의 |
+| 🧩 | 프론트 구현에는 필요하지만 현재 백엔드 코드 기준 미구현 또는 응답 필드 보강 필요 |
 
 ### 0.3 응답 포맷
 
@@ -107,6 +108,24 @@ Base Pattern: /api/{domain}/v1/{resource}
 - 공유 보상 지급
 - 출석 보상 지급
 
+### 0.6 프론트-백엔드 연동 갭
+
+아래 표는 2026-05-21 기준 `polaris` 백엔드 코드와 `polaris-frontend` 실제 API 호출을 대조한 결과다. 이번 작업에서는 백엔드 코드를 수정하지 않고, 프론트 연동 전에 필요한 백엔드 작업만 정리한다.
+
+| 구분 | 프론트 필요 API/필드 | 현재 백엔드 코드 확인 | 프론트 영향 / 요청 |
+|---|---|---|---|
+| 홈 통합 조회 | `GET /api/home/v1/home` | gateway에 home 컨트롤러 없음 | 홈, 상단 요약, 현재 미션, 알림 개수 표시를 위해 백엔드 통합 조회 API 추가가 필요하다. 대안으로 프론트가 user/wallet/character/mission/notification을 조합 호출하도록 별도 결정해야 한다. |
+| 현재 캐릭터 | `GET /api/character/v1/characters/me` 응답의 `states`, `currentAssetUrl` | 현재 응답은 `id`, `name`, `characterTypeCode`, `active`, `equippedSkin` 중심 | 캐릭터 상세/보관함이 캐릭터 상태와 현재 에셋을 바로 쓰려면 응답 보강이 필요하다. 아니면 프론트가 status/assets API를 추가 호출해야 한다. |
+| 스킨 해제 | `PUT /api/character/v1/characters/{characterId}/equipped-skin` body `itemId: null` | proto `item_id`는 `int64`, gateway에서 null 처리 없음 | 보관함의 "해제" 버튼을 실제 API와 연결하려면 null 해제 정책 또는 별도 해제 endpoint가 필요하다. |
+| 오늘 미션 스택 | `GET /api/mission/v1/missions/today` | gateway/proto에 today 조회 없음 | 미션 기록, 공유 카드의 오늘 완료/제안 목록을 실제 데이터로 표시하려면 추가가 필요하다. |
+| 지갑 거래내역 | `GET /api/wallet/v1/wallets/me/transactions` | `star_piece_transactions` 테이블은 있으나 REST/gRPC 조회 없음 | 별조각 화면의 거래내역 리스트에 필요하다. cursor 기반 최신순 조회가 필요하다. |
+| 상점 아이템 필드 | `GET /api/item/v1/items` 응답의 `characterTypeId`, `effectType` | entity에는 있으나 item proto/gateway 응답에는 없음 | 캐릭터별 스킨 필터와 소모품 라벨 표시를 안정적으로 처리하려면 응답 보강이 필요하다. |
+| 보유 아이템 필드 | `GET /api/item/v1/user-items` 응답의 `characterTypeId`, `imageUrl` | 현재 응답은 `userItemId`, `itemId`, `name`, `itemType`, `effectType`, `quantity` | 보관함의 캐릭터별 스킨 필터와 이미지 렌더링에 필요하다. |
+| 아이템 구매 멱등성 | `POST /api/item/v1/item-purchases`의 클라이언트 재시도 멱등키 | 현재 gateway가 `purchase-{userId}-{itemId}-{currentTimeMillis}`를 생성 | 같은 구매 요청 재시도 시 중복 차감 방지가 약하다. 실제 API 연동 전 client-provided `Idempotency-Key` 또는 body `idempotencyKey` 정책 결정이 필요하다. |
+| 공유 보상 상태 | `GET /api/share/v1/share-events/today` | share controller에 today 상태 조회 없음 | 공유 카드 버튼 상태와 중복 보상 안내에 필요하다. |
+| 알림 | `GET/PATCH /api/notification/v1/notifications` | gateway에 notification controller 없음 | 알림 목록, 읽음 처리, 홈 unreadCount에 필요하다. |
+| 지갑 요약 부가 필드 | `GET /api/wallet/v1/wallets/me`의 `updatedAt` | 현재 백엔드 응답은 `starPiece`만 반환 | MVP 화면은 잔액만 쓰므로 `updatedAt`은 선택 필드로 둔다. |
+
 ---
 
 ## 1. API 전체 요약
@@ -118,37 +137,38 @@ Base Pattern: /api/{domain}/v1/{resource}
 | POST   | `⚠️ /api/auth/v1/token-refreshes`                               | 토큰 재발급        | body | token | Public |
 | DELETE | `/api/auth/v1/sessions/current`                                 | 로그아웃          | none | logout result | 🔐 |
 | GET    | `/api/user/v1/users/me`                                         | 내 정보 조회       | none | user | 🔐 |
-| GET    | `/api/home/v1/home`                                             | 홈 화면 통합 조회    | none | home data | 🔐 |
+| GET    | `🧩 /api/home/v1/home`                                           | 홈 화면 통합 조회    | none | home data | 🔐 |
 | GET    | `💾 /api/character/v1/character-types`                          | 캐릭터 종류 조회     | query | character types | 🔐 |
 | GET    | `💾 /api/character/v1/character-types/{characterTypeId}/assets` | 캐릭터 에셋 조회     | path | assets | 🔐 |
 | POST   | `/api/character/v1/characters`                                  | 내 캐릭터 생성      | body | character | 🔐 |
-| GET    | `/api/character/v1/characters/me`                               | 내 활성 캐릭터 조회   | none | character | 🔐 |
+| GET    | `🧩 /api/character/v1/characters/me`                             | 내 활성 캐릭터 조회   | none | character | 🔐 |
 | PATCH  | `/api/character/v1/characters/{characterId}`                    | 캐릭터 이름 수정     | path + body | character | 🔐 |
 | GET    | `/api/character/v1/characters/{characterId}/status`             | 캐릭터 상태 조회     | path | status | 🔐 |
 | POST   | `⚠️ /api/character/v1/characters/{characterId}/care-logs`       | 돌봄 액션 수행      | path + body | care result | 🔐 |
-| PUT    | `⚠️ /api/character/v1/characters/{characterId}/equipped-skin`   | 캐릭터 스킨 장착/해제 | path + body | equipped skin | 🔐 |
+| PUT    | `⚠️🧩 /api/character/v1/characters/{characterId}/equipped-skin` | 캐릭터 스킨 장착/해제 | path + body | equipped skin | 🔐 |
 | GET    | `💾 /api/onboarding/v1/questions`                               | 온보딩 질문 목록 조회  | none | questions | 🔐 |
 | GET    | `/api/onboarding/v1/profiles/me`                                | 내 온보딩 프로필 조회  | none | profile | 🔐 |
 | PUT    | `/api/onboarding/v1/profiles/me`                                | 내 온보딩 프로필 저장/완료 | body | profile | 🔐 |
 | GET    | `/api/mission/v1/missions/current`                              | 현재 제안 미션 조회   | query | mission | 🔐 |
-| GET    | `/api/mission/v1/missions/today`                                | 오늘 미션 스택 조회   | none | today missions | 🔐 |
+| GET    | `🧩 /api/mission/v1/missions/today`                              | 오늘 미션 스택 조회   | none | today missions | 🔐 |
 | POST   | `/api/mission/v1/missions/today-focus/next`                     | 다음 미션 요청      | body | mission | 🔐 |
 | POST   | `/api/mission/v1/missions/{missionId}/rejections`               | 미션 거절 기록 생성   | path + body | rejection | 🔐 |
 | POST   | `/api/mission/v1/missions/{missionId}/completion-sessions`      | 완료 질문 세션 시작   | path + body | question | 🔐 |
 | POST   | `⚠️ /api/mission/v1/missions/{missionId}/completion-answers`    | 완료 답변 제출 및 보상 지급 | path + body | completion result | 🔐 |
-| GET    | `/api/wallet/v1/wallets/me`                                     | 별조각 잔액 조회     | none | wallet | 🔐 |
-| GET    | `💾 /api/item/v1/items`                                         | 상점 아이템 목록 조회  | query cursor | items | 🔐 |
-| GET    | `/api/item/v1/user-items`                                       | 내 보유 아이템 조회   | query cursor | user items | 🔐 |
+| GET    | `🧩 /api/wallet/v1/wallets/me`                                   | 별조각 잔액 조회     | none | wallet | 🔐 |
+| GET    | `🧩 /api/wallet/v1/wallets/me/transactions`                      | 별조각 거래내역 조회   | query cursor | transactions | 🔐 |
+| GET    | `💾🧩 /api/item/v1/items`                                       | 상점 아이템 목록 조회  | query cursor | items | 🔐 |
+| GET    | `🧩 /api/item/v1/user-items`                                     | 내 보유 아이템 조회   | query cursor | user items | 🔐 |
 | POST   | `⚠️ /api/item/v1/item-purchases`                                | 아이템 구매        | body | purchase result | 🔐 |
 | GET    | `/api/share/v1/presigned-url`                                   | 프론트엔드 R2 직접 업로드용 임시 URL 발급 | query | presigned url | 🔐 |
 | POST   | `/api/share/v1/share-cards`                                     | 공유 카드 생성 (업로드 이미지 URL 포함) | body | share card | 🔐 |
 | POST   | `⚠️ /api/share/v1/share-events`                                 | 공유 시도 이벤트 생성 및 보상 처리 | body | share event | 🔐 |
-| GET    | `/api/share/v1/share-events/today`                              | 오늘 공유 보상 여부 조회 | none | share status | 🔐 |
+| GET    | `🧩 /api/share/v1/share-events/today`                            | 오늘 공유 보상 여부 조회 | none | share status | 🔐 |
 | GET    | `💾 /api/share/v1/share-links/{shareId}`                        | 공개 공유 링크 정보 조회 (클릭 로그 내재화) | path | shared card | Public |
 | POST   | `⚠️ /api/attendance/v1/attendance-records`                      | 오늘 출석 기록 생성 및 보상 지급 | none | attendance | 🔐 |
 | GET    | `/api/attendance/v1/attendance-records`                         | 출석 기록 조회      | query year, month | attendance list | 🔐 |
-| GET    | `/api/notification/v1/notifications`                            | 알림 목록 조회      | query cursor | notifications | 🔐 |
-| PATCH  | `/api/notification/v1/notifications/{notificationId}`           | 알림 읽음 처리      | path + body | notification | 🔐 |
+| GET    | `🧩 /api/notification/v1/notifications`                          | 알림 목록 조회      | query cursor | notifications | 🔐 |
+| PATCH  | `🧩 /api/notification/v1/notifications/{notificationId}`         | 알림 읽음 처리      | path + body | notification | 🔐 |
 
 ---
 
@@ -290,6 +310,8 @@ Refresh Token으로 Access Token을 재발급한다.
 
 **설명**  
 홈 화면에 필요한 사용자, 지갑, 캐릭터, 현재 미션, 알림 요약을 한 번에 조회한다.
+
+> 백엔드 코드 확인: 2026-05-21 기준 gateway에 해당 REST 컨트롤러가 없다. 프론트는 현재 단일 홈 조회 API를 기준으로 구현되어 있으므로, 백엔드 통합 조회 API를 추가하거나 프론트에서 개별 API 조합 호출로 전환하는 결정이 필요하다.
 
 **Request**
 
@@ -439,6 +461,8 @@ Refresh Token으로 Access Token을 재발급한다.
 **설명**  
 내 활성 캐릭터를 조회한다.
 
+> 백엔드 코드 확인: 현재 gateway 응답에는 `states`, `currentAssetUrl`이 포함되지 않는다. 프론트에서 캐릭터 상태/에셋을 함께 쓰는 화면은 `GET /api/character/v1/characters/{characterId}/status`, `GET /api/character/v1/character-types/{characterTypeId}/assets` 조합 호출로 갈지, 이 응답을 보강할지 결정이 필요하다.
+
 **Request**
 
 ```json
@@ -518,8 +542,14 @@ Refresh Token으로 Access Token을 재발급한다.
 ### 4.7 POST `⚠️ /api/character/v1/characters/{characterId}/care-logs` 🔐
 
 **설명**  
-밥 주기, 재우기, 놀아주기 같은 돌봄 액션을 수행한다. 별조각 차감 또는 소모품 수량 차감이 발생할 수 있다.  
+밥 주기, 재우기, 놀아주기 같은 돌봄 액션을 수행한다. MVP 클라이언트는 돌봄 액션에 맞는 소모품 `itemId`를 전달하며, 백엔드는 `user_items.quantity`를 1개 차감한다.
 중복 요청 및 재시도를 방지하기 위해 반드시 `Idempotency-Key` 헤더를 함께 전송해야 합니다.
+
+| actionType | 필요한 effectType | 예시 소모품 |
+|---|---|---|
+| `FEED` | `FOOD` | 별사탕밥 |
+| `SLEEP` | `REST` | 구름 베개 |
+| `PLAY` | `PLAY` | 별 장난감 |
 
 **Headers**
 
@@ -571,6 +601,8 @@ Refresh Token으로 Access Token을 재발급한다.
 - `itemId`가 숫자이면 해당 보유 스킨을 장착한다.
 - `itemId`가 `null`이면 현재 장착 스킨을 해제하고 기본 외형으로 되돌린다.
 - 클라이언트는 `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId`와 `GET /api/item/v1/user-items` 응답의 `itemId`를 비교해 장착 여부를 표시한다.
+
+> 백엔드 코드 확인: 현재 proto의 `item_id`는 `int64`라 `null` 표현이 없고, gateway도 `itemId: null` 해제를 처리하지 않는다. 프론트 보관함의 해제 버튼을 실제 API와 연결하려면 null 해제 정책 또는 별도 해제 endpoint가 필요하다.
 
 **Request**
 
@@ -776,6 +808,8 @@ missionId path variable은 1 이상의 숫자여야 한다.
 오늘 기준 로그인한 유저에게 제안된 미션 스택을 조회한다. 하루 최대 제안 수가 15개이므로 pagination은 제공하지 않는다.
 
 목록은 `stackOrder` 오름차순으로 반환한다. `currentMissionId`는 현재 진행 중인 `OFFERED` 또는 `ANSWERING` 상태 미션의 id이며, 현재 미션이 없으면 `null`이다.
+
+> 백엔드 코드 확인: 현재 gateway/proto에는 today stack 조회 API가 없다. `UserMission.stackOrder`와 일일 제안 수 정책은 존재하므로, 미션 기록/공유 카드 실제 연동 전에 REST/gRPC 조회가 필요하다.
 
 **Request**
 
@@ -1045,6 +1079,8 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 **설명**  
 현재 별조각 잔액을 조회한다.
 
+> 백엔드 코드 확인: 현재 gateway 응답은 `starPiece`만 반환한다. `updatedAt`은 MVP 화면에서 사용하지 않으므로 선택 필드로 둔다.
+
 **Request**
 
 ```json
@@ -1055,8 +1091,59 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 
 ```json
 {
-  "starPiece": 127,
-  "updatedAt": "2026-05-15T18:35:00+09:00"
+  "starPiece": 127
+}
+```
+
+---
+
+### 7.2 GET `/api/wallet/v1/wallets/me/transactions` 🔐
+
+**설명**
+내 별조각 획득/사용 거래내역을 최신순으로 조회한다. 별조각 화면에서 잔액과 함께 노출한다.
+
+> 백엔드 코드 확인: `star_piece_transactions` 테이블은 있으나 2026-05-21 기준 gateway/proto에 거래내역 조회 API가 없다. 별조각 화면 실제 연동 전에 추가가 필요하다.
+
+**Request (Query Parameters)**
+
+```json
+{
+  "cursor": null,
+  "size": 20
+}
+```
+
+**Response**
+
+```json
+{
+  "items": [
+    {
+      "id": 1203,
+      "amount": 10,
+      "balanceAfter": 240,
+      "reason": "ATTENDANCE_REWARD",
+      "description": "오늘 출석 보상",
+      "sourceType": "ATTENDANCE",
+      "sourceId": 302,
+      "occurredAt": "2026-05-21T10:50:00+09:00"
+    },
+    {
+      "id": 1204,
+      "amount": -60,
+      "balanceAfter": 180,
+      "reason": "ITEM_PURCHASE",
+      "description": "말랑 별빛 스킨 구매",
+      "sourceType": "ITEM",
+      "sourceId": 3,
+      "occurredAt": "2026-05-21T11:20:00+09:00"
+    }
+  ],
+  "pageInfo": {
+    "nextCursor": null,
+    "hasNext": false,
+    "size": 20
+  }
 }
 ```
 
@@ -1070,6 +1157,9 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 판매 중인 아이템 목록을 조회한다. 가격은 현금이 아니라 별조각 가격이다.
 - **모바일 스크롤 UI 대응**: 페이지 누락이나 중복 노출을 방지하기 위해 **커서(Cursor) 기반 페이징**을 적용합니다.
 - **탭 필터링**: 화면에 탭(`SKIN`, `CONSUMABLE`) 별로 구분하여 보여주기 위해 쿼리 파라미터 `itemType` 필터링을 제공합니다.
+- **캐릭터별 스킨**: `characterTypeId`가 있으면 해당 캐릭터 전용 스킨이며, `null`이면 공용 스킨입니다. 클라이언트는 현재 캐릭터 타입과 비교해 노출 여부를 판단합니다.
+
+> 백엔드 코드 확인: `items` 테이블에는 `effect_type`, `character_type_id`가 있으나, 현재 item proto/gateway 응답에는 `effectType`, `characterTypeId`가 포함되지 않는다. 상점 탭/캐릭터별 스킨 노출을 안정적으로 맞추려면 응답 필드 보강이 필요하다.
 
 **Request (Query Parameters)**
 
@@ -1090,7 +1180,10 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
     {
       "id": 3,
       "name": "말랑 별빛 스킨",
+      "description": "말랑말랑하게 빛나는 스킨입니다.",
       "itemType": "SKIN",
+      "characterTypeId": 2,
+      "effectType": null,
       "price": 60,
       "imageUrl": "https://cdn.polaris.app/items/skin-soft-star.png",
       "owned": false 
@@ -1113,12 +1206,16 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 
 - **소모성 아이템**: 보유 개수(`quantity`)가 표현됩니다.
 - **장착형 아이템(스킨)**: 장착 여부는 이 API에 포함되지 않습니다. 클라이언트가 보유한 캐릭터 정보(`equipped_skin_id`)와 비교하여 장착 상태를 판단합니다.
+- **돌봄 사용**: `itemType=CONSUMABLE`로 조회한 뒤 `effectType`이 돌봄 액션과 맞는 아이템의 `itemId`를 `POST /api/character/v1/characters/{characterId}/care-logs`에 전달합니다.
+
+> 백엔드 코드 확인: 현재 user-items 응답에는 `effectType`은 있으나 `characterTypeId`, `imageUrl`이 없다. 보관함의 캐릭터별 스킨 필터와 이미지 렌더링을 위해 응답 보강이 필요하다.
 
 > **장착 여부 판단 방식 (클라이언트 싱크)**  
 > `GET /api/character/v1/characters/me` 응답의 `equippedSkin.itemId` 와  
 > 이 API 응답의 `itemId` 를 클라이언트에서 비교합니다.  
 > `itemId === equippedSkin.itemId` → 장착된 스킨
 > `equippedSkin === null` → 기본 외형 상태
+> 스킨 노출 범위는 `characterTypeId`로 판단하며, 현재 캐릭터 타입과 일치하거나 `null`인 공용 스킨만 보여줍니다.
 
 **Request (Query Parameters)**
 
@@ -1137,11 +1234,13 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
   "items": [
     {
       "userItemId": 40,
-      "itemId": 21,
-      "name": "별사탕밥",
+      "itemId": 5,
+      "name": "별 장난감",
       "itemType": "CONSUMABLE",
-      "effectType": "FOOD",
-      "quantity": 2
+      "characterTypeId": null,
+      "effectType": "PLAY",
+      "quantity": 3,
+      "imageUrl": "https://cdn.polaris.app/items/star-toy.png"
     }
   ],
   "pageInfo": {
@@ -1162,6 +1261,8 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 - **소모성 아이템 구매 정책**: 수량(`quantity`)을 선택하여 다량 구매가 가능하며, 구매 시 기존 보유량에 누적됩니다.
 - **트랜잭션**: 별조각 차감, 거래 내역 기록(`star_piece_transactions`), 보유 아이템(`user_items`) 추가/업데이트는 단일 트랜잭션으로 처리되어 정합성을 유지합니다.
 - **재화 부족**: 지갑 잔액이 부족하면 `STAR_PIECE_NOT_ENOUGH` (400) 에러가 발생합니다.
+
+> 백엔드 코드 확인: 현재 gateway가 요청마다 시간 기반 멱등키를 생성하므로 클라이언트 재시도 중복 차감을 완전히 막기 어렵다. 실제 연동 전 `Idempotency-Key` 헤더 또는 body `idempotencyKey` 중 하나로 클라이언트가 안정적인 멱등키를 전달하는 정책 결정이 필요하다.
 
 **Request**
 
@@ -1279,6 +1380,8 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 **설명**  
 로그인한 유저가 오늘 날짜의 공유 보상을 이미 수령했는지 여부를 조회한다. 프론트엔드 버튼 상태 및 배너 표시에 사용된다.
 
+> 백엔드 코드 확인: 현재 share controller에는 해당 endpoint가 없다. 공유 카드 화면의 보상 상태 표시를 실제 데이터로 연결하려면 추가가 필요하다.
+
 **Request**
 
 ```json
@@ -1392,6 +1495,8 @@ AI 생성 결과는 `ai_mission_generations`, 사용 로그는 `ai_usage_logs`�
 
 **설명**  
 앱 내부 알림 목록을 조회한다.
+
+> 백엔드 코드 확인: 현재 gateway에 notification controller가 없다. 알림 목록, 읽음 처리, 홈 unreadCount를 실제 데이터로 연결하려면 notification REST API 구현이 필요하다.
 
 **Request**
 
@@ -1512,9 +1617,9 @@ FCM 푸쉬 알림을 허용하고 토큰을 저장해 구독을 시작한다.
 |---|---|
 | `MISSION_REWARD` | 미션 완료 보상 |
 | `ITEM_PURCHASE` | 아이템 구매 |
-| `ATTENDANCE` | 출석 보상 |
+| `ATTENDANCE_REWARD` | 출석 보상 |
 | `SHARE_REWARD` | 공유 시도 보상 |
-| `CARE_ACTION` | 돌봄 액션 비용 |
+| `CARE_ACTION` | 별조각 직접 차감형 돌봄 정책 도입 시 사용. MVP 돌봄은 소모품 수량 차감 기준 |
 
 ### 12.5 AI 문구 생성 상태
 

@@ -300,7 +300,13 @@
 
 .my-page__account-card {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 14px;
+}
+
+.my-page__account-card > div {
+  min-width: 0;
 }
 
 .my-page__account-card p {
@@ -400,5 +406,9 @@
 
   .my-page__time-row {
     padding-left: 12px;
+  }
+
+  .my-page__account-card {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
