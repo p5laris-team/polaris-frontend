@@ -1,5 +1,6 @@
 export const routes = {
   login: "/login",
+  googleCallback: "/oauth/google/callback",
   onboardingCharacter: "/onboarding/character",
   onboardingCharacterName: "/onboarding/character-name",
   onboardingQuestions: "/onboarding/questions",

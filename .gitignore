@@ -13,3 +13,5 @@ apps/*/.vite/
 .DS_Store
 .idea/
 .vscode/
+
+.env

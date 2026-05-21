@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import { AttendancePage } from "@/features/attendance/ui/AttendancePage";
 import { LoginPage } from "@/features/auth/ui/LoginPage";
+import { GoogleCallbackPage } from "@/features/auth/ui/GoogleCallbackPage";
 import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
 import { HomePage } from "@/features/home/ui/HomePage";
 import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
@@ -27,6 +28,7 @@ export function AppRouter() {
     <Routes>
       <Route path="/" element={<RootRedirect />} />
       <Route path={routes.login} element={<LoginPage />} />
+      <Route path={routes.googleCallback} element={<GoogleCallbackPage />} />
       <Route path={routes.designSystem} element={<DesignSystemPreviewPage />} />
 
       <Route element={<ProtectedRoute />}>
