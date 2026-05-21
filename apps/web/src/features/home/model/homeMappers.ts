@@ -1,6 +1,6 @@
 import { toCharacterKey, type CharacterStatusValue } from "@/entities/character/types";
 import { type HomeResponse } from "@/entities/home/types";
-import { type CategoryKey, type CharacterMood } from "@/shared/assets/polarisAssets";
+import { type CharacterMood } from "@/shared/assets/polarisAssets";
 
 type GaugeTone = "good" | "normal" | "bad";
 
@@ -24,23 +24,6 @@ export type HomeScreenViewModel = {
     bubble: string;
     gauges: HomeGauge[];
   };
-  mission: {
-    id: number;
-    title: string;
-    description: string;
-    category: CategoryKey;
-    difficultyLabel: string;
-    rewardStarPiece: number;
-    stackLabel: string;
-  } | null;
-};
-
-const categoryToViewKey: Record<string, CategoryKey> = {
-  BASIC_ROUTINE: "morning",
-  SPACE_RESET: "mind",
-  FITNESS: "fitness",
-  READING: "reading",
-  MIND: "mind",
 };
 
 function toGaugeTone(state: CharacterStatusValue): GaugeTone {
@@ -53,12 +36,6 @@ function toMood(states: HomeResponse["character"]["states"]): CharacterMood {
   if (states.energy.grade === "BAD") return "sleepy";
   if (states.affection.grade === "GOOD") return "happy";
   return "idle";
-}
-
-function toDifficultyLabel(difficulty: string) {
-  if (difficulty === "EASY") return "쉬움";
-  if (difficulty === "NORMAL") return "보통";
-  return "도전";
 }
 
 export function mapHomeResponseToViewModel(response: HomeResponse): HomeScreenViewModel {
@@ -101,16 +78,5 @@ export function mapHomeResponseToViewModel(response: HomeResponse): HomeScreenVi
         },
       ],
     },
-    mission: response.currentMission
-      ? {
-          id: response.currentMission.id,
-          title: response.currentMission.title,
-          description: response.currentMission.description,
-          category: categoryToViewKey[response.currentMission.category] ?? "mind",
-          difficultyLabel: toDifficultyLabel(response.currentMission.difficulty),
-          rewardStarPiece: response.currentMission.rewardStarPiece,
-          stackLabel: `오늘 ${response.currentMission.stackOrder} / 15`,
-        }
-      : null,
   };
 }

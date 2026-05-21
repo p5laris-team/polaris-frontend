@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toCharacterKey } from "@/entities/character/types";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import {
+  useCurrentMissionQuery,
   useStartMissionCompletionSessionMutation,
   useSubmitMissionCompletionAnswerMutation,
 } from "@/features/mission/api/missionApi";
@@ -20,6 +21,7 @@ export function MissionAnswerPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const homeQuery = useHomeQuery();
+  const currentMissionQuery = useCurrentMissionQuery();
   const startSessionMutation = useStartMissionCompletionSessionMutation();
   const submitAnswerMutation = useSubmitMissionCompletionAnswerMutation();
   const {
@@ -31,7 +33,7 @@ export function MissionAnswerPage() {
     setCompletionResult,
   } = useMissionFlowStore();
 
-  const currentMission = homeQuery.data?.currentMission ?? activeMission;
+  const currentMission = activeMission ?? currentMissionQuery.data ?? null;
   const currentCharacter = useMemo(() => {
     if (homeQuery.data?.character) {
       return {
@@ -92,7 +94,7 @@ export function MissionAnswerPage() {
     );
   };
 
-  if (homeQuery.isLoading && !activeMission) {
+  if ((homeQuery.isLoading || currentMissionQuery.isLoading) && !activeMission) {
     return (
       <MissionAnswerFrame onBack={() => navigate(routes.home)}>
         <div className="mission-answer__state">

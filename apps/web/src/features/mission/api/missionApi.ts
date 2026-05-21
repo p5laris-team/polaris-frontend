@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  getDemoHomeResponse,
   demoGetTodayMissions,
   demoRejectMission,
   demoRequestNextMission,
@@ -18,13 +19,38 @@ import {
   type TodayMissionsResponse,
 } from "@/entities/mission/types";
 import { walletQueryKeys } from "@/features/wallet/api/walletApi";
-import { apiClient, unwrapApiResponse } from "@/shared/api";
+import { apiClient, isPolarisApiError, unwrapApiResponse } from "@/shared/api";
 import { runtimeConfig } from "@/shared/config/env";
 
 export const missionQueryKeys = {
   all: ["missions"] as const,
+  current: () => [...missionQueryKeys.all, "current"] as const,
+  todayFocus: (characterId: number | undefined) =>
+    [...missionQueryKeys.all, "today-focus", characterId ?? "none"] as const,
   today: () => [...missionQueryKeys.all, "today"] as const,
 };
+
+function normalizeCurrentMission(
+  mission: CurrentMissionResponse | null | undefined,
+): CurrentMissionResponse | null {
+  if (!mission || !mission.id || mission.id <= 0) {
+    return null;
+  }
+
+  return mission;
+}
+
+export async function getCurrentMission() {
+  if (runtimeConfig.useApiFixtures) {
+    return normalizeCurrentMission(getDemoHomeResponse().currentMission);
+  }
+
+  const mission = await unwrapApiResponse<CurrentMissionResponse>(
+    apiClient.get("/api/mission/v1/missions/current"),
+  );
+
+  return normalizeCurrentMission(mission);
+}
 
 export function getTodayMissions() {
   if (runtimeConfig.useApiFixtures) {
@@ -66,6 +92,29 @@ export function requestNextMission(body: RequestNextMissionRequest) {
   );
 }
 
+export async function ensureTodayFocusMission(characterId: number) {
+  const currentMission = await getCurrentMission();
+  if (currentMission) {
+    return currentMission;
+  }
+
+  try {
+    return normalizeCurrentMission(await requestNextMission({ characterId }));
+  } catch (error) {
+    if (isPolarisApiError(error)) {
+      if (error.apiError.code === "MISSION_ACTIVE_ALREADY_EXISTS") {
+        return getCurrentMission();
+      }
+
+      if (error.apiError.code === "MISSION_DAILY_LIMIT_EXCEEDED") {
+        return null;
+      }
+    }
+
+    throw error;
+  }
+}
+
 export function submitMissionCompletionAnswer(
   missionId: number,
   body: SubmitMissionCompletionAnswerRequest,
@@ -77,6 +126,31 @@ export function submitMissionCompletionAnswer(
   return unwrapApiResponse<MissionCompletionResultResponse>(
     apiClient.post(`/api/mission/v1/missions/${missionId}/completion-answers`, body),
   );
+}
+
+export function useCurrentMissionQuery() {
+  return useQuery({
+    queryKey: missionQueryKeys.current(),
+    queryFn: getCurrentMission,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useTodayFocusMissionQuery(characterId: number | undefined) {
+  return useQuery({
+    queryKey: missionQueryKeys.todayFocus(characterId),
+    queryFn: () => {
+      if (!characterId) {
+        return Promise.resolve(null);
+      }
+
+      return ensureTodayFocusMission(characterId);
+    },
+    enabled: Boolean(characterId),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useTodayMissionsQuery() {
@@ -114,7 +188,12 @@ export function useRejectAndRequestNextMissionMutation() {
       // API 명세상 거절과 다음 미션 요청은 별도 endpoint라 한 mutation 안에서 순서를 보장한다.
       return { rejection, nextMission };
     },
-    onSuccess: async () => {
+    onSuccess: async ({ nextMission }, variables) => {
+      queryClient.setQueryData(
+        missionQueryKeys.todayFocus(variables.characterId),
+        normalizeCurrentMission(nextMission),
+      );
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: missionQueryKeys.all }),

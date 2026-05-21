@@ -16,6 +16,7 @@ import { toCharacterKey } from "@/entities/character/types";
 import { type CurrentMissionResponse, type MissionStatus, type TodayMissionItem } from "@/entities/mission/types";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import {
+  useCurrentMissionQuery,
   useStartMissionCompletionSessionMutation,
   useTodayMissionsQuery,
 } from "@/features/mission/api/missionApi";
@@ -41,6 +42,7 @@ export function MissionHistoryPage() {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<MissionHistoryFilter>("all");
   const homeQuery = useHomeQuery();
+  const currentMissionQuery = useCurrentMissionQuery();
   const todayMissionsQuery = useTodayMissionsQuery();
   const startSessionMutation = useStartMissionCompletionSessionMutation();
   const setActiveMission = useMissionFlowStore((state) => state.setActiveMission);
@@ -83,10 +85,10 @@ export function MissionHistoryPage() {
   const currentMission = todayMissions.missions.find(
     (mission) => mission.id === todayMissions.currentMissionId,
   );
-  const homeCurrentMission = homeQuery.data?.currentMission ?? null;
+  const fullCurrentMission = currentMissionQuery.data ?? null;
   const currentMissionResponse =
-    homeCurrentMission?.id === currentMission?.id
-      ? homeCurrentMission
+    fullCurrentMission?.id === currentMission?.id
+      ? fullCurrentMission
       : currentMission
         ? mapTodayMissionToCurrentMission(todayMissions.missionDate, currentMission)
         : null;
