@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -17,7 +17,14 @@ export function CharacterSelectPage() {
   const { showToast } = useToast();
   const characterTypesQuery = useCharacterTypesQuery();
   const selectedCharacter = useOnboardingSetupStore((state) => state.selectedCharacter);
+  const createdCharacter = useOnboardingSetupStore((state) => state.createdCharacter);
   const selectCharacter = useOnboardingSetupStore((state) => state.selectCharacter);
+
+  useEffect(() => {
+    if (createdCharacter) {
+      navigate(routes.onboardingQuestions, { replace: true });
+    }
+  }, [createdCharacter, navigate]);
 
   const handleNext = () => {
     if (!selectedCharacter) {

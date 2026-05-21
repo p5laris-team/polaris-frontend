@@ -57,13 +57,26 @@ export function AppRouter() {
 function RootRedirect() {
   const hasSession = useAuthStore((state) => state.hasSession());
   const onboardingCompleted = useOnboardingSetupStore((state) => state.completed);
+  const createdCharacter = useOnboardingSetupStore((state) => state.createdCharacter);
+  const selectedCharacter = useOnboardingSetupStore((state) => state.selectedCharacter);
 
   if (!hasSession && !runtimeConfig.useApiFixtures) {
     return <Navigate to={routes.login} replace />;
   }
 
-  // SCR-003~005가 끝나기 전에는 홈보다 온보딩 시작점을 먼저 보여준다.
-  return <Navigate to={onboardingCompleted ? routes.home : routes.onboardingCharacter} replace />;
+  if (onboardingCompleted) {
+    return <Navigate to={routes.home} replace />;
+  }
+
+  if (createdCharacter) {
+    return <Navigate to={routes.onboardingQuestions} replace />;
+  }
+
+  if (selectedCharacter) {
+    return <Navigate to={routes.onboardingCharacterName} replace />;
+  }
+
+  return <Navigate to={routes.onboardingCharacter} replace />;
 }
 
 function ProtectedRoute() {
