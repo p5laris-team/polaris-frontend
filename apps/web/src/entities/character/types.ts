@@ -20,10 +20,36 @@ const codeToKey: Record<CharacterTypeCode, CharacterKey> = {
   JJORI: "jjori",
 };
 
+const codeToCharacterTypeId: Record<CharacterTypeCode, number> = {
+  NOVA: 1,
+  MUMU: 2,
+  JJORI: 3,
+};
+
+const characterTypeLabelById: Record<number, string> = {
+  1: "노바",
+  2: "무무",
+  3: "쪼리",
+};
+
 export function toCharacterKey(code: CharacterTypeCode | string | null | undefined): CharacterKey {
   if (code === "MUMU" || code === "mumu") return "mumu";
   if (code === "JJORI" || code === "jjori") return "jjori";
   if (code === "NOVA" || code === "nova") return "nova";
 
   return codeToKey.NOVA;
+}
+
+export function toCharacterTypeId(code: CharacterTypeCode | string | null | undefined) {
+  if (code === "MUMU" || code === "mumu") return codeToCharacterTypeId.MUMU;
+  if (code === "JJORI" || code === "jjori") return codeToCharacterTypeId.JJORI;
+  if (code === "NOVA" || code === "nova") return codeToCharacterTypeId.NOVA;
+
+  return null;
+}
+
+export function getCharacterTypeLabelById(characterTypeId: number | null | undefined) {
+  if (!characterTypeId) return "공용";
+
+  return characterTypeLabelById[characterTypeId] ?? "전용";
 }

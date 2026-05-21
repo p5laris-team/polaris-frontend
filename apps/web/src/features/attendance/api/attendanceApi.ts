@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
+import { walletQueryKeys } from "@/features/wallet/api/walletApi";
 import {
   demoCreateAttendanceRecord,
   demoGetAttendanceRecords,
@@ -55,6 +56,7 @@ export function useCreateAttendanceRecordMutation(year: number, month: number) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: attendanceQueryKeys.month(year, month) }),
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
+        queryClient.invalidateQueries({ queryKey: walletQueryKeys.all }),
       ]);
     },
   });

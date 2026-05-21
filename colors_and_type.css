@@ -145,6 +145,7 @@
                system-ui, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic",
                sans-serif;
   --font-display: "SUIT Variable", "Pretendard Variable", -apple-system, system-ui, sans-serif;
+  --font-dialogue: "SUIT Variable", "Pretendard Variable", -apple-system, system-ui, sans-serif;
   --font-character: "Gaegu", "Pretendard Variable", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 

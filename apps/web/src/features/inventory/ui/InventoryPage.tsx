@@ -2,7 +2,12 @@ import { type ReactNode, useMemo, useState } from "react";
 import { Check, CircleOff, ShoppingBag, Sparkles, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { toCharacterKey, type CharacterStates } from "@/entities/character/types";
+import {
+  getCharacterTypeLabelById,
+  toCharacterKey,
+  toCharacterTypeId,
+  type CharacterStates,
+} from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
 import {
   useInventorySkinItemsQuery,
@@ -37,7 +42,10 @@ export function InventoryPage() {
 
   const character = activeCharacterQuery.data;
   const equippedSkin = character?.equippedSkin ?? null;
-  const skinItems = skinsQuery.data?.items ?? [];
+  const activeCharacterTypeId = toCharacterTypeId(character?.characterTypeCode);
+  const skinItems = (skinsQuery.data?.items ?? []).filter((item) =>
+    isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
+  );
   const characterMood = useMemo(
     () => (character ? toCharacterMood(character.states) : "idle"),
     [character],
@@ -101,7 +109,7 @@ export function InventoryPage() {
   return (
     <InventoryFrame>
       <div className="inventory-page__body">
-        {/* SCR-014 인벤토리: 보유 스킨 itemId와 캐릭터 equippedSkin.itemId를 비교해 장착 여부를 계산한다. */}
+        {/* SCR-014 인벤토리: 현재 별친구용 스킨만 보여주고 equippedSkin.itemId로 장착 여부를 계산한다. */}
         <CharacterStage
           bubble={
             equippedSkin
@@ -230,7 +238,10 @@ function OwnedSkinCard({
           <strong>{item.name}</strong>
           {equipped ? <Check size={16} strokeWidth={2.2} /> : null}
         </div>
-        <span>{equipped ? "지금 별친구가 입고 있어요." : "선택하면 바로 장착돼요."}</span>
+        <span className="inventory-page__skin-meta">
+          <Tag variant="neutral">{getSkinScopeLabel(item.characterTypeId)}</Tag>
+          {equipped ? "지금 별친구가 입고 있어요." : "선택하면 바로 장착돼요."}
+        </span>
       </div>
       <Button
         className="inventory-page__equip-button"
@@ -291,4 +302,12 @@ function toCharacterMood(states: CharacterStates): CharacterMood {
   if (states.energy.grade === "BAD") return "sleepy";
   if (states.affection.grade === "GOOD") return "happy";
   return "idle";
+}
+
+function isVisibleForCharacter(itemCharacterTypeId: number | null, activeCharacterTypeId: number | null) {
+  return itemCharacterTypeId === null || itemCharacterTypeId === activeCharacterTypeId;
+}
+
+function getSkinScopeLabel(characterTypeId: number | null) {
+  return characterTypeId ? `${getCharacterTypeLabelById(characterTypeId)} 전용` : "공용";
 }

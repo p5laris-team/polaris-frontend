@@ -12,12 +12,18 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { type MissionStatus, type TodayMissionItem } from "@/entities/mission/types";
-import { useTodayMissionsQuery } from "@/features/mission/api/missionApi";
+import { toCharacterKey } from "@/entities/character/types";
+import { type CurrentMissionResponse, type MissionStatus, type TodayMissionItem } from "@/entities/mission/types";
+import { useHomeQuery } from "@/features/home/api/homeApi";
+import {
+  useStartMissionCompletionSessionMutation,
+  useTodayMissionsQuery,
+} from "@/features/mission/api/missionApi";
+import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { AppShell, Button, Card, Header, Tag } from "@/shared/ui";
+import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
 
 import "./MissionHistoryPage.css";
 
@@ -32,8 +38,13 @@ const filterLabels: Record<MissionHistoryFilter, string> = {
 
 export function MissionHistoryPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [filter, setFilter] = useState<MissionHistoryFilter>("all");
+  const homeQuery = useHomeQuery();
   const todayMissionsQuery = useTodayMissionsQuery();
+  const startSessionMutation = useStartMissionCompletionSessionMutation();
+  const setActiveMission = useMissionFlowStore((state) => state.setActiveMission);
+  const setCompletionQuestion = useMissionFlowStore((state) => state.setCompletionQuestion);
   const todayMissions = todayMissionsQuery.data;
   const filteredMissions = useMemo(() => {
     const missions = todayMissions?.missions ?? [];
@@ -72,10 +83,39 @@ export function MissionHistoryPage() {
   const currentMission = todayMissions.missions.find(
     (mission) => mission.id === todayMissions.currentMissionId,
   );
+  const homeCurrentMission = homeQuery.data?.currentMission ?? null;
+  const currentMissionResponse =
+    homeCurrentMission?.id === currentMission?.id
+      ? homeCurrentMission
+      : currentMission
+        ? mapTodayMissionToCurrentMission(todayMissions.missionDate, currentMission)
+        : null;
   const progressPercent = Math.min(
     100,
     Math.round((todayMissions.offeredCount / todayMissions.maxDailyOffers) * 100),
   );
+
+  const handleStartMission = (mission: CurrentMissionResponse) => {
+    const character = homeQuery.data?.character;
+
+    if (character) {
+      setActiveMission(mission, {
+        id: character.id,
+        key: toCharacterKey(character.characterTypeCode),
+        name: character.name,
+      });
+    }
+
+    startSessionMutation.mutate(mission.id, {
+      onSuccess: (question) => {
+        setCompletionQuestion(question);
+        navigate(routes.missionAnswer);
+      },
+      onError: (error) => {
+        showToast(getUserFacingErrorMessage(error));
+      },
+    });
+  };
 
   return (
     <MissionHistoryFrame>
@@ -105,17 +145,24 @@ export function MissionHistoryPage() {
           <StatCard icon={<Sparkles size={19} strokeWidth={1.8} />} label="남은 제안" value={`${todayMissions.remainingOfferCount}개`} />
         </div>
 
-        {currentMission ? (
+        {currentMission && currentMissionResponse ? (
           <button
             className="mission-history__current-card"
-            onClick={() => navigate(routes.home)}
+            disabled={startSessionMutation.isPending}
+            onClick={() => handleStartMission(currentMissionResponse)}
             type="button"
           >
-            <span>
+            <span className="mission-history__current-icon" aria-hidden="true">
               <Target size={20} strokeWidth={1.8} />
             </span>
-            <strong>{currentMission.title}</strong>
-            <small>{currentMission.status === "ANSWERING" ? "답변을 이어갈 수 있어요." : "홈에서 진행 중이에요."}</small>
+            <span className="mission-history__current-copy">
+              <small>{currentMission.status === "ANSWERING" ? "답변을 이어갈 수 있어요" : "지금 바로 수행할 수 있어요"}</small>
+              <strong>{currentMission.title}</strong>
+              <span>
+                <Tag variant="accent">{getDifficultyLabel(currentMission.difficulty)}</Tag>
+                <em>+{currentMission.rewardStarPiece} 별조각</em>
+              </span>
+            </span>
             <ChevronRight size={18} strokeWidth={1.8} />
           </button>
         ) : null}
@@ -140,9 +187,10 @@ export function MissionHistoryPage() {
             {filteredMissions.map((mission) => (
               <MissionHistoryItem
                 current={mission.id === todayMissions.currentMissionId}
+                disabled={startSessionMutation.isPending}
                 key={mission.id}
                 mission={mission}
-                onClick={() => navigate(routes.home)}
+                onClick={() => handleStartMission(mapTodayMissionToCurrentMission(todayMissions.missionDate, mission))}
               />
             ))}
           </ol>
@@ -163,15 +211,17 @@ export function MissionHistoryPage() {
 
 function MissionHistoryItem({
   current,
+  disabled,
   mission,
   onClick,
 }: {
   current: boolean;
+  disabled: boolean;
   mission: TodayMissionItem;
   onClick: () => void;
 }) {
   const meta = getMissionStatusMeta(mission.status);
-  const interactive = current || mission.status === "OFFERED" || mission.status === "ANSWERING";
+  const interactive = current && (mission.status === "OFFERED" || mission.status === "ANSWERING");
 
   return (
     <li>
@@ -183,7 +233,7 @@ function MissionHistoryItem({
         ]
           .filter(Boolean)
           .join(" ")}
-        disabled={!interactive}
+        disabled={!interactive || disabled}
         onClick={onClick}
         type="button"
       >
@@ -201,11 +251,30 @@ function MissionHistoryItem({
           </span>
         </span>
         <span className={`mission-history__status-icon mission-history__status-icon--${meta.tone}`}>
-          {meta.icon}
+          {interactive ? <ChevronRight size={18} strokeWidth={1.8} /> : meta.icon}
         </span>
       </button>
     </li>
   );
+}
+
+function mapTodayMissionToCurrentMission(
+  missionDate: string,
+  mission: TodayMissionItem,
+): CurrentMissionResponse {
+  return {
+    id: mission.id,
+    missionDate,
+    stackOrder: mission.stackOrder,
+    title: mission.title,
+    // 히스토리 API에는 상세 설명이 없어서 인증 화면 진입 시 말풍선 메시지를 임시 설명으로 사용한다.
+    description: mission.characterMessage,
+    characterMessage: mission.characterMessage,
+    category: mission.category,
+    difficulty: mission.difficulty,
+    rewardStarPiece: mission.rewardStarPiece,
+    status: mission.status,
+  };
 }
 
 function MissionHistoryFrame({ children }: { children: ReactNode }) {

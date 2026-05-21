@@ -12,33 +12,6 @@
   padding: 12px 20px 96px;
 }
 
-.share-card-page__reward-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
-  border-color: var(--primary);
-}
-
-.share-card-page__reward-card--done {
-  border-color: var(--border-1);
-}
-
-.share-card-page__reward-icon {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  border-radius: 19px;
-  color: var(--primary-strong);
-  background: var(--primary-soft);
-}
-
-.share-card-page__reward-card--done .share-card-page__reward-icon {
-  color: var(--success);
-  background: #dff6e8;
-}
-
 .share-card-page__eyebrow {
   display: block;
   color: var(--primary-strong);
@@ -47,7 +20,6 @@
   line-height: 1.3;
 }
 
-.share-card-page__reward-card h1,
 .share-card-page__section-head h2 {
   margin: 4px 0 6px;
   color: var(--fg-1);
@@ -57,15 +29,8 @@
   line-height: 1.25;
 }
 
-.share-card-page__reward-card p {
-  margin: 0;
-  color: var(--fg-3);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .share-card-page__section {
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .share-card-page__section-head {
@@ -295,13 +260,8 @@
   animation: share-card-skeleton 1.2s ease-in-out infinite;
 }
 
-.share-card-page__skeleton--reward {
-  min-height: 132px;
-}
-
 .share-card-page__skeleton--preview {
   min-height: 430px;
-  margin-top: 20px;
 }
 
 .share-card-page__skeleton--field {
@@ -328,7 +288,6 @@
     padding-inline: 18px;
   }
 
-  .share-card-page__reward-card,
   .share-card-page__link-card {
     grid-template-columns: minmax(0, 1fr);
   }

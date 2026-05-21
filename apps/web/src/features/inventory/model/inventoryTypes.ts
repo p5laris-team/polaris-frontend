@@ -1,13 +1,16 @@
 import { type CursorPage } from "@/shared/api";
 
-export type InventoryItemType = "SKIN";
+export type InventoryItemType = "SKIN" | "CONSUMABLE";
+
+export type InventoryItemEffectType = "FOOD" | "REST" | "PLAY";
 
 export type UserInventoryItem = {
   userItemId: number;
   itemId: number;
   name: string;
   itemType: InventoryItemType;
-  effectType: null;
+  characterTypeId: number | null;
+  effectType: InventoryItemEffectType | null;
   quantity: number;
   imageUrl: string;
 };

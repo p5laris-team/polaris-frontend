@@ -13,6 +13,7 @@ import {
   type TodayMissionItem,
   type TodayMissionsResponse,
 } from "@/entities/mission/types";
+import { demoRecordWalletTransaction } from "@/features/wallet/model/walletLedger";
 
 const MAX_DAILY_MISSION_OFFERS = 15;
 const todayMissionDate = getTodayDateKey();
@@ -58,13 +59,7 @@ const missionTemplates: CurrentMissionResponse[] = [
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
-const careActionCost = {
-  FEED: 3,
-  SLEEP: 0,
-  PLAY: 2,
-} as const;
-
-type DemoCareActionType = keyof typeof careActionCost;
+type DemoCareActionType = "FEED" | "SLEEP" | "PLAY";
 
 const initialHomeResponse: HomeResponse = {
   user: {
@@ -192,16 +187,10 @@ export function demoApplyCreatedCharacter({
 }
 
 export function demoCareForCharacter(actionType: DemoCareActionType) {
-  const cost = careActionCost[actionType];
-
-  if (demoHomeState.wallet.starPiece < cost) {
-    throw new Error("별조각이 부족해요. 미션을 완료해서 별조각을 모아봐요!");
-  }
-
   const beforeStates = toNumericStates(demoHomeState.character.states);
   const nextStates = applyCareToStates(beforeStates, actionType);
 
-  demoHomeState.wallet.starPiece -= cost;
+  // SCR-012 돌봄은 백엔드처럼 소모품 수량 차감과 상태 변화만 처리하고 별조각은 직접 차감하지 않는다.
   demoHomeState.character.states = toCharacterStates(nextStates);
 
   return {
@@ -223,6 +212,14 @@ export function demoApplyAttendanceReward({
 
   demoHomeState.wallet.starPiece += rewardStarPiece;
   demoHomeState.character.states.affection = toStatusValue("affection", nextAffection);
+  demoRecordWalletTransaction({
+    amount: rewardStarPiece,
+    balanceAfter: demoHomeState.wallet.starPiece,
+    reason: "ATTENDANCE_REWARD",
+    description: "오늘 출석 보상",
+    sourceType: "ATTENDANCE",
+    sourceId: null,
+  });
 
   return {
     starPiece: demoHomeState.wallet.starPiece,
@@ -234,18 +231,45 @@ export function demoApplyShareReward(rewardStarPiece: number) {
   // SCR-016 공유 보상 fixture는 홈 지갑과 함께 움직여 공유 직후 별조각 숫자가 어긋나지 않게 한다.
   demoHomeState.wallet.starPiece += rewardStarPiece;
 
+  if (rewardStarPiece > 0) {
+    demoRecordWalletTransaction({
+      amount: rewardStarPiece,
+      balanceAfter: demoHomeState.wallet.starPiece,
+      reason: "SHARE_REWARD",
+      description: "공유 카드 보상",
+      sourceType: "SHARE",
+      sourceId: null,
+    });
+  }
+
   return {
     starPiece: demoHomeState.wallet.starPiece,
   };
 }
 
-export function demoApplyItemPurchase({ price }: { price: number }) {
+export function demoApplyItemPurchase({
+  price,
+  itemId,
+  itemName = "스킨 구매",
+}: {
+  price: number;
+  itemId?: number;
+  itemName?: string;
+}) {
   if (demoHomeState.wallet.starPiece < price) {
     throw new Error("별조각이 부족해요. 미션을 완료해서 별조각을 모아봐요!");
   }
 
   // SCR-013 fixture 구매는 홈 지갑을 함께 차감해 상점과 홈의 별조각 숫자가 어긋나지 않게 한다.
   demoHomeState.wallet.starPiece -= price;
+  demoRecordWalletTransaction({
+    amount: -price,
+    balanceAfter: demoHomeState.wallet.starPiece,
+    reason: "ITEM_PURCHASE",
+    description: itemName,
+    sourceType: "ITEM",
+    sourceId: itemId ?? null,
+  });
 
   return {
     starPiece: demoHomeState.wallet.starPiece,
@@ -415,6 +439,14 @@ export function demoSubmitCompletionAnswer(
   const answeredAt = new Date().toISOString();
   const rewardStarPiece = mission.rewardStarPiece;
   demoHomeState.wallet.starPiece += rewardStarPiece;
+  demoRecordWalletTransaction({
+    amount: rewardStarPiece,
+    balanceAfter: demoHomeState.wallet.starPiece,
+    reason: "MISSION_REWARD",
+    description: `${mission.title} 완료`,
+    sourceType: "MISSION",
+    sourceId: mission.id,
+  });
   demoHomeState.character.states.affection = {
     value: Math.min(100, demoHomeState.character.states.affection.value + 5),
     label: "가까움",

@@ -1,14 +1,12 @@
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   Bell,
-  BellRing,
   CalendarCheck,
   Check,
   ChevronRight,
   HeartPulse,
   Settings,
   ShoppingBag,
-  Sparkles,
   Target,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -43,10 +41,6 @@ export function NotificationsPage() {
   const notificationsQuery = useNotificationsQuery(filter);
   const markReadMutation = useMarkNotificationReadMutation();
   const notifications = notificationsQuery.data?.items ?? [];
-  const unreadCount = useMemo(
-    () => notifications.filter((notification) => !notification.read).length,
-    [notifications],
-  );
 
   const handleSelectNotification = (notification: AppNotification) => {
     const targetRoute = resolveNotificationRoute(notification.targetType);
@@ -94,20 +88,6 @@ export function NotificationsPage() {
   return (
     <NotificationsFrame>
       <div className="notifications-page__body">
-        <Card className="notifications-page__summary-card">
-          <div className="notifications-page__summary-icon" aria-hidden="true">
-            <BellRing size={26} strokeWidth={1.8} />
-          </div>
-          <div>
-            <span className="notifications-page__eyebrow">오늘의 알림</span>
-            <h1>놓친 별 신호를 모아뒀어요</h1>
-            <p>새로운 미션과 별친구 상태 변화를 한곳에 모아뒀어요.</p>
-          </div>
-          <Tag variant={unreadCount > 0 ? "primary" : "neutral"}>
-            안 읽음 {unreadCount}개
-          </Tag>
-        </Card>
-
         <div className="notifications-page__filter" aria-label="알림 필터">
           {(Object.keys(filterLabels) as NotificationFilter[]).map((filterKey) => (
             <button
@@ -229,7 +209,6 @@ function NotificationsLoadingPage() {
   return (
     <NotificationsFrame>
       <div className="notifications-page__body">
-        <div className="notifications-page__skeleton notifications-page__skeleton--summary" />
         <div className="notifications-page__skeleton notifications-page__skeleton--item" />
         <div className="notifications-page__skeleton notifications-page__skeleton--item" />
         <div className="notifications-page__skeleton notifications-page__skeleton--item" />

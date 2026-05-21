@@ -82,6 +82,8 @@ export function useCreateCareLogMutation() {
         queryClient.invalidateQueries({ queryKey: characterCareQueryKeys.active() }),
         queryClient.invalidateQueries({ queryKey: characterCareQueryKeys.status(variables.characterId) }),
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
+        // SCR-012 돌봄은 소모품 수량을 차감하므로 보유 아이템 조회 캐시를 함께 갱신한다.
+        queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       ]);
     },
   });
