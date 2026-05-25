@@ -1,3 +1,8 @@
+/**
+ * 앱의 홈 화면입니다.
+ * 사용자/지갑/캐릭터/오늘의 집중 미션을 모아 보여주고,
+ * 미션 거절, 완료 시작, 출석, 공유 같은 핵심 진입점을 연결합니다.
+ */
 import { Bell, CalendarDays, Share2 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -99,6 +104,7 @@ export function HomePage() {
     );
   }
 
+  /** 현재 제안된 미션을 거절하고 백엔드에서 다음 미션을 이어서 요청합니다. */
   const handleRejectMission = () => {
     if (!mission) {
       return;
@@ -120,6 +126,7 @@ export function HomePage() {
     );
   };
 
+  /** 미션 완료 인증을 시작하기 전에 질문 세션을 열고 임시 미션 흐름 상태를 저장합니다. */
   const handleStartCompletion = () => {
     if (!mission || !focusMission) {
       return;
@@ -258,6 +265,7 @@ export function HomePage() {
   );
 }
 
+/** 홈 상단 로고, 지갑 버튼, 알림 버튼, 하단 탭을 공통으로 감싸는 화면 프레임입니다. */
 function HomeFrame({
   children,
   unreadNotificationCount,
@@ -291,6 +299,7 @@ function HomeFrame({
   );
 }
 
+/** 홈 데이터가 아직 도착하지 않았을 때 UI kit 톤에 맞춘 skeleton을 보여줍니다. */
 function HomeLoadingPage() {
   return (
     <HomeFrame>

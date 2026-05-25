@@ -1,3 +1,8 @@
+/**
+ * 오늘의 미션 기록 화면입니다.
+ * 하루 동안 제안된 미션 스택을 상태별로 필터링해서 보여주고,
+ * 아직 진행 가능한 현재 미션은 인증 화면으로 다시 이어 줍니다.
+ */
 import { type ReactNode, useMemo, useState } from "react";
 import {
   CheckCircle2,
@@ -30,6 +35,7 @@ import "./MissionHistoryPage.css";
 
 type MissionHistoryFilter = "all" | "active" | "completed" | "rejected";
 
+// 화면 필터 값과 버튼 라벨을 한 곳에 묶어 필터 추가 시 UI 반복문만 따라가게 합니다.
 const filterLabels: Record<MissionHistoryFilter, string> = {
   all: "전체",
   active: "진행 중",
@@ -220,6 +226,7 @@ export function MissionHistoryPage() {
   );
 }
 
+/** 미션 기록 리스트의 단일 행입니다. 현재 미션만 버튼처럼 동작하고 과거 기록은 읽기 전용으로 둡니다. */
 function MissionHistoryItem({
   current,
   disabled,
@@ -269,6 +276,7 @@ function MissionHistoryItem({
   );
 }
 
+/** today API의 간략 미션을 인증 화면에서 쓰는 현재 미션 모양으로 맞춥니다. */
 function mapTodayMissionToCurrentMission(
   missionDate: string,
   mission: TodayMissionItem,
@@ -288,6 +296,7 @@ function mapTodayMissionToCurrentMission(
   };
 }
 
+/** 미션 기록 화면에서 공통으로 쓰는 헤더, 하단 탭, shell 레이아웃입니다. */
 function MissionHistoryFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -302,6 +311,7 @@ function MissionHistoryFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 미션 기록 데이터를 불러오는 동안 보여주는 skeleton 화면입니다. */
 function MissionHistoryLoadingPage() {
   return (
     <MissionHistoryFrame>
@@ -315,6 +325,7 @@ function MissionHistoryLoadingPage() {
   );
 }
 
+/** 완료/거절/남은 제안처럼 작은 통계를 카드로 보여주는 보조 컴포넌트입니다. */
 function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <Card className="mission-history__stat-card">
@@ -325,6 +336,7 @@ function StatCard({ icon, label, value }: { icon: ReactNode; label: string; valu
   );
 }
 
+/** 백엔드 미션 상태값을 사람이 읽는 라벨, 아이콘, 색상 톤으로 변환합니다. */
 function getMissionStatusMeta(status: MissionStatus): {
   icon: ReactNode;
   label: string;
@@ -375,12 +387,14 @@ function getMissionStatusMeta(status: MissionStatus): {
   };
 }
 
+/** API 난이도 enum을 화면에 보이는 한국어 라벨로 바꿉니다. */
 function getDifficultyLabel(difficulty: TodayMissionItem["difficulty"]) {
   if (difficulty === "EASY") return "쉬움";
   if (difficulty === "NORMAL") return "보통";
   return "도전";
 }
 
+/** 완료/거절 시간이 있으면 해당 시간을, 없으면 생성 시간을 기록 라벨로 보여줍니다. */
 function getMissionTimeLabel(mission: TodayMissionItem) {
   if (mission.completedAt) return `완료 ${formatTime(mission.completedAt)}`;
   if (mission.rejectedAt) return `거절 ${formatTime(mission.rejectedAt)}`;
@@ -388,6 +402,7 @@ function getMissionTimeLabel(mission: TodayMissionItem) {
   return `생성 ${formatTime(mission.createdAt)}`;
 }
 
+/** ISO 날짜 문자열을 한국어 시각 표시로 변환합니다. */
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     hour: "2-digit",
@@ -395,6 +410,7 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+/** yyyy-MM-dd 날짜를 한국어 월/일/요일 라벨로 변환합니다. */
 function formatMissionDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     month: "long",

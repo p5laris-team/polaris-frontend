@@ -1,3 +1,8 @@
+/**
+ * 미션 완료 결과 화면입니다.
+ * 답변 제출 후 받은 보상, 지갑 잔액, 캐릭터 반응을 한 번에 보여주고
+ * 확인이 끝나면 임시 미션 흐름 상태를 비운 뒤 홈으로 돌아갑니다.
+ */
 import { type CSSProperties, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -24,6 +29,7 @@ export function MissionResultPage() {
     [],
   );
 
+  /** 결과 확인 후 이전 미션 상태가 남지 않도록 store를 정리하고 홈으로 이동합니다. */
   const handleGoHome = () => {
     clearMissionFlow();
     navigate(routes.home);

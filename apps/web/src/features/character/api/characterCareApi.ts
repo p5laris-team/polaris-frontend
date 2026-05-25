@@ -1,3 +1,7 @@
+/**
+ * 활성 캐릭터 조회, 상태 조회, 돌봄 액션 생성을 담당하는 API 계층입니다.
+ * 캐릭터 상세 화면과 홈 요약이 같은 캐릭터 상태를 보도록 query key를 공유합니다.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
@@ -21,6 +25,7 @@ export const characterCareQueryKeys = {
   status: (characterId: number) => [...characterCareQueryKeys.all, "status", characterId] as const,
 };
 
+/** 로그인 사용자의 현재 활성 캐릭터를 조회합니다. */
 export function getActiveCharacter() {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetActiveCharacter());
@@ -31,6 +36,7 @@ export function getActiveCharacter() {
   );
 }
 
+/** 캐릭터의 배고픔/에너지/애정도 같은 현재 상태를 조회합니다. */
 export function getCharacterStatus(characterId: number) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetCharacterStatus(characterId));
@@ -41,6 +47,7 @@ export function getCharacterStatus(characterId: number) {
   );
 }
 
+/** 밥주기/쉬기/놀기 같은 돌봄 액션을 서버에 기록하고 변경된 상태를 받아옵니다. */
 export function createCareLog(characterId: number, body: CharacterCareRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoCreateCareLog(characterId, body));
@@ -48,7 +55,7 @@ export function createCareLog(characterId: number, body: CharacterCareRequest) {
 
   return unwrapApiResponse<CharacterCareResultResponse>(
     apiClient.post(`/api/character/v1/characters/${characterId}/care-logs`, body, {
-      // SCR-012 돌봄 액션은 보상/차감 중복 방지를 위해 API 명세의 Idempotency-Key 헤더를 사용한다.
+      // 돌봄 액션은 보상/아이템 차감 중복 방지를 위해 API 명세의 Idempotency-Key 헤더를 사용한다.
       headers: {
         "Idempotency-Key": createIdempotencyKey(`character-care:${characterId}:${body.actionType}`),
       },
@@ -56,6 +63,7 @@ export function createCareLog(characterId: number, body: CharacterCareRequest) {
   );
 }
 
+/** 활성 캐릭터를 화면에서 조회할 때 쓰는 hook입니다. */
 export function useActiveCharacterQuery() {
   return useQuery({
     queryKey: characterCareQueryKeys.active(),
@@ -63,6 +71,7 @@ export function useActiveCharacterQuery() {
   });
 }
 
+/** 선택된 캐릭터가 있을 때만 상태 API를 호출하는 hook입니다. */
 export function useCharacterStatusQuery(characterId: number | null) {
   return useQuery({
     queryKey: characterId ? characterCareQueryKeys.status(characterId) : characterCareQueryKeys.status(0),
@@ -71,6 +80,7 @@ export function useCharacterStatusQuery(characterId: number | null) {
   });
 }
 
+/** 돌봄 액션 성공 후 캐릭터, 홈, 인벤토리 캐시를 함께 갱신합니다. */
 export function useCreateCareLogMutation() {
   const queryClient = useQueryClient();
 
@@ -82,7 +92,7 @@ export function useCreateCareLogMutation() {
         queryClient.invalidateQueries({ queryKey: characterCareQueryKeys.active() }),
         queryClient.invalidateQueries({ queryKey: characterCareQueryKeys.status(variables.characterId) }),
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
-        // SCR-012 돌봄은 소모품 수량을 차감하므로 보유 아이템 조회 캐시를 함께 갱신한다.
+        // 돌봄은 소모품 수량을 차감하므로 보유 아이템 조회 캐시를 함께 갱신한다.
         queryClient.invalidateQueries({ queryKey: ["inventory"] }),
       ]);
     },

@@ -1,3 +1,7 @@
+/**
+ * Polaris 공통 상단 헤더입니다.
+ * 제목, 뒤로가기, 좌우 액션 슬롯을 표준화해서 화면마다 헤더 구조가 달라지지 않게 합니다.
+ */
 import { type ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 

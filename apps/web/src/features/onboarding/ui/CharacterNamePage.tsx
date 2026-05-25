@@ -1,3 +1,7 @@
+/**
+ * 온보딩 2단계, 별친구 이름 설정 화면입니다.
+ * 선택한 캐릭터 타입에 사용자가 지은 이름을 붙여 실제 캐릭터 생성 API를 호출합니다.
+ */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -42,6 +46,7 @@ export function CharacterNamePage() {
     }
   }, [createdCharacter, navigate, selectedCharacter]);
 
+  /** 이름 길이 정책을 먼저 검증한 뒤 캐릭터 생성 API를 호출합니다. */
   const handleSubmit = async () => {
     setTouched(true);
 
@@ -133,6 +138,7 @@ export function CharacterNamePage() {
   );
 }
 
+/** 입력 중인 이름이 있으면 말풍선에서 즉시 반응하도록 문장을 만듭니다. */
 function getNameReaction(name: string, fallback: string) {
   if (!name) return fallback;
 

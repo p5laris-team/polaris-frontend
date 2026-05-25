@@ -1,3 +1,7 @@
+/**
+ * 상점/보관함 아이템 이미지를 고르는 resolver입니다.
+ * 서버 이미지가 비어 있거나 이름만 내려오는 fixture에서도 화면이 깨지지 않도록 로컬 asset을 먼저 매핑합니다.
+ */
 import {
   consumableItemAssets,
   skinThumbnailAssets,
@@ -12,6 +16,7 @@ type ItemAssetInput = {
   imageUrl?: string | null;
 };
 
+// 스킨 이름이나 imageUrl에 들어간 키워드로 로컬 썸네일을 찾기 위한 규칙입니다.
 const skinThumbnailRules: Array<{
   key: SkinThumbnailKey;
   keywords: string[];
@@ -30,6 +35,7 @@ const skinThumbnailRules: Array<{
   },
 ];
 
+/** 아이템 종류와 효과 타입을 기준으로 최종 아이템 이미지 URL을 반환합니다. */
 export function resolveItemImageUrl(item: ItemAssetInput) {
   if (item.itemType === "CONSUMABLE") {
     const effectType = resolveConsumableEffectType(item);
@@ -42,6 +48,7 @@ export function resolveItemImageUrl(item: ItemAssetInput) {
   return skinKey ? skinThumbnailAssets[skinKey] : item.imageUrl ?? "";
 }
 
+/** 소모품 effectType이 없을 때 이름과 이미지 URL을 보고 FOOD/REST/PLAY를 추론합니다. */
 function resolveConsumableEffectType(
   item: ItemAssetInput,
 ): ConsumableItemAssetKey | null {
@@ -72,6 +79,7 @@ function resolveConsumableEffectType(
   return null;
 }
 
+/** 스킨 이름/URL 키워드를 로컬 썸네일 key로 변환합니다. */
 function resolveSkinThumbnailKey(item: ItemAssetInput): SkinThumbnailKey | null {
   const haystack = normalizeSearchText(`${item.name} ${item.imageUrl ?? ""}`);
   const rule = skinThumbnailRules.find(({ keywords }) =>
@@ -81,6 +89,7 @@ function resolveSkinThumbnailKey(item: ItemAssetInput): SkinThumbnailKey | null 
   return rule?.key ?? null;
 }
 
+/** 키워드 비교를 위해 소문자화와 공백 제거를 적용합니다. */
 function normalizeSearchText(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");
 }

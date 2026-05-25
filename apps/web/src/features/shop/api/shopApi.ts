@@ -1,3 +1,7 @@
+/**
+ * 상점 목록 조회와 아이템 구매를 담당하는 API 계층입니다.
+ * 구매 성공 후 지갑, 인벤토리, 홈 요약을 갱신해 별조각/보유 수량이 어긋나지 않게 합니다.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
@@ -18,6 +22,7 @@ import { runtimeConfig } from "@/shared/config/env";
 
 const DEFAULT_SHOP_PAGE_SIZE = 20;
 
+/** 상점은 스킨/소모품 탭을 따로 조회하므로 query key도 탭별로 분리합니다. */
 export const shopQueryKeys = {
   all: ["shop"] as const,
   items: (params: ShopItemsRequest) =>
@@ -38,6 +43,7 @@ export const shopQueryKeys = {
     }),
 };
 
+/** 상점에 노출할 아이템 목록을 조회합니다. */
 export function getShopItems(params: ShopItemsRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetShopItems(params));
@@ -48,6 +54,7 @@ export function getShopItems(params: ShopItemsRequest) {
   );
 }
 
+/** 아이템을 구매합니다. 같은 구매가 중복 처리되지 않도록 멱등성 키를 붙입니다. */
 export function purchaseShopItem(body: PurchaseShopItemRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoPurchaseShopItem(body));
@@ -65,6 +72,7 @@ export function purchaseShopItem(body: PurchaseShopItemRequest) {
   );
 }
 
+/** 스킨 상점 탭에서 사용하는 조회 hook입니다. */
 export function useShopSkinItemsQuery() {
   const params: ShopItemsRequest = {
     itemType: "SKIN",
@@ -79,6 +87,7 @@ export function useShopSkinItemsQuery() {
   });
 }
 
+/** 소모품 상점 탭에서 사용하는 조회 hook입니다. */
 export function useShopConsumableItemsQuery() {
   const params: ShopItemsRequest = {
     itemType: "CONSUMABLE",
@@ -93,6 +102,7 @@ export function useShopConsumableItemsQuery() {
   });
 }
 
+/** 구매 성공 후 관련 화면 캐시를 갱신하는 mutation hook입니다. */
 export function usePurchaseShopItemMutation() {
   const queryClient = useQueryClient();
 

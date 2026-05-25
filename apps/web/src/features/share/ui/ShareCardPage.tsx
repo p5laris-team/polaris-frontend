@@ -1,3 +1,8 @@
+/**
+ * 공유 카드 생성 화면입니다.
+ * 오늘 완료한 미션과 별친구 이미지를 canvas 카드로 합성하고,
+ * presigned upload 이후 Web Share API 또는 클립보드 복사로 공유 보상을 기록합니다.
+ */
 import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
 import {
   Copy,
@@ -34,11 +39,15 @@ import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "
 import "./ShareCardPage.css";
 
 const HEADLINE_MAX_LENGTH = 100;
+
+// 사용자가 바로 고를 수 있는 기본 카드 문구입니다. 직접 입력하면 이 값은 덮어씁니다.
 const presetMessages = [
   "오늘도 조금 반짝였어요.",
   "작은 미션 하나가 하루를 바꿨어요.",
   "별친구와 오늘의 루틴을 지켰어요.",
 ];
+
+// 배경 asset key와 화면 라벨을 함께 관리해서 미리보기와 canvas 생성이 같은 값을 사용합니다.
 const shareCardBackgroundOptions: Array<{ key: ShareCardBackgroundKey; label: string }> = [
   { key: "default", label: "기본" },
   { key: "night", label: "밤하늘" },
@@ -90,6 +99,7 @@ export function ShareCardPage() {
   const trimmedHeadline = headline.trim();
   const canCreateCard = Boolean(character && trimmedHeadline);
 
+  /** 현재 미리보기 상태를 canvas 이미지로 만들고 백엔드에 공유 카드 생성을 요청합니다. */
   const handleCreateShareCard = async () => {
     if (!character || !trimmedHeadline) return;
 
@@ -129,6 +139,7 @@ export function ShareCardPage() {
     }
   };
 
+  /** 생성된 공유 카드 링크를 실제 공유하거나 복사한 뒤 보상 이벤트를 멱등키와 함께 기록합니다. */
   const handleShareCard = async () => {
     if (!shareCard) {
       showToast("공유 카드를 먼저 만들어 주세요.");
@@ -356,6 +367,7 @@ export function ShareCardPage() {
   );
 }
 
+/** 공유 카드 화면의 헤더, 하단 탭, 모바일 shell을 묶습니다. */
 function ShareCardFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -370,6 +382,7 @@ function ShareCardFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 공유 카드에 필요한 홈/미션/보상 상태를 불러오는 동안 보여주는 skeleton입니다. */
 function ShareCardLoadingPage() {
   return (
     <ShareCardFrame>
@@ -381,6 +394,7 @@ function ShareCardLoadingPage() {
   );
 }
 
+/** DOM 캡처 라이브러리 없이 canvas에 배경, 캐릭터, 문구, 통계를 직접 그려 PNG Blob을 만듭니다. */
 async function createShareCardImageBlob({
   backgroundKey,
   backgroundImageUrl,
@@ -530,6 +544,7 @@ async function createShareCardImageBlob({
   });
 }
 
+/** 브라우저가 Web Share API를 지원하면 공유창을 열고, 아니면 링크 복사 흐름으로 대체합니다. */
 async function shareOrCopyLink({
   headline,
   shareUrl,
@@ -559,10 +574,12 @@ async function shareOrCopyLink({
   };
 }
 
+/** 현재 브라우저에서 navigator.share를 사용할 수 있는지 확인합니다. */
 function canUseWebShare() {
   return typeof navigator !== "undefined" && typeof navigator.share === "function";
 }
 
+/** Clipboard API 실패까지 대비해 textarea 기반 복사 fallback을 제공합니다. */
 async function copyShareUrl(shareUrl: string) {
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
     try {
@@ -599,6 +616,7 @@ async function copyShareUrl(shareUrl: string) {
   return copied;
 }
 
+/** canvas에 그릴 이미지를 Promise 형태로 로드합니다. */
 function loadCanvasImage(source: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
@@ -608,6 +626,7 @@ function loadCanvasImage(source: string) {
   });
 }
 
+/** 이미지 비율을 유지하면서 지정 영역을 빈틈없이 채웁니다. */
 function drawImageCover(
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
@@ -631,6 +650,7 @@ function drawImageCover(
   );
 }
 
+/** 이미지 비율을 유지하면서 지정 영역 안에 전체가 보이도록 그립니다. */
 function drawImageContain(
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
@@ -654,6 +674,7 @@ function drawImageContain(
   );
 }
 
+/** 공유 카드 하단의 완료 미션/별조각 통계 pill을 그립니다. */
 function drawStatPill(
   context: CanvasRenderingContext2D,
   {
@@ -692,6 +713,7 @@ function drawStatPill(
   context.fillText(value, x + 155, y + 120);
 }
 
+/** canvas에는 CSS border-radius가 없어서 둥근 사각형 path를 직접 만듭니다. */
 function roundedRect(
   context: CanvasRenderingContext2D,
   x: number,
@@ -713,6 +735,7 @@ function roundedRect(
   context.closePath();
 }
 
+/** canvas 텍스트가 카드 영역을 넘지 않도록 줄바꿈과 최대 줄 수를 적용합니다. */
 function wrapCanvasText(
   context: CanvasRenderingContext2D,
   text: string,
@@ -759,6 +782,7 @@ function wrapCanvasText(
   });
 }
 
+/** 긴 단어도 canvas 폭을 넘지 않도록 글자 단위로 나눕니다. */
 function splitCanvasWord(
   context: CanvasRenderingContext2D,
   word: string,
@@ -790,6 +814,7 @@ function splitCanvasWord(
   return parts;
 }
 
+/** 최대 줄 수를 넘은 마지막 줄은 말줄임표가 들어가도록 오른쪽에서 줄입니다. */
 function trimCanvasText(
   context: CanvasRenderingContext2D,
   text: string,

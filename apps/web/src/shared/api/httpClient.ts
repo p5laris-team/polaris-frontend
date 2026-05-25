@@ -5,6 +5,10 @@ import { PolarisApiError, createFallbackApiError } from "@/shared/api/apiError";
 import { type ApiResponse } from "@/shared/api/types";
 import { runtimeConfig } from "@/shared/config/env";
 
+/**
+ * Polaris REST API를 호출할 때 공통으로 사용하는 Axios 인스턴스입니다.
+ * baseURL, timeout, JSON header, 인증 token 처리, 에러 변환을 여기에서 통일합니다.
+ */
 export const apiClient = axios.create({
   baseURL: runtimeConfig.apiBaseUrl || undefined,
   timeout: 10_000,
@@ -13,9 +17,13 @@ export const apiClient = axios.create({
   },
 });
 
-// 토큰 갱신 프로미스 (병렬 요청 시 데두플리케이션을 위해 공유됨)
+// 토큰 갱신 Promise는 병렬 요청이 동시에 401을 받아도 재발급 API를 한 번만 호출하기 위해 공유한다.
 let refreshPromise: Promise<string> | null = null;
 
+/**
+ * JWT payload의 exp 값을 읽어 access token 만료 여부를 판단합니다.
+ * fixture 모드에서는 실제 JWT가 없어도 화면 테스트가 가능해야 하므로 항상 만료되지 않은 것으로 봅니다.
+ */
 function isTokenExpired(token: string, offsetSeconds = 0): boolean {
   if (runtimeConfig.useApiFixtures) return false;
   if (!token || !token.includes(".")) return false;
@@ -40,7 +48,11 @@ function isTokenExpired(token: string, offsetSeconds = 0): boolean {
   }
 }
 
-// 순환 참조 방지를 위해 authApi.ts를 통하지 않고 직접 raw axios 호출로 구현
+// authApi.ts가 apiClient를 쓰기 때문에, token refresh만 raw axios로 호출해 순환 참조를 피한다.
+/**
+ * refresh token으로 새 access/refresh token 쌍을 받아옵니다.
+ * apiClient interceptor와 순환 참조가 생기지 않도록 이 함수만 raw axios를 사용합니다.
+ */
 async function refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
   const baseURL = runtimeConfig.apiBaseUrl || "";
   const response = await axios.post(`${baseURL}/api/auth/v1/token-refreshes`, {
@@ -58,12 +70,16 @@ async function refreshTokens(refreshToken: string): Promise<{ accessToken: strin
   return body.data;
 }
 
-// Access Token을 미리 검증하고 필요한 경우 갱신하는 헬퍼 함수
+// access token을 미리 검증하고 필요한 경우 갱신하는 헬퍼 함수다.
+/**
+ * 요청을 보내기 전에 access token을 확인하고, 만료가 가까우면 먼저 갱신합니다.
+ * 동시에 여러 API가 호출되어도 refreshPromise 하나를 공유해 재발급 요청을 한 번만 보냅니다.
+ */
 async function getOrRefreshAccessToken(): Promise<string | null> {
   const { accessToken, refreshToken, clearSession } = useAuthStore.getState();
   if (!accessToken) return null;
 
-  // 만료 30초 전이거나 이미 만료된 경우 갱신
+  // 만료 30초 전이거나 이미 만료된 경우 사용자 요청 전에 먼저 갱신한다.
   if (isTokenExpired(accessToken, 30)) {
     if (!refreshToken) {
       clearSession();
@@ -93,7 +109,7 @@ async function getOrRefreshAccessToken(): Promise<string | null> {
   return accessToken;
 }
 
-// Request Interceptor: 요청 전에 만료 여부를 판별하여 선제적(Proactive)으로 갱신
+// request interceptor는 요청 직전에 token 만료 여부를 보고 선제적으로 갱신한다.
 apiClient.interceptors.request.use(async (config) => {
   config.headers = AxiosHeaders.from(config.headers);
 
@@ -119,7 +135,7 @@ apiClient.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Response Interceptor: 401 Unauthorized 에러 시 사후(Reactive) 대응
+// response interceptor는 401 Unauthorized가 돌아왔을 때 한 번 더 token refresh 후 원 요청을 재시도한다.
 apiClient.interceptors.response.use(
   (response) => {
     const body = response.data as Partial<ApiResponse<unknown>>;
@@ -197,6 +213,7 @@ apiClient.interceptors.response.use(
 export async function unwrapApiResponse<T>(
   request: Promise<AxiosResponse<ApiResponse<T>>>,
 ): Promise<T> {
+  // 백엔드 공통 응답 포맷을 화면에서 바로 쓰는 data 타입으로 변환한다.
   const response = await request;
   const body = response.data;
 

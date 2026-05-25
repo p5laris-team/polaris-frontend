@@ -1,3 +1,8 @@
+/**
+ * 상점 화면입니다.
+ * 별조각 잔액, 스킨 상품, 돌봄 소모품을 함께 보여주고
+ * 구매 성공 후 지갑/보관함/홈 관련 query가 새로고침되도록 API hook과 연결합니다.
+ */
 import { type ReactNode, useState } from "react";
 import {
   Archive,
@@ -86,17 +91,20 @@ export function ShopPage() {
       purchaseAfterBalance >= 0,
   );
 
+  /** 상점에 필요한 홈/스킨/소모품 데이터를 한 번에 다시 불러옵니다. */
   const handleRetry = () => {
     void homeQuery.refetch();
     void skinsQuery.refetch();
     void consumablesQuery.refetch();
   };
 
+  /** 구매 모달을 열 때 선택 상품과 기본 수량을 초기화합니다. */
   const handleSelectItem = (item: ShopItem) => {
     setSelectedItem(item);
     setSelectedQuantity(1);
   };
 
+  /** 카테고리를 전환하고 탭 위치를 화면 상단에 맞춰 모바일 스크롤 맥락을 유지합니다. */
   const handleCategorySelect = (category: ShopItemType) => {
     setActiveCategory(category);
     window.requestAnimationFrame(() => {
@@ -104,6 +112,7 @@ export function ShopPage() {
     });
   };
 
+  /** 잔액과 보유 여부를 통과한 상품만 구매 API로 보냅니다. */
   const handleConfirmPurchase = () => {
     if (!selectedItem || !canPurchaseSelected) return;
 
@@ -338,6 +347,7 @@ export function ShopPage() {
   );
 }
 
+/** 상점 헤더, 보관함 바로가기, 하단 탭을 묶은 공통 화면 프레임입니다. */
 function ShopFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -366,6 +376,7 @@ function ShopFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 구매 직전 수량, 총 가격, 구매 후 잔액을 확인하는 모달입니다. */
 function PurchaseConfirmModal({
   afterBalance,
   canPurchase,
@@ -474,6 +485,7 @@ function PurchaseConfirmModal({
   );
 }
 
+/** 상점 데이터를 불러오는 동안 보여주는 skeleton 화면입니다. */
 function ShopLoadingPage() {
   return (
     <ShopFrame>
@@ -488,6 +500,7 @@ function ShopLoadingPage() {
   );
 }
 
+/** 캐릭터 전용 스킨은 현재 활성 캐릭터와 맞을 때만 노출합니다. */
 function isVisibleForCharacter(
   itemCharacterTypeId: number | null | undefined,
   activeCharacterTypeId: number | null,
@@ -500,10 +513,12 @@ function isVisibleForCharacter(
   );
 }
 
+/** 스킨의 적용 범위를 공용 또는 캐릭터 전용 라벨로 바꿉니다. */
 function getSkinScopeLabel(characterTypeId: number | null | undefined) {
   return characterTypeId ? `${getCharacterTypeLabelById(characterTypeId)} 전용` : "공용";
 }
 
+/** 소모품 effectType 또는 이름을 기준으로 회복 대상과 아이콘을 정합니다. */
 function getConsumableMeta(
   effectType: ShopItemEffectType | null | undefined,
   name: string,
@@ -521,6 +536,7 @@ function getConsumableMeta(
   return { Icon: Gamepad2, label: "애정 회복" };
 }
 
+/** 소모품 효과별 CSS modifier에 쓸 문자열을 만듭니다. */
 function getConsumableEffectClassName(
   effectType: ShopItemEffectType | null | undefined,
   name: string,
@@ -528,6 +544,7 @@ function getConsumableEffectClassName(
   return (effectType ?? inferEffectTypeFromName(name)).toLowerCase();
 }
 
+/** 백엔드 fixture나 임시 데이터에 effectType이 없을 때 이름으로 소모품 효과를 보정합니다. */
 function inferEffectTypeFromName(name: string): ShopItemEffectType {
   if (name.includes("밥") || name.includes("먹")) return "FOOD";
   if (name.includes("베개") || name.includes("잠") || name.includes("구름")) return "REST";

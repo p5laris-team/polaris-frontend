@@ -24,6 +24,10 @@ type AuthState = {
   hasSession: () => boolean;
 };
 
+/**
+ * 로그인 세션을 보관하는 전역 store입니다.
+ * 새로고침 후에도 인증 상태를 유지해야 하므로 access/refresh token과 사용자 정보를 localStorage에 저장합니다.
+ */
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({

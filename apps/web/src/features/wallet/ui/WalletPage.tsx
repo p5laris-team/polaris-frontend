@@ -1,3 +1,7 @@
+/**
+ * 별조각 지갑 화면입니다.
+ * 현재 잔액과 최근 거래내역을 보여주고, 미션/출석/공유/상점 같은 거래 사유를 사람이 읽는 라벨로 바꿉니다.
+ */
 import { type ReactNode, useMemo } from "react";
 import {
   ArrowDownCircle,
@@ -116,6 +120,7 @@ export function WalletPage() {
   );
 }
 
+/** 최근 거래내역에서 획득/사용 합계를 보여주는 작은 요약 카드입니다. */
 function SummaryCard({
   amount,
   icon,
@@ -144,6 +149,7 @@ function SummaryCard({
   );
 }
 
+/** 지갑 거래내역 한 줄을 렌더링합니다. 거래 후 잔액까지 같이 보여줘 정합성을 확인하기 쉽게 합니다. */
 function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
   const meta = getReasonMeta(transaction.reason);
   const amountTone = transaction.amount >= 0 ? "earn" : "spend";
@@ -181,6 +187,7 @@ function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
   );
 }
 
+/** 지갑 화면의 헤더, 하단 탭, 모바일 shell을 묶습니다. */
 function WalletFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -195,6 +202,7 @@ function WalletFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 지갑 요약과 거래내역을 불러오는 동안 표시하는 skeleton 화면입니다. */
 function WalletLoadingPage() {
   return (
     <WalletFrame>
@@ -212,6 +220,7 @@ function WalletLoadingPage() {
   );
 }
 
+/** 최근 거래 목록을 획득 합계와 사용 합계로 접어 요약합니다. */
 function getTransactionSummary(transactions: WalletTransaction[]) {
   return transactions.reduce(
     (summary, transaction) => {
@@ -231,6 +240,7 @@ function getTransactionSummary(transactions: WalletTransaction[]) {
   );
 }
 
+/** 백엔드 거래 사유 enum을 화면 아이콘, 라벨, 색상 톤으로 변환합니다. */
 function getReasonMeta(reason: WalletTransactionReason): {
   icon: ReactNode;
   label: string;
@@ -275,6 +285,7 @@ function getReasonMeta(reason: WalletTransactionReason): {
   };
 }
 
+/** 거래 발생 시각을 한국어 날짜/시간 라벨로 바꿉니다. */
 function formatTransactionTime(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     month: "long",

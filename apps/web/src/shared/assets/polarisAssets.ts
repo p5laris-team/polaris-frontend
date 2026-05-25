@@ -13,6 +13,10 @@ type ShareCardBackgroundKey = "default" | "night" | "warm";
 type ShareCardDecorationKey = "stardust" | "friendsFrame";
 type ShareCardStampKey = "complete";
 
+/**
+ * 화면에서 사용하는 모든 이미지 경로를 한곳에 모아 둔 asset registry입니다.
+ * 컴포넌트가 파일 경로를 직접 만들지 않고 여기의 key를 사용하면 에셋 교체 범위가 줄어듭니다.
+ */
 // Vite가 번들에 포함할 수 있도록 frontend 루트 assets/를 참조한다.
 const assetUrl = (fileName: string) =>
   new URL(`../../../../../assets/${fileName}`, import.meta.url).href;

@@ -1,3 +1,7 @@
+/**
+ * 별친구를 크게 보여주는 공통 무대 컴포넌트입니다.
+ * 캐릭터 이미지, 이름, 말풍선, 상태 요약을 묶어 홈/돌봄/미션/온보딩에서 재사용합니다.
+ */
 import { characterAssets, type CharacterKey, type CharacterMood } from "@/shared/assets/polarisAssets";
 
 import "./CharacterStage.css";

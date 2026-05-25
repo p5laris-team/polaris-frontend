@@ -1,3 +1,7 @@
+/**
+ * 인벤토리 목록 조회와 캐릭터 스킨 장착 변경을 담당하는 API 계층입니다.
+ * 상점 구매 결과와 캐릭터 외형이 이어지도록 inventory/character/home 캐시를 함께 관리합니다.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { characterCareQueryKeys } from "@/features/character/api/characterCareApi";
@@ -17,6 +21,7 @@ import { runtimeConfig } from "@/shared/config/env";
 
 const DEFAULT_INVENTORY_PAGE_SIZE = 20;
 
+/** 보유 아이템은 스킨/소모품 탭별로 캐시를 분리합니다. */
 export const inventoryQueryKeys = {
   all: ["inventory"] as const,
   items: (params: UserItemsRequest) =>
@@ -35,6 +40,7 @@ export const inventoryQueryKeys = {
     }),
 };
 
+/** 사용자가 보유한 아이템 목록을 조회합니다. */
 export function getUserItems(params: UserItemsRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetUserItems(params));
@@ -45,6 +51,7 @@ export function getUserItems(params: UserItemsRequest) {
   );
 }
 
+/** 캐릭터에게 장착할 스킨을 변경하거나 기본 외형으로 되돌립니다. */
 export function updateEquippedSkin(characterId: number, body: UpdateEquippedSkinRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoUpdateEquippedSkin(characterId, body));
@@ -55,6 +62,7 @@ export function updateEquippedSkin(characterId: number, body: UpdateEquippedSkin
   );
 }
 
+/** 인벤토리의 스킨 탭 조회 hook입니다. */
 export function useInventorySkinItemsQuery() {
   const params: UserItemsRequest = {
     itemType: "SKIN",
@@ -68,6 +76,7 @@ export function useInventorySkinItemsQuery() {
   });
 }
 
+/** 인벤토리의 소모품 탭 조회 hook입니다. */
 export function useInventoryConsumableItemsQuery() {
   const params: UserItemsRequest = {
     itemType: "CONSUMABLE",
@@ -81,6 +90,7 @@ export function useInventoryConsumableItemsQuery() {
   });
 }
 
+/** 스킨 장착 성공 후 인벤토리/캐릭터/홈 캐시를 갱신합니다. */
 export function useUpdateEquippedSkinMutation() {
   const queryClient = useQueryClient();
 

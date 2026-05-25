@@ -20,6 +20,10 @@ type OnboardingSetupState = {
   resetFlow: () => void;
 };
 
+/**
+ * 온보딩 진행 중 선택한 캐릭터, 이름, 설문 답변을 저장하는 전역 store입니다.
+ * 사용자가 새로고침해도 온보딩 흐름을 이어갈 수 있게 localStorage에 유지합니다.
+ */
 export const useOnboardingSetupStore = create<OnboardingSetupState>()(
   persist(
     (set) => ({

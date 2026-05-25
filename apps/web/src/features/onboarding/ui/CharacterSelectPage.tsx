@@ -1,3 +1,8 @@
+/**
+ * 온보딩 1단계, 별친구 선택 화면입니다.
+ * 백엔드의 character-types 목록을 카드로 보여주고,
+ * 사용자가 고른 캐릭터 타입을 온보딩 store에 임시 저장합니다.
+ */
 import { type ReactNode, useEffect } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +31,7 @@ export function CharacterSelectPage() {
     }
   }, [createdCharacter, navigate]);
 
+  /** 캐릭터를 선택했을 때만 이름 짓기 단계로 이동합니다. */
   const handleNext = () => {
     if (!selectedCharacter) {
       showToast("먼저 함께할 별친구를 골라 주세요.");
@@ -121,6 +127,7 @@ export function CharacterSelectPage() {
   );
 }
 
+/** 온보딩 화면에서 로딩/에러 같은 단순 상태를 같은 레이아웃으로 보여줍니다. */
 function OnboardingState({
   title,
   description,

@@ -1,5 +1,9 @@
 const browserOrigin = typeof window === "undefined" ? "" : window.location.origin;
 
+/**
+ * Vite 환경 변수를 앱에서 쓰기 좋은 형태로 정리한 런타임 설정입니다.
+ * fixture 모드와 실제 API 모드를 이 값으로 전환합니다.
+ */
 export const runtimeConfig = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "",
   oauthRedirectUri:

@@ -1,3 +1,8 @@
+/**
+ * 보관함 화면입니다.
+ * 사용자가 구매한 스킨을 현재 별친구 기준으로 필터링하고,
+ * 장착/해제 mutation을 통해 캐릭터 외형을 바꿉니다.
+ */
 import { type ReactNode, useMemo, useState } from "react";
 import { Check, CircleOff, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -78,6 +83,7 @@ export function InventoryPage() {
       ? skinsQuery.error
       : null;
 
+  /** 스킨 itemId를 넘기면 장착, null을 넘기면 기본 외형으로 되돌립니다. */
   const handleEquipSkin = (itemId: number | null, itemName: string) => {
     if (!character) return;
 
@@ -197,6 +203,7 @@ export function InventoryPage() {
   );
 }
 
+/** 기본 외형으로 되돌리는 선택지를 스킨 목록의 첫 번째 카드로 제공합니다. */
 function BaseSkinCard({
   characterKey,
   disabled,
@@ -235,6 +242,7 @@ function BaseSkinCard({
   );
 }
 
+/** 사용자가 보유한 단일 스킨 카드입니다. 장착 중/장착 가능 상태를 버튼 문구로 보여줍니다. */
 function OwnedSkinCard({
   characterKey,
   disabled,
@@ -282,6 +290,7 @@ function OwnedSkinCard({
   );
 }
 
+/** 보관함 헤더, 상점 바로가기, 하단 탭을 묶는 화면 프레임입니다. */
 function InventoryFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -310,6 +319,7 @@ function InventoryFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 캐릭터와 스킨 목록을 불러오는 동안 표시하는 skeleton 화면입니다. */
 function InventoryLoadingPage() {
   return (
     <InventoryFrame>
@@ -324,6 +334,7 @@ function InventoryLoadingPage() {
   );
 }
 
+/** 캐릭터 상태 등급을 보관함 미리보기에서 쓸 대표 표정으로 변환합니다. */
 function toCharacterMood(states?: CharacterStates): CharacterMood {
   if (!states) return "idle";
   if (states.energy?.grade === "BAD") return "sleepy";
@@ -331,6 +342,7 @@ function toCharacterMood(states?: CharacterStates): CharacterMood {
   return "idle";
 }
 
+/** 현재 캐릭터에게 적용 가능한 공용/전용 스킨만 남깁니다. */
 function isVisibleForCharacter(itemCharacterTypeId: number | null, activeCharacterTypeId: number | null) {
   return (
     itemCharacterTypeId === null ||
@@ -339,6 +351,7 @@ function isVisibleForCharacter(itemCharacterTypeId: number | null, activeCharact
   );
 }
 
+/** 스킨 적용 범위를 공용 또는 캐릭터 전용 라벨로 표시합니다. */
 function getSkinScopeLabel(characterTypeId: number | null) {
   return characterTypeId ? `${getCharacterTypeLabelById(characterTypeId)} 전용` : "공용";
 }

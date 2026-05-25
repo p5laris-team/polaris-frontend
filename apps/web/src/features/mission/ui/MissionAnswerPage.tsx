@@ -1,3 +1,8 @@
+/**
+ * 미션 완료 인증 화면입니다.
+ * 현재 미션에 대해 백엔드가 내려준 질문 1개를 보여주고,
+ * 사용자의 답변을 제출해서 보상 지급 결과 화면으로 넘깁니다.
+ */
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -89,6 +94,7 @@ export function MissionAnswerPage() {
   const canSubmit =
     Boolean(completionQuestion) && trimmedAnswer.length >= 1 && trimmedAnswer.length <= maxLength;
 
+  /** 답변 길이 검증을 통과한 경우에만 미션 완료 답변을 서버로 제출합니다. */
   const handleSubmit = () => {
     if (!currentMission || !canSubmit) {
       return;
@@ -173,6 +179,7 @@ export function MissionAnswerPage() {
   );
 }
 
+/** 인증 화면의 헤더와 모바일 앱 shell을 묶어 중복 레이아웃을 줄입니다. */
 function MissionAnswerFrame({
   children,
   onBack,

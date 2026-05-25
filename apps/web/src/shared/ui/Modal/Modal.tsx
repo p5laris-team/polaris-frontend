@@ -1,3 +1,7 @@
+/**
+ * 확인/취소가 있는 공통 모달입니다.
+ * 상점 구매 확인처럼 사용자의 최종 결정을 한 번 더 받는 흐름에서 사용합니다.
+ */
 import { type ReactNode } from "react";
 
 import { Button } from "@/shared/ui/Button/Button";
@@ -14,6 +18,7 @@ type ModalProps = {
   onCancel?: () => void;
 };
 
+/** open=false일 때는 렌더링하지 않고, 배경 클릭 시 취소 핸들러가 있으면 닫습니다. */
 export function Modal({
   open,
   title,

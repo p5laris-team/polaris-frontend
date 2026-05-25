@@ -1,3 +1,8 @@
+/**
+ * 출석 체크 화면입니다.
+ * 월간 출석 기록으로 달력과 연속 출석 수를 계산하고,
+ * 오늘 출석 mutation을 호출해 별조각 보상을 받는 흐름을 담당합니다.
+ */
 import { type ReactNode, useMemo } from "react";
 import { Flame, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +42,7 @@ export function AttendancePage() {
   const streakCount = calculateCurrentStreak(records, todayKey);
   const showWeeklyStreakBanner = streakCount >= 7;
 
+  /** 오늘 출석 기록을 생성하고 성공 시 지급된 별조각을 사용자에게 알려줍니다. */
   const handleCheckAttendance = () => {
     createAttendanceMutation.mutate(undefined, {
       onSuccess: (record) => {
@@ -184,6 +190,7 @@ export function AttendancePage() {
   );
 }
 
+/** 출석 화면의 헤더, 하단 탭, 모바일 shell을 묶습니다. */
 function AttendanceFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -198,6 +205,7 @@ function AttendanceFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 출석 기록을 불러오는 동안 보여주는 skeleton 화면입니다. */
 function AttendanceLoadingPage() {
   return (
     <AttendanceFrame>
@@ -223,6 +231,7 @@ type CalendarDay =
       today: boolean;
     };
 
+/** 월간 기록을 달력 grid에 맞는 빈 칸과 날짜 칸 배열로 변환합니다. */
 function buildMonthCalendar(
   year: number,
   month: number,
@@ -252,6 +261,7 @@ function buildMonthCalendar(
   return [...leadingEmptyDays, ...monthDays];
 }
 
+/** 오늘 미출석이면 어제 기록의 streak를 이어 보여주고, 끊겼으면 0으로 계산합니다. */
 function calculateCurrentStreak(records: AttendanceRecord[], todayKey: string) {
   const todayRecord = records.find((record) => record.attendanceDate === todayKey);
 
@@ -267,18 +277,21 @@ function calculateCurrentStreak(records: AttendanceRecord[], todayKey: string) {
   return yesterdayRecord?.streakCount ?? 0;
 }
 
+/** 시간대 영향을 줄이기 위해 현재 시각이 아니라 로컬 자정 기준 Date를 만듭니다. */
 function getLocalDate() {
   const now = new Date();
 
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
+/** yyyy-MM-dd 문자열을 로컬 Date 객체로 복원합니다. */
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);
 
   return new Date(year, month - 1, day);
 }
 
+/** Date를 백엔드 출석 날짜 형식인 yyyy-MM-dd로 맞춥니다. */
 function formatDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");

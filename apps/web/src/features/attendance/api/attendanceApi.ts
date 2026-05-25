@@ -1,3 +1,7 @@
+/**
+ * 출석 기록 조회와 오늘 출석 생성을 담당하는 API 계층입니다.
+ * 출석 성공 시 홈 요약과 지갑 잔액도 바뀌므로 관련 캐시를 함께 갱신합니다.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
@@ -19,6 +23,7 @@ export const attendanceQueryKeys = {
   month: (year: number, month: number) => [...attendanceQueryKeys.all, year, month] as const,
 };
 
+/** 특정 연/월의 출석 기록을 조회합니다. */
 export function getAttendanceRecords(params: AttendanceRecordsRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetAttendanceRecords(params));
@@ -29,6 +34,7 @@ export function getAttendanceRecords(params: AttendanceRecordsRequest) {
   );
 }
 
+/** 오늘 출석을 생성하고 출석 보상 결과를 받아옵니다. */
 export function createAttendanceRecord() {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoCreateAttendanceRecord());
@@ -40,6 +46,7 @@ export function createAttendanceRecord() {
   );
 }
 
+/** 출석 달력 화면에서 월별 기록을 조회하는 hook입니다. */
 export function useAttendanceRecordsQuery(year: number, month: number) {
   return useQuery({
     queryKey: attendanceQueryKeys.month(year, month),
@@ -47,6 +54,7 @@ export function useAttendanceRecordsQuery(year: number, month: number) {
   });
 }
 
+/** 출석 생성 후 출석/홈/지갑 캐시를 갱신합니다. */
 export function useCreateAttendanceRecordMutation(year: number, month: number) {
   const queryClient = useQueryClient();
 

@@ -11,6 +11,10 @@ type AppInitializerProps = {
   children: ReactNode;
 };
 
+/**
+ * 로그인 세션이 있을 때 백엔드의 온보딩/활성 캐릭터 상태를 먼저 불러옵니다.
+ * 새로고침 후에도 사용자가 캐릭터 선택부터 다시 시작하지 않도록 Zustand store를 복원하는 역할입니다.
+ */
 export function AppInitializer({ children }: AppInitializerProps) {
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasSession = !!accessToken;
@@ -24,6 +28,10 @@ export function AppInitializer({ children }: AppInitializerProps) {
   const isInitializing = hasSession && (initializedToken !== accessToken || isLoading);
 
   useEffect(() => {
+    /**
+     * 로그인한 사용자의 온보딩 완료 여부와 활성 캐릭터를 병렬로 조회합니다.
+     * 일부 조회가 실패해도 앱 전체 진입을 막지 않기 위해 각 요청은 개별 fallback을 둡니다.
+     */
     async function initializeSession() {
       if (!accessToken) {
         setInitializedToken(null);
@@ -32,26 +40,26 @@ export function AppInitializer({ children }: AppInitializerProps) {
 
       setIsLoading(true);
       try {
-        // Fetch onboarding profile and active character in parallel
+        // 온보딩 프로필과 활성 캐릭터는 서로 독립적이라 초기 진입 시간을 줄이기 위해 병렬로 조회한다.
         const [profile, activeCharacter] = await Promise.all([
           getOnboardingProfile().catch((err) => {
             console.error("Failed to fetch onboarding profile:", err);
             return null;
           }),
           getActiveCharacter().catch((err) => {
-            // CHARACTER_NOT_FOUND error is expected if user doesn't have an active character yet
+            // 아직 캐릭터를 만들지 않은 사용자는 CHARACTER_NOT_FOUND가 자연스러운 상태라 null로 처리한다.
             console.warn("Active character not found or failed to fetch:", err);
             return null;
           }),
         ]);
 
         if (profile?.completed) {
-          // If onboarding is completed on the backend, update frontend store
+          // 백엔드 기준 온보딩 완료 상태를 프론트 store에도 반영한다.
           markCompleted();
         }
 
         if (activeCharacter) {
-          // If active character exists on the backend, fetch character types to map correctly
+          // 활성 캐릭터가 있으면 캐릭터 타입 목록을 함께 조회해 카드/이미지 매핑에 필요한 메타데이터를 맞춘다.
           let matchedType: CharacterTypeSummary | null = null;
           try {
             const typesRes = await getCharacterTypes();
@@ -114,7 +122,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
           alignItems: "center",
           justifyContent: "center",
           height: "100vh",
-          backgroundColor: "var(--color-bg-primary, #FAF7F2)", // Default Latte bg1
+          backgroundColor: "var(--color-bg-primary, #FAF7F2)", // 디자인 토큰이 없을 때도 라떼 배경색으로 보이게 하는 fallback이다.
           fontFamily: "SUIT, sans-serif",
           color: "var(--color-text-primary, #2d3748)",
         }}

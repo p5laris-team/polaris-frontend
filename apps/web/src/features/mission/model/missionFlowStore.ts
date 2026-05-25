@@ -24,6 +24,10 @@ type MissionFlowState = {
   clearMissionFlow: () => void;
 };
 
+/**
+ * 현재 미션 완료 플로우에서만 필요한 임시 상태를 담는 store입니다.
+ * 미션 카드, 답변 화면, 결과 화면이 같은 미션/캐릭터/질문/결과를 공유하도록 합니다.
+ */
 export const useMissionFlowStore = create<MissionFlowState>((set) => ({
   activeMission: null,
   character: null,

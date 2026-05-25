@@ -23,6 +23,10 @@ import { routes } from "@/routes/paths";
 import { runtimeConfig } from "@/shared/config/env";
 import { useAuthStore } from "@/stores/authStore";
 
+/**
+ * Polaris 웹앱의 URL과 화면 컴포넌트를 연결하는 중앙 라우터입니다.
+ * 로그인/온보딩/서비스 화면의 진입 조건을 이 파일에서 한눈에 확인할 수 있습니다.
+ */
 export function AppRouter() {
   return (
     <Routes>
@@ -54,6 +58,10 @@ export function AppRouter() {
   );
 }
 
+/**
+ * 루트(`/`)로 들어온 사용자를 현재 상태에 맞는 첫 화면으로 보냅니다.
+ * fixture 모드에서는 로그인 없이도 온보딩부터 확인할 수 있게 열어 둡니다.
+ */
 function RootRedirect() {
   const hasSession = useAuthStore((state) => state.hasSession());
   const onboardingCompleted = useOnboardingSetupStore((state) => state.completed);
@@ -79,6 +87,9 @@ function RootRedirect() {
   return <Navigate to={routes.onboardingCharacter} replace />;
 }
 
+/**
+ * 실제 API 모드에서 로그인하지 않은 사용자가 보호된 화면에 들어가지 못하게 막는 라우트 가드입니다.
+ */
 function ProtectedRoute() {
   const hasSession = useAuthStore((state) => state.hasSession());
 

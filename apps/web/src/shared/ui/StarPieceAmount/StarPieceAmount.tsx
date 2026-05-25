@@ -1,3 +1,7 @@
+/**
+ * 별조각 금액 표시 공통 컴포넌트입니다.
+ * 지갑, 상점, 보상 화면에서 아이콘과 숫자 형식을 일관되게 맞춥니다.
+ */
 import { currencyAssets } from "@/shared/assets/polarisAssets";
 
 import "./StarPieceAmount.css";
@@ -11,6 +15,7 @@ type StarPieceAmountProps = {
   tone?: "default" | "accent" | "muted" | "danger" | "success";
 };
 
+/** 금액 부호, 천 단위 포맷, 크기/톤 class를 계산해 접근성 라벨까지 함께 제공합니다. */
 export function StarPieceAmount({
   amount,
   className,

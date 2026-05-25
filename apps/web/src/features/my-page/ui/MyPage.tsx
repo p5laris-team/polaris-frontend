@@ -1,3 +1,8 @@
+/**
+ * 마이페이지 화면입니다.
+ * 계정 정보, 활동 요약, 로컬 알림 설정, 로그아웃을 한 곳에서 다루며
+ * 서버에 없는 세부 알림 설정은 Zustand persist로 이 기기에만 저장합니다.
+ */
 import { type ReactNode, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -52,6 +57,7 @@ export function MyPage() {
   );
   const pageError = userQuery.error ?? homeQuery.error ?? attendanceQuery.error ?? null;
 
+  /** 서버 로그아웃 확인 실패와 관계없이 이 기기의 토큰과 query cache는 반드시 정리합니다. */
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSettled: (_data, error) => {
@@ -68,6 +74,7 @@ export function MyPage() {
     });
   };
 
+  /** 마이페이지 알림 설정 store의 boolean 값을 토글합니다. */
   const handleToggleSetting = (key: MyPageNotificationSettingKey) => {
     notificationSettings.toggleNotificationSetting(key);
   };
@@ -285,6 +292,7 @@ export function MyPage() {
   );
 }
 
+/** 마이페이지의 헤더, 하단 탭, 모바일 shell을 묶습니다. */
 function MyPageFrame({ children }: { children: ReactNode }) {
   return (
     <main className="my-page">
@@ -297,6 +305,7 @@ function MyPageFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 계정/홈/출석 요약을 불러오는 동안 표시하는 skeleton 화면입니다. */
 function MyPageLoadingPage() {
   return (
     <MyPageFrame>
@@ -314,6 +323,7 @@ function MyPageLoadingPage() {
   );
 }
 
+/** 섹션의 작은 eyebrow와 제목을 같은 스타일로 맞추는 보조 컴포넌트입니다. */
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="my-page__section-head">
@@ -323,6 +333,7 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) 
   );
 }
 
+/** 활동 요약 영역에서 다른 화면으로 이동하는 요약 버튼입니다. */
 function SummaryButton({
   icon,
   label,
@@ -345,6 +356,7 @@ function SummaryButton({
   );
 }
 
+/** 알림 설정 한 줄입니다. checkbox를 switch 스타일로 감싼 공통 UI입니다. */
 function SettingToggle({
   checked,
   description,
@@ -375,6 +387,7 @@ function SettingToggle({
   );
 }
 
+/** 마이페이지 하단 바로가기 목록의 한 줄입니다. */
 function LinkRow({
   description,
   icon,
@@ -398,6 +411,7 @@ function LinkRow({
   );
 }
 
+/** 현재 출석 요약 조회에 필요한 연도와 월을 계산합니다. */
 function getCurrentYearMonth() {
   const now = new Date();
 
@@ -407,6 +421,7 @@ function getCurrentYearMonth() {
   };
 }
 
+/** 오늘 또는 어제의 최신 출석 기록을 기준으로 현재 연속 출석일을 계산합니다. */
 function getCurrentStreak(records: AttendanceRecord[]) {
   const today = new Date();
   const yesterday = new Date(today);
@@ -421,6 +436,7 @@ function getCurrentStreak(records: AttendanceRecord[]) {
   return latestRecord.streakCount;
 }
 
+/** Date를 출석 API 날짜 키 yyyy-MM-dd로 변환합니다. */
 function formatDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -429,6 +445,7 @@ function formatDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+/** 개인정보 노출을 줄이기 위해 이메일 local-part 일부를 마스킹합니다. */
 function maskEmail(email: string) {
   const [localPart, domain] = email.split("@");
 
@@ -439,6 +456,7 @@ function maskEmail(email: string) {
   return `${prefix}${"*".repeat(Math.max(3, localPart.length - prefix.length))}@${domain}`;
 }
 
+/** 백엔드 사용자 상태값을 마이페이지에 보이는 한국어 라벨로 바꿉니다. */
 function getUserStatusLabel(status: string) {
   if (status === "ACTIVE") return "활성 계정";
   if (status === "INACTIVE") return "휴면 계정";

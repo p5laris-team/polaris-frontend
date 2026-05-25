@@ -1,6 +1,12 @@
+/**
+ * 마이페이지 알림 설정용 클라이언트 store입니다.
+ * 아직 세부 알림 설정 저장 API가 없기 때문에 localStorage에만 보관하고,
+ * 서버 API가 생기면 이 파일의 persist 부분을 동기화 로직으로 확장하면 됩니다.
+ */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+/** 토글 가능한 알림 설정 key입니다. UI checkbox와 store 필드가 같은 이름을 사용합니다. */
 export type MyPageNotificationSettingKey =
   | "enabled"
   | "missionOffer"
@@ -20,6 +26,7 @@ type MyPageSettingsState = {
   setQuietHours: (range: { start?: string; end?: string }) => void;
 };
 
+/** 마이페이지 알림/방해금지 시간 설정을 저장하는 Zustand store입니다. */
 export const useMyPageSettingsStore = create<MyPageSettingsState>()(
   persist(
     (set) => ({

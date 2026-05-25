@@ -1,3 +1,8 @@
+/**
+ * 로그인 시작 화면입니다.
+ * Google OAuth URL을 백엔드에서 받아 브라우저를 이동시키고,
+ * fixture 모드에서는 데모 세션을 바로 넣어서 백엔드 없이 화면 흐름을 연습할 수 있게 합니다.
+ */
 import { type CSSProperties, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -20,6 +25,7 @@ export function LoginPage() {
   const resetOnboardingFlow = useOnboardingSetupStore((state) => state.resetFlow);
   const { showToast } = useToast();
 
+  /** 사용자가 Google 로그인 버튼을 눌렀을 때 실제 OAuth 진입 또는 fixture 로그인을 시작합니다. */
   const handleGoogleLogin = async () => {
     setLoading(true);
 

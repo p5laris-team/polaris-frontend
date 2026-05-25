@@ -1,3 +1,7 @@
+/**
+ * 미션 카드 공통 컴포넌트입니다.
+ * 카테고리 아이콘, 제목, 설명, 보상/완료 상태를 한 줄의 행동 카드로 보여줍니다.
+ */
 import { categoryAssets, type CategoryKey } from "@/shared/assets/polarisAssets";
 import { StarPieceAmount } from "@/shared/ui/StarPieceAmount";
 

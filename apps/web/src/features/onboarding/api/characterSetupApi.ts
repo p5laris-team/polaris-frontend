@@ -1,3 +1,7 @@
+/**
+ * 온보딩 단계의 캐릭터 타입 조회와 캐릭터 생성 API를 담당합니다.
+ * 백엔드에 없는 소개 태그/설명은 프론트 메타데이터로 보강해 선택 카드 품질을 유지합니다.
+ */
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { toCharacterKey } from "@/entities/character/types";
@@ -30,6 +34,7 @@ const CHARACTER_METADATA: Record<string, { tags: string[]; description: string }
   },
 };
 
+/** 선택 가능한 캐릭터 타입 목록을 조회하고 카드 표시용 메타데이터를 보강합니다. */
 export async function getCharacterTypes() {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetCharacterTypes());
@@ -56,6 +61,7 @@ export async function getCharacterTypes() {
   return response;
 }
 
+/** 선택한 타입과 이름으로 사용자의 첫 캐릭터를 생성합니다. */
 export function createCharacter(body: CreateCharacterRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoCreateCharacter(body));
@@ -66,6 +72,7 @@ export function createCharacter(body: CreateCharacterRequest) {
   );
 }
 
+/** 캐릭터 선택 화면에서 타입 목록을 조회하는 hook입니다. */
 export function useCharacterTypesQuery() {
   return useQuery({
     queryKey: characterSetupQueryKeys.types(),
@@ -73,6 +80,7 @@ export function useCharacterTypesQuery() {
   });
 }
 
+/** 캐릭터 이름 설정 화면에서 생성 요청을 보내는 mutation hook입니다. */
 export function useCreateCharacterMutation() {
   return useMutation({
     mutationFn: createCharacter,

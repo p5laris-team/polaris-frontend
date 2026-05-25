@@ -1,3 +1,8 @@
+/**
+ * 별친구 상태 상세와 돌봄 화면입니다.
+ * 활성 캐릭터의 hunger/energy/affection 상태를 읽고,
+ * 보유 소모품을 사용해 돌봄 로그를 생성한 뒤 상태 query를 갱신합니다.
+ */
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Shirt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -54,6 +59,7 @@ type CareFeedbackState = {
   tone: CareFeedbackTone;
 };
 
+// 돌봄 버튼은 화면 정책과 소모품 effectType을 연결하는 작은 설정 테이블입니다.
 const careActions: CareActionConfig[] = [
   {
     type: "FEED",
@@ -129,6 +135,7 @@ export function CharacterCarePage() {
     [],
   );
 
+  /** 돌봄 성공 직후 캐릭터 반응 이미지를 잠깐 띄우고 이전 timeout은 정리합니다. */
   const showCareFeedback = (action: CareActionConfig) => {
     if (!character) return;
 
@@ -157,6 +164,7 @@ export function CharacterCarePage() {
     }, 1600);
   };
 
+  /** 소모품 수량을 확인한 뒤 돌봄 로그 생성 API를 호출합니다. */
   const handleCare = (action: CareActionConfig, item: UserInventoryItem | null) => {
     if (!character) return;
 
@@ -343,6 +351,7 @@ export function CharacterCarePage() {
   );
 }
 
+/** 돌봄 화면의 헤더, 하단 탭, 모바일 앱 shell을 공통으로 제공합니다. */
 function CharacterCareFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -357,6 +366,7 @@ function CharacterCareFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 상태와 보유 소모품을 불러오는 동안 표시하는 skeleton 화면입니다. */
 function CharacterCareLoadingPage() {
   return (
     <CharacterCareFrame>
@@ -369,6 +379,7 @@ function CharacterCareLoadingPage() {
   );
 }
 
+/** 백엔드 상태 객체를 게이지 UI가 바로 사용할 라벨, 값, 안내 문구로 변환합니다. */
 function toCareGauges(states: CharacterStates) {
   return [
     {
@@ -401,6 +412,7 @@ function toCareGauges(states: CharacterStates) {
   ] as const;
 }
 
+/** 여러 소모품 중 해당 돌봄 효과에 맞고 수량이 남은 아이템을 우선 선택합니다. */
 function findCareConsumable(items: UserInventoryItem[], effectType: InventoryItemEffectType) {
   const candidates = items.filter(
     (item) => item.itemType === "CONSUMABLE" && item.effectType === effectType,
@@ -409,12 +421,14 @@ function findCareConsumable(items: UserInventoryItem[], effectType: InventoryIte
   return candidates.find((item) => item.quantity > 0) ?? candidates[0] ?? null;
 }
 
+/** GOOD/NORMAL/BAD 상태 등급을 게이지 색상 톤으로 바꿉니다. */
 function toGaugeTone(grade: CharacterStates[keyof CharacterStates]["grade"]) {
   if (grade === "GOOD") return "good";
   if (grade === "BAD") return "bad";
   return "normal";
 }
 
+/** 캐릭터 상태 등급을 화면에서 쓸 대표 표정으로 변환합니다. */
 function toCharacterMood(states?: CharacterStates): CharacterMood {
   if (!states) return "idle";
   if (states.energy?.grade === "BAD") return "sleepy";

@@ -1,3 +1,7 @@
+/**
+ * 앱 전체에서 쓰는 toast provider와 hook입니다.
+ * mutation 성공/실패처럼 짧은 사용자 피드백을 화면 하단에 일정 시간 보여줍니다.
+ */
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from "react";
 
 import "./Toast.css";
@@ -13,6 +17,7 @@ type ToastContextValue = {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+/** 자식 화면을 감싸고, showToast로 쌓인 메시지를 하단 viewport에 렌더링합니다. */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
@@ -41,6 +46,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** ToastProvider 안에서만 사용할 수 있는 toast 호출 hook입니다. */
 export function useToast() {
   const value = useContext(ToastContext);
   if (!value) {

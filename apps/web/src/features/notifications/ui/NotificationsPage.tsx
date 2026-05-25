@@ -1,3 +1,8 @@
+/**
+ * 알림 목록 화면입니다.
+ * 전체/안 읽음 필터를 바꾸며 알림을 조회하고,
+ * 사용자가 알림을 누르면 단건 읽음 처리 후 연결된 화면으로 이동합니다.
+ */
 import { type ReactNode, useState } from "react";
 import {
   CalendarCheck,
@@ -42,6 +47,7 @@ export function NotificationsPage() {
   const markReadMutation = useMarkNotificationReadMutation();
   const notifications = notificationsQuery.data?.items ?? [];
 
+  /** 알림을 누르면 읽음 처리 후 targetType에 맞는 화면으로 이동합니다. */
   const handleSelectNotification = (notification: AppNotification) => {
     const targetRoute = resolveNotificationRoute(notification.targetType);
     const moveToTarget = () => {
@@ -131,6 +137,7 @@ export function NotificationsPage() {
   );
 }
 
+/** 목록에 표시되는 알림 한 줄입니다. 읽음 여부와 처리 중 상태를 시각적으로 구분합니다. */
 function NotificationItem({
   disabled,
   notification,
@@ -181,6 +188,7 @@ function NotificationItem({
   );
 }
 
+/** 알림 화면의 헤더, 설정 바로가기, 하단 탭을 묶습니다. */
 function NotificationsFrame({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
@@ -209,6 +217,7 @@ function NotificationsFrame({ children }: { children: ReactNode }) {
   );
 }
 
+/** 알림 목록을 불러오는 동안 표시하는 skeleton 화면입니다. */
 function NotificationsLoadingPage() {
   return (
     <NotificationsFrame>
@@ -221,6 +230,7 @@ function NotificationsLoadingPage() {
   );
 }
 
+/** 알림 타입 enum을 화면 아이콘, 라벨, 색상 톤으로 변환합니다. */
 function getNotificationMeta(type: NotificationType) {
   if (type === "MISSION" || type === "MISSION_OFFER") {
     return {
@@ -253,6 +263,7 @@ function getNotificationMeta(type: NotificationType) {
   };
 }
 
+/** 알림 targetType을 현재 앱에서 이동 가능한 route로 연결합니다. */
 function resolveNotificationRoute(targetType: NotificationTargetType) {
   // API targetType만으로 바로 갈 수 있는 화면에 연결한다. 미션 상세 화면은 아직 없어서 홈으로 보낸다.
   if (targetType === "MISSION") return routes.home;
@@ -264,6 +275,7 @@ function resolveNotificationRoute(targetType: NotificationTargetType) {
   return null;
 }
 
+/** 생성 시각을 '방금', 'N분 전' 같은 상대 시간으로 표시합니다. */
 function formatRelativeTime(value: string) {
   const createdAt = new Date(value).getTime();
   const diffMs = Date.now() - createdAt;

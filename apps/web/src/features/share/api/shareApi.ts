@@ -1,3 +1,7 @@
+/**
+ * 공유 카드 이미지 업로드, 공유 카드 생성, 공유 보상 이벤트 생성을 담당하는 API 계층입니다.
+ * presigned URL 업로드와 백엔드 메타데이터 저장이 분리되어 있어 flow mutation으로 묶어 둡니다.
+ */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
@@ -24,6 +28,7 @@ export const shareQueryKeys = {
   todayStatus: () => [...shareQueryKeys.all, "today-status"] as const,
 };
 
+/** 공유 카드 이미지를 직접 업로드할 presigned URL을 백엔드에서 받아옵니다. */
 export function getPresignedShareCardUrl(extension = "png") {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetPresignedUrl());
@@ -36,6 +41,7 @@ export function getPresignedShareCardUrl(extension = "png") {
   );
 }
 
+/** 브라우저에서 만든 공유 카드 이미지를 presigned URL로 업로드합니다. */
 export async function uploadShareCardImage(presignedUrl: string, imageBlob: Blob) {
   if (runtimeConfig.useApiFixtures) {
     return;
@@ -54,6 +60,7 @@ export async function uploadShareCardImage(presignedUrl: string, imageBlob: Blob
   }
 }
 
+/** 업로드된 이미지 URL과 문구를 백엔드 공유 카드 row로 저장합니다. */
 export function createShareCard(body: CreateShareCardRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoCreateShareCard(body));
@@ -64,6 +71,7 @@ export function createShareCard(body: CreateShareCardRequest) {
   );
 }
 
+/** 실제 공유 행위를 기록하고 일일 공유 보상 결과를 받아옵니다. */
 export function createShareEvent(body: CreateShareEventRequest) {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoCreateShareEvent(body));
@@ -74,6 +82,7 @@ export function createShareEvent(body: CreateShareEventRequest) {
   );
 }
 
+/** 오늘 공유 보상을 이미 받았는지 확인합니다. */
 export function getTodayShareStatus() {
   if (runtimeConfig.useApiFixtures) {
     return Promise.resolve(demoGetTodayShareStatus());
@@ -84,6 +93,7 @@ export function getTodayShareStatus() {
   );
 }
 
+/** 공유 카드 화면에서 오늘 공유 상태를 조회하는 hook입니다. */
 export function useTodayShareStatusQuery() {
   return useQuery({
     queryKey: shareQueryKeys.todayStatus(),
@@ -91,6 +101,7 @@ export function useTodayShareStatusQuery() {
   });
 }
 
+/** 이미지 업로드와 공유 카드 row 생성을 한 번의 화면 액션으로 묶은 mutation hook입니다. */
 export function useCreateShareCardFlowMutation() {
   return useMutation({
     mutationFn: async ({
@@ -115,6 +126,7 @@ export function useCreateShareCardFlowMutation() {
   });
 }
 
+/** 공유 이벤트 생성 후 공유/홈/지갑 캐시를 갱신합니다. */
 export function useCreateShareEventMutation() {
   const queryClient = useQueryClient();
 

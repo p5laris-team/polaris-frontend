@@ -1,3 +1,8 @@
+/**
+ * Google OAuth callback 화면입니다.
+ * 구글이 돌려준 code/state를 백엔드로 전달해 Polaris 세션을 만들고,
+ * 성공하면 앱 초기화 흐름이 이어지도록 홈으로 보냅니다.
+ */
 import { type CSSProperties, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -9,6 +14,7 @@ import { brandAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, useToast } from "@/shared/ui";
 import { useAuthStore } from "@/stores/authStore";
 
+// 개발 모드 StrictMode나 빠른 새로고침으로 같은 OAuth code를 두 번 교환하지 않기 위한 모듈 단위 기록입니다.
 const calledCodes = new Set<string>();
 
 export function GoogleCallbackPage() {
@@ -29,12 +35,12 @@ export function GoogleCallbackPage() {
       return;
     }
 
-    // React 18 StrictMode runs useEffect twice in dev.
-    // Use a local ref and a module-level Set to prevent double requests for the same code.
+    // React 18 StrictMode는 개발 환경에서 effect를 두 번 실행하므로 같은 code로 세션 생성 요청이 중복되지 않게 막습니다.
     if (calledRef.current || calledCodes.has(code)) return;
     calledRef.current = true;
     calledCodes.add(code);
 
+    /** OAuth code를 백엔드 세션으로 교환하고 클라이언트 auth store에 저장합니다. */
     const handleCallback = async () => {
       try {
         const session = await createGoogleSession({

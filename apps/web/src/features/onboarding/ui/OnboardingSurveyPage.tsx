@@ -1,3 +1,7 @@
+/**
+ * 온보딩 3단계, 루틴 질문 화면입니다.
+ * 사용자의 생활 패턴 답변 7개를 store에 모았다가 마지막 단계에서 백엔드 프로필 저장 API로 전송합니다.
+ */
 import { Check } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +67,7 @@ export function OnboardingSurveyPage() {
   );
   const progress = total ? ((currentIndex + 1) / total) * 100 : 0;
 
+  /** 현재 문항 답변을 확인하고, 마지막 문항에서는 온보딩 프로필 저장까지 수행합니다. */
   const handleNext = async () => {
     if (!currentQuestion) return;
 
@@ -204,6 +209,7 @@ export function OnboardingSurveyPage() {
   );
 }
 
+/** 화면 답변 객체를 백엔드가 요구하는 7개 필드와 원본 answers record로 변환합니다. */
 function buildSaveRequest(
   questions: OnboardingQuestion[],
   answers: OnboardingAnswers,
@@ -232,6 +238,7 @@ function buildSaveRequest(
   };
 }
 
+/** 온보딩 화면에서 로딩/에러 같은 단순 상태를 같은 레이아웃으로 보여줍니다. */
 function OnboardingState({
   title,
   description,

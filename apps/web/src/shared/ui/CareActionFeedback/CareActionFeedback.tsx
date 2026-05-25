@@ -1,3 +1,7 @@
+/**
+ * 돌봄 성공 직후 잠깐 뜨는 캐릭터 반응 오버레이입니다.
+ * 먹이/잠/놀이 액션마다 다른 배경 톤과 캐릭터 mood를 보여줍니다.
+ */
 import { type CharacterMood } from "@/shared/assets/polarisAssets";
 
 import "./CareActionFeedback.css";
@@ -11,6 +15,7 @@ type CareActionFeedbackProps = {
   tone: CareActionFeedbackTone;
 };
 
+/** isOpen이 false이면 DOM을 만들지 않고, true일 때 status 영역으로 짧은 피드백을 노출합니다. */
 export function CareActionFeedback({
   imageUrl,
   isOpen,
