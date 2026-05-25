@@ -95,9 +95,11 @@ export function useCreateShareCardFlowMutation() {
   return useMutation({
     mutationFn: async ({
       characterId,
+      headline,
       imageBlob,
     }: {
       characterId: number;
+      headline: string;
       imageBlob: Blob;
     }) => {
       const upload = await getPresignedShareCardUrl("png");
@@ -106,6 +108,7 @@ export function useCreateShareCardFlowMutation() {
 
       return createShareCard({
         characterId,
+        headline,
         imageUrl: upload.imageUrl,
       });
     },

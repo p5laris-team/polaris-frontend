@@ -26,30 +26,37 @@ export type HomeScreenViewModel = {
   };
 };
 
-function toGaugeTone(state: CharacterStatusValue): GaugeTone {
+function toGaugeTone(state: CharacterStatusValue | null | undefined): GaugeTone {
+  if (!state) return "normal";
   if (state.grade === "GOOD") return "good";
   if (state.grade === "BAD") return "bad";
   return "normal";
 }
 
-function toMood(states: HomeResponse["character"]["states"]): CharacterMood {
+function toMood(states: NonNullable<HomeResponse["character"]>["states"]): CharacterMood {
+  if (!states) return "idle";
   if (states.energy.grade === "BAD") return "sleepy";
   if (states.affection.grade === "GOOD") return "happy";
   return "idle";
 }
 
-export function mapHomeResponseToViewModel(response: HomeResponse): HomeScreenViewModel {
-  const states = response.character.states;
+export function mapHomeResponseToViewModel(response: HomeResponse): HomeScreenViewModel | null {
+  const character = response.character;
+  const states = character?.states;
+
+  if (!character || !states) {
+    return null;
+  }
 
   return {
     nickname: response.user.nickname,
     walletStarPiece: response.wallet.starPiece,
     unreadNotificationCount: response.notifications.unreadCount,
     character: {
-      id: response.character.id,
-      key: toCharacterKey(response.character.characterTypeCode),
+      id: character.id,
+      key: toCharacterKey(character.characterTypeCode),
       mood: toMood(states),
-      name: response.character.name,
+      name: character.name,
       bubble:
         response.currentMission?.characterMessage ??
         "오늘 미션은 여기까지예요. 내일 또 작은 별을 찾아봐요.",

@@ -60,8 +60,16 @@ const missionTemplates: CurrentMissionResponse[] = [
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 type DemoCareActionType = "FEED" | "SLEEP" | "PLAY";
+type DemoHomeResponse = HomeResponse & {
+  character: NonNullable<HomeResponse["character"]> & {
+    characterTypeCode: CharacterTypeCode;
+    currentAssetUrl: string;
+    states: CharacterStates;
+  };
+  currentMission: CurrentMissionResponse | null;
+};
 
-const initialHomeResponse: HomeResponse = {
+const initialHomeResponse: DemoHomeResponse = {
   user: {
     id: 1,
     nickname: "별따라걷기",
@@ -129,7 +137,7 @@ const initialTodayMissions: TodayMissionItem[] = [
   toTodayMissionItem(initialHomeResponse.currentMission!, toTodayIsoTime("11:30")),
 ];
 
-let demoHomeState = clone(initialHomeResponse);
+let demoHomeState: DemoHomeResponse = clone(initialHomeResponse);
 let demoTodayMissions = clone(initialTodayMissions);
 let lastClosedMissionStackOrder = initialHomeResponse.currentMission?.stackOrder ?? 3;
 

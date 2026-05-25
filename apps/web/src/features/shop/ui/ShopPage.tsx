@@ -145,7 +145,7 @@ export function ShopPage() {
     );
   }
 
-  const activeCharacterTypeId = toCharacterTypeId(homeQuery.data?.character.characterTypeCode);
+  const activeCharacterTypeId = toCharacterTypeId(homeQuery.data?.character?.characterTypeCode);
   const skinItems = (skinsQuery.data?.items ?? []).filter((item) =>
     isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
   );

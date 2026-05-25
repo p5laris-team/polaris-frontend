@@ -13,7 +13,7 @@ import {
   type ShopItemsRequest,
   type ShopItemsResponse,
 } from "@/features/shop/model/shopTypes";
-import { apiClient, unwrapApiResponse } from "@/shared/api";
+import { apiClient, createIdempotencyKey, unwrapApiResponse } from "@/shared/api";
 import { runtimeConfig } from "@/shared/config/env";
 
 const DEFAULT_SHOP_PAGE_SIZE = 20;
@@ -53,9 +53,15 @@ export function purchaseShopItem(body: PurchaseShopItemRequest) {
     return Promise.resolve(demoPurchaseShopItem(body));
   }
 
-  // API 명세의 아이템 구매 request body는 itemId/quantity만 확정되어 있어 임의 멱등키 필드는 추가하지 않는다.
+  // 아이템 구매는 중복 클릭/네트워크 재시도에서 같은 결제가 반복되지 않도록 gateway의 멱등키 헤더를 명시적으로 사용한다.
+  const idempotencyKey = createIdempotencyKey(`item-purchase:${body.itemId}:${body.quantity}`);
+
   return unwrapApiResponse<PurchaseShopItemResponse>(
-    apiClient.post("/api/item/v1/item-purchases", body),
+    apiClient.post("/api/item/v1/item-purchases", body, {
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    }),
   );
 }
 

@@ -55,9 +55,10 @@ export function ShareCardPage() {
   const createShareCardMutation = useCreateShareCardFlowMutation();
   const createShareEventMutation = useCreateShareEventMutation();
   const home = homeQuery.data;
+  const character = home?.character ?? null;
   const todayMissions = todayMissionsQuery.data;
   const todayShareStatus = todayShareStatusQuery.data;
-  const characterKey = toCharacterKey(home?.character.characterTypeCode);
+  const characterKey = toCharacterKey(character?.characterTypeCode);
   const backgroundImageUrl = shareCardAssets.backgrounds[backgroundKey];
   const characterImageUrl = shareCardAssets.characters[characterKey];
   const completedCount = todayMissions?.completedCount ?? 0;
@@ -71,17 +72,17 @@ export function ShareCardPage() {
   const statusError = homeQuery.error ?? todayMissionsQuery.error ?? todayShareStatusQuery.error ?? null;
   const loading = homeQuery.isLoading || todayMissionsQuery.isLoading || todayShareStatusQuery.isLoading;
   const trimmedHeadline = headline.trim();
-  const canCreateCard = Boolean(home && trimmedHeadline);
+  const canCreateCard = Boolean(character && trimmedHeadline);
 
   const handleCreateShareCard = async () => {
-    if (!home || !trimmedHeadline) return;
+    if (!character || !trimmedHeadline) return;
 
     try {
       const imageBlob = await createShareCardImageBlob({
         backgroundKey,
         backgroundImageUrl,
         brandLogoImageUrl: brandAssets.logoWordmark,
-        characterName: home.character.name,
+        characterName: character.name,
         characterImageUrl,
         completedCount,
         earnedStarPiece,
@@ -93,7 +94,8 @@ export function ShareCardPage() {
 
       createShareCardMutation.mutate(
         {
-          characterId: home.character.id,
+          characterId: character.id,
+          headline: trimmedHeadline,
           imageBlob,
         },
         {
@@ -152,7 +154,7 @@ export function ShareCardPage() {
     return <ShareCardLoadingPage />;
   }
 
-  if (statusError || !home || !todayMissions || !todayShareStatus) {
+  if (statusError || !character || !todayMissions || !todayShareStatus) {
     return (
       <ShareCardFrame>
         <div className="share-card-page__state">
@@ -216,7 +218,7 @@ export function ShareCardPage() {
                   src={characterImageUrl}
                 />
               </div>
-              <strong>{home.character.name}</strong>
+              <strong>{character.name}</strong>
               <p>{trimmedHeadline || "오늘의 반짝였던 마음을 적어주세요."}</p>
               <div className="share-card-page__preview-stats">
                 <span>
