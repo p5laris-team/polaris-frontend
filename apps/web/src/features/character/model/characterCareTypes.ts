@@ -1,4 +1,8 @@
-import { type CharacterStates, type CharacterTypeCode } from "@/entities/character/types";
+import {
+  type CharacterAssetUrls,
+  type CharacterStates,
+  type CharacterTypeCode,
+} from "@/entities/character/types";
 
 export type CareActionType = "FEED" | "SLEEP" | "PLAY";
 
@@ -7,7 +11,7 @@ export type ActiveCharacterResponse = {
   name: string;
   characterTypeCode: CharacterTypeCode;
   currentAssetUrl: string;
-  assetUrls?: Record<string, string>;
+  assetUrls?: CharacterAssetUrls;
   states: CharacterStates;
   equippedSkin?: {
     itemId: number;

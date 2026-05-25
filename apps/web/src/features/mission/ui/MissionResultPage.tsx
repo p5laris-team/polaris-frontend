@@ -54,6 +54,7 @@ export function MissionResultPage() {
     character: character.key,
     mood: "happy",
     equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
+    assetUrls: activeCharacterQuery.data?.assetUrls,
     fallbackUrl: activeCharacterQuery.data?.currentAssetUrl,
   });
   const rewardAffection = completionResult.reward.affection;

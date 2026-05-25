@@ -59,6 +59,7 @@ export function InventoryPage() {
         mood: characterMood,
         states: character.states,
         equippedSkin,
+        assetUrls: character.assetUrls,
         fallbackUrl: character.currentAssetUrl,
       })
     : undefined;

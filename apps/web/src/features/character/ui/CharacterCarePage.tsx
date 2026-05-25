@@ -128,6 +128,7 @@ export function CharacterCarePage() {
       character: toCharacterKey(character.characterTypeCode),
       mood: preset.mood,
       equippedSkin: character.equippedSkin ?? null,
+      assetUrls: character.assetUrls,
       fallbackUrl: character.currentAssetUrl,
     });
 
@@ -215,6 +216,7 @@ export function CharacterCarePage() {
     mood,
     states,
     equippedSkin: character.equippedSkin ?? null,
+    assetUrls: character.assetUrls,
     fallbackUrl: character.currentAssetUrl,
   });
 

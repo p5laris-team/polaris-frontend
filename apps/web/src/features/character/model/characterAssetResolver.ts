@@ -7,7 +7,11 @@ import {
   type CharacterSkinKey,
   type CharacterVisualState,
 } from "@/shared/assets/polarisAssets";
-import { type CharacterStates } from "@/entities/character/types";
+import {
+  type CharacterAssetKey,
+  type CharacterAssetUrls,
+  type CharacterStates,
+} from "@/entities/character/types";
 
 type EquippedSkinInput = {
   itemId?: number | null;
@@ -19,6 +23,7 @@ type ResolveCharacterImageInput = {
   mood?: CharacterMood;
   states?: CharacterStates | null;
   equippedSkin?: EquippedSkinInput;
+  assetUrls?: CharacterAssetUrls | null;
   fallbackUrl?: string | null;
 };
 
@@ -45,20 +50,23 @@ export function resolveCharacterImageUrl({
   mood = "idle",
   states,
   equippedSkin,
+  assetUrls,
   fallbackUrl,
 }: ResolveCharacterImageInput) {
   const visualState = resolveCharacterVisualState(states, mood);
+  const remoteImageUrl = resolveRemoteAssetUrl(assetUrls, visualState);
   const skinKey = resolveCharacterSkinKey(equippedSkin);
   const skinImageUrl = skinKey ? skinCharacterAssets[skinKey]?.[character]?.[visualState] : null;
   const baseImageUrl =
     characterStateAssets[character]?.[visualState] ?? characterAssets[character]?.[mood];
 
-  if (skinImageUrl) {
-    return skinImageUrl;
+  // 운영에서는 백엔드가 내려주는 assetUrls가 캐릭터 이미지의 기준이고, 로컬 에셋은 누락/지연 시 안전망으로만 사용한다.
+  if (remoteImageUrl) {
+    return remoteImageUrl;
   }
 
-  if (equippedSkin && fallbackUrl) {
-    return fallbackUrl;
+  if (skinImageUrl) {
+    return skinImageUrl;
   }
 
   return baseImageUrl ?? fallbackUrl ?? characterAssets.nova.idle;
@@ -100,6 +108,23 @@ function resolveCharacterVisualState(
   }
 
   return mood;
+}
+
+function resolveRemoteAssetUrl(
+  assetUrls: CharacterAssetUrls | null | undefined,
+  visualState: CharacterVisualState,
+) {
+  if (!assetUrls) {
+    return null;
+  }
+
+  const remoteUrl = assetUrls[visualState] ?? assetUrls[toSnakeAssetKey(visualState)];
+
+  return remoteUrl && remoteUrl.trim() ? remoteUrl : null;
+}
+
+function toSnakeAssetKey(visualState: CharacterVisualState): CharacterAssetKey | "low_energy" {
+  return visualState === "lowEnergy" ? "low_energy" : visualState;
 }
 
 function normalizeSearchText(value: string) {
