@@ -6,6 +6,7 @@ import {
   getCharacterTypeLabelById,
   toCharacterKey,
   toCharacterTypeId,
+  type CharacterKey,
   type CharacterStates,
 } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
@@ -15,6 +16,13 @@ import {
   useInventorySkinItemsQuery,
   useUpdateEquippedSkinMutation,
 } from "@/features/inventory/api/inventoryApi";
+import {
+  getInventoryBaseSkinDescription,
+  getInventoryEmptyState,
+  getInventoryEquipSuccessMessage,
+  getInventorySkinMeta,
+  getInventoryStageBubble,
+} from "@/features/inventory/model/inventoryMessages";
 import { type UserInventoryItem } from "@/features/inventory/model/inventoryTypes";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
@@ -53,6 +61,7 @@ export function InventoryPage() {
     [character],
   );
   const characterKey = toCharacterKey(character?.characterTypeCode);
+  const inventoryEmptyState = getInventoryEmptyState(characterKey);
   const characterImageUrl = character
     ? resolveCharacterImageUrl({
         character: characterKey,
@@ -80,11 +89,7 @@ export function InventoryPage() {
       },
       {
         onSuccess: () => {
-          showToast(
-            itemId === null
-              ? "기본 외형으로 돌아왔어요."
-              : `${itemName} 장착 완료!`,
-          );
+          showToast(getInventoryEquipSuccessMessage(characterKey, itemId === null ? null : itemName));
         },
         onError: (error) => {
           showToast(getUserFacingErrorMessage(error));
@@ -124,11 +129,7 @@ export function InventoryPage() {
       <div className="inventory-page__body">
         {/* SCR-014 인벤토리: 현재 별친구용 스킨만 보여주고 equippedSkin.itemId로 장착 여부를 계산한다. */}
         <CharacterStage
-          bubble={
-            equippedSkin
-              ? `${equippedSkin.name}을 입고 있어요.`
-              : "지금은 기본 외형으로 있어요."
-          }
+          bubble={getInventoryStageBubble(characterKey, equippedSkin?.name)}
           character={characterKey}
           imageUrl={characterImageUrl}
           mood={characterMood}
@@ -153,6 +154,7 @@ export function InventoryPage() {
               disabled={equipMutation.isPending}
               equipped={equippedSkin === null}
               pending={pendingTarget === "base"}
+              characterKey={characterKey}
               onEquip={() => handleEquipSkin(null, "기본 외형")}
             />
 
@@ -167,6 +169,7 @@ export function InventoryPage() {
                   item={item}
                   key={item.userItemId}
                   pending={pendingTarget === item.itemId}
+                  characterKey={characterKey}
                   onEquip={() => handleEquipSkin(item.itemId, item.name)}
                 />
               );
@@ -180,8 +183,8 @@ export function InventoryPage() {
                 className="inventory-page__empty-illustration"
                 src={emptyStateAssets.inventory}
               />
-              <strong>아직 아이템이 없어요.</strong>
-              <p>상점에서 마음에 드는 스킨을 먼저 골라봐요.</p>
+              <strong>{inventoryEmptyState.title}</strong>
+              <p>{inventoryEmptyState.description}</p>
               <Button onClick={() => navigate(routes.shop)} size="compact" variant="secondary">
                 <Store size={17} strokeWidth={1.9} />
                 상점 가기
@@ -195,11 +198,13 @@ export function InventoryPage() {
 }
 
 function BaseSkinCard({
+  characterKey,
   disabled,
   equipped,
   pending,
   onEquip,
 }: {
+  characterKey: CharacterKey;
   disabled: boolean;
   equipped: boolean;
   pending: boolean;
@@ -215,7 +220,7 @@ function BaseSkinCard({
           <strong>기본 외형</strong>
           {equipped ? <Check size={16} strokeWidth={2.2} /> : null}
         </div>
-        <span>스킨을 해제하고 원래 모습으로 돌아가요.</span>
+        <span>{getInventoryBaseSkinDescription(characterKey)}</span>
       </div>
       <Button
         className="inventory-page__equip-button"
@@ -231,6 +236,7 @@ function BaseSkinCard({
 }
 
 function OwnedSkinCard({
+  characterKey,
   disabled,
   equipped,
   index,
@@ -238,6 +244,7 @@ function OwnedSkinCard({
   pending,
   onEquip,
 }: {
+  characterKey: CharacterKey;
   disabled: boolean;
   equipped: boolean;
   index: number;
@@ -259,7 +266,7 @@ function OwnedSkinCard({
         </div>
         <span className="inventory-page__skin-meta">
           <Tag variant="neutral">{getSkinScopeLabel(item.characterTypeId)}</Tag>
-          {equipped ? "지금 별친구가 입고 있어요." : "선택하면 바로 장착돼요."}
+          {getInventorySkinMeta(characterKey, equipped)}
         </span>
       </div>
       <Button
