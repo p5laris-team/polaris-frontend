@@ -5,6 +5,7 @@ export type PresignedUrlResponse = {
 
 export type CreateShareCardRequest = {
   characterId: number;
+  headline: string;
   imageUrl: string;
 };
 

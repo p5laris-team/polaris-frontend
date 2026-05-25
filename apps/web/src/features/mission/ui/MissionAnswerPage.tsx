@@ -55,7 +55,7 @@ export function MissionAnswerPage() {
         equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
         fallbackUrl:
           activeCharacterQuery.data?.currentAssetUrl ??
-          homeQuery.data?.character.currentAssetUrl,
+          homeQuery.data?.character?.currentAssetUrl,
       })
     : undefined;
 

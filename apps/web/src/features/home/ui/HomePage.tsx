@@ -59,15 +59,15 @@ export function HomePage() {
     return resolveCharacterImageUrl({
       character: home.character.key,
       mood: home.character.mood,
-      states: homeQuery.data?.character.states,
+      states: homeQuery.data?.character?.states,
       equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
-      fallbackUrl: homeQuery.data?.character.currentAssetUrl,
+      fallbackUrl: homeQuery.data?.character?.currentAssetUrl,
     });
   }, [
     activeCharacterQuery.data?.equippedSkin,
     home,
-    homeQuery.data?.character.currentAssetUrl,
-    homeQuery.data?.character.states,
+    homeQuery.data?.character?.currentAssetUrl,
+    homeQuery.data?.character?.states,
   ]);
 
   if (homeQuery.isLoading) {

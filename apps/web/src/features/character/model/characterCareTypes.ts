@@ -7,6 +7,7 @@ export type ActiveCharacterResponse = {
   name: string;
   characterTypeCode: CharacterTypeCode;
   currentAssetUrl: string;
+  assetUrls?: Record<string, string>;
   states: CharacterStates;
   equippedSkin?: {
     itemId: number;

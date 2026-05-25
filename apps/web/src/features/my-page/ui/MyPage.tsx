@@ -149,7 +149,7 @@ export function MyPage() {
             <SummaryButton
               icon={<Sparkles size={20} strokeWidth={1.8} />}
               label="내 별친구"
-              value={home.character.name}
+              value={home.character?.name ?? "아직 없음"}
               onClick={() => navigate(routes.character)}
             />
           </div>
