@@ -61,9 +61,11 @@ export function HomePage() {
       mood: home.character.mood,
       states: homeQuery.data?.character?.states,
       equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
+      assetUrls: activeCharacterQuery.data?.assetUrls,
       fallbackUrl: homeQuery.data?.character?.currentAssetUrl,
     });
   }, [
+    activeCharacterQuery.data?.assetUrls,
     activeCharacterQuery.data?.equippedSkin,
     home,
     homeQuery.data?.character?.currentAssetUrl,

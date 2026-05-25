@@ -1,6 +1,8 @@
 export type CharacterTypeCode = "NOVA" | "MUMU" | "JJORI" | "JJORY";
 export type CharacterKey = "nova" | "mumu" | "jjori";
 export type CharacterStateGrade = "GOOD" | "NORMAL" | "BAD";
+export type CharacterAssetKey = "idle" | "happy" | "sleepy" | "hungry" | "lowEnergy" | "lonely";
+export type CharacterAssetUrls = Partial<Record<CharacterAssetKey, string>> & Record<string, string | undefined>;
 
 export type CharacterStatusValue = {
   value: number;

@@ -53,6 +53,7 @@ export function MissionAnswerPage() {
         character: currentCharacter.key,
         mood: "happy",
         equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
+        assetUrls: activeCharacterQuery.data?.assetUrls,
         fallbackUrl:
           activeCharacterQuery.data?.currentAssetUrl ??
           homeQuery.data?.character?.currentAssetUrl,
