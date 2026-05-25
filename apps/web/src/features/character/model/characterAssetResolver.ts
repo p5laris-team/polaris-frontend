@@ -59,17 +59,10 @@ export function resolveCharacterImageUrl({
   const skinImageUrl = skinKey ? skinCharacterAssets[skinKey]?.[character]?.[visualState] : null;
   const baseImageUrl =
     characterStateAssets[character]?.[visualState] ?? characterAssets[character]?.[mood];
+  const localImageUrl = skinImageUrl ?? baseImageUrl;
 
-  // 운영에서는 백엔드가 내려주는 assetUrls가 캐릭터 이미지의 기준이고, 로컬 에셋은 누락/지연 시 안전망으로만 사용한다.
-  if (remoteImageUrl) {
-    return remoteImageUrl;
-  }
-
-  if (skinImageUrl) {
-    return skinImageUrl;
-  }
-
-  return baseImageUrl ?? fallbackUrl ?? characterAssets.nova.idle;
+  // 현재 화면 렌더링은 프론트에 포함된 검수 에셋을 우선 사용하고, 백엔드 URL은 로컬 매핑이 비었을 때만 안전망으로 둔다.
+  return localImageUrl ?? remoteImageUrl ?? fallbackUrl ?? characterAssets.nova.idle;
 }
 
 export function resolveCharacterSkinKey(

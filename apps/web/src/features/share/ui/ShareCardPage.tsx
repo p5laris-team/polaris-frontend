@@ -9,6 +9,8 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { toCharacterKey } from "@/entities/character/types";
+import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import { useTodayMissionsQuery } from "@/features/mission/api/missionApi";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
@@ -50,6 +52,7 @@ export function ShareCardPage() {
   const [backgroundKey, setBackgroundKey] = useState<ShareCardBackgroundKey>("default");
   const [shareCard, setShareCard] = useState<ShareCardResponse | null>(null);
   const homeQuery = useHomeQuery();
+  const activeCharacterQuery = useActiveCharacterQuery();
   const todayMissionsQuery = useTodayMissionsQuery();
   const todayShareStatusQuery = useTodayShareStatusQuery();
   const createShareCardMutation = useCreateShareCardFlowMutation();
@@ -60,7 +63,16 @@ export function ShareCardPage() {
   const todayShareStatus = todayShareStatusQuery.data;
   const characterKey = toCharacterKey(character?.characterTypeCode);
   const backgroundImageUrl = shareCardAssets.backgrounds[backgroundKey];
-  const characterImageUrl = shareCardAssets.characters[characterKey];
+  const activeCharacter = activeCharacterQuery.data;
+  const characterImageUrl = resolveCharacterImageUrl({
+    character: characterKey,
+    mood: "happy",
+    equippedSkin: activeCharacter?.equippedSkin ?? null,
+    // 공유 카드는 축하용 이미지라서 장착 스킨이 있으면 상태 수치보다 happy 스킨을 우선한다.
+    // CDN 상태별 URL이 비어 있어도 엑박이 나지 않도록 카드 렌더링은 프론트 로컬 에셋을 기준으로 둔다.
+    assetUrls: null,
+    fallbackUrl: character?.currentAssetUrl ?? shareCardAssets.characters[characterKey],
+  });
   const completedCount = todayMissions?.completedCount ?? 0;
   const earnedStarPiece = useMemo(
     () =>
@@ -70,7 +82,11 @@ export function ShareCardPage() {
     [todayMissions?.missions],
   );
   const statusError = homeQuery.error ?? todayMissionsQuery.error ?? todayShareStatusQuery.error ?? null;
-  const loading = homeQuery.isLoading || todayMissionsQuery.isLoading || todayShareStatusQuery.isLoading;
+  const loading =
+    homeQuery.isLoading ||
+    activeCharacterQuery.isLoading ||
+    todayMissionsQuery.isLoading ||
+    todayShareStatusQuery.isLoading;
   const trimmedHeadline = headline.trim();
   const canCreateCard = Boolean(character && trimmedHeadline);
 

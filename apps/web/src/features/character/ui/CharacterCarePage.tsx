@@ -9,6 +9,11 @@ import {
   useCreateCareLogMutation,
 } from "@/features/character/api/characterCareApi";
 import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  getCharacterCareIntro,
+  getCharacterCareItemShortageMessage,
+  getCharacterCareReactionMessage,
+} from "@/features/character/model/characterCareMessages";
 import { type CareActionType } from "@/features/character/model/characterCareTypes";
 import { useInventoryConsumableItemsQuery } from "@/features/inventory/api/inventoryApi";
 import {
@@ -102,7 +107,7 @@ export function CharacterCarePage() {
   const statusQuery = useCharacterStatusQuery(characterId);
   const consumablesQuery = useInventoryConsumableItemsQuery();
   const careMutation = useCreateCareLogMutation();
-  const [careMessage, setCareMessage] = useState("오늘 컨디션을 같이 살펴볼까요?");
+  const [careMessage, setCareMessage] = useState<string | null>(null);
   const [careFeedback, setCareFeedback] = useState<CareFeedbackState | null>(null);
   const careFeedbackTimeoutRef = useRef<number | null>(null);
 
@@ -110,6 +115,10 @@ export function CharacterCarePage() {
   const states = statusQuery.data?.states ?? character?.states;
   const gauges = useMemo(() => (states ? toCareGauges(states) : []), [states]);
   const consumableItems = consumablesQuery.data?.items ?? [];
+
+  useEffect(() => {
+    setCareMessage(null);
+  }, [character?.id]);
 
   useEffect(
     () => () => {
@@ -152,7 +161,12 @@ export function CharacterCarePage() {
     if (!character) return;
 
     if (!item || item.quantity <= 0) {
-      showToast(`${action.itemLabel} 수량이 부족해요.`);
+      showToast(
+        getCharacterCareItemShortageMessage(
+          toCharacterKey(character.characterTypeCode),
+          action.itemLabel,
+        ),
+      );
       return;
     }
 
@@ -166,9 +180,14 @@ export function CharacterCarePage() {
       },
       {
         onSuccess: (result) => {
-          setCareMessage(result.characterMessage);
+          const reactionMessage = getCharacterCareReactionMessage(
+            toCharacterKey(character.characterTypeCode),
+            action.type,
+            result.characterMessage,
+          );
+          setCareMessage(reactionMessage);
           showCareFeedback(action);
-          showToast(result.characterMessage);
+          showToast(reactionMessage);
         },
         onError: (error) => {
           showToast(getUserFacingErrorMessage(error));
@@ -219,13 +238,14 @@ export function CharacterCarePage() {
     assetUrls: character.assetUrls,
     fallbackUrl: character.currentAssetUrl,
   });
+  const displayedCareMessage = careMessage ?? getCharacterCareIntro(characterKey);
 
   return (
     <CharacterCareFrame>
       <div className="character-care-page__body">
         {/* SCR-012 캐릭터 상세: 활성 캐릭터와 상태 API를 합쳐 돌봄 전 현재 컨디션을 보여준다. */}
         <CharacterStage
-          bubble={careMessage}
+          bubble={displayedCareMessage}
           character={characterKey}
           imageUrl={characterImageUrl}
           mood={mood}
