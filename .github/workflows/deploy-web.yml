@@ -3,7 +3,7 @@ name: Deploy Web
 on:
   push:
     branches:
-      - feat/FIVE-39
+      - main
   workflow_dispatch:
 
 concurrency:
