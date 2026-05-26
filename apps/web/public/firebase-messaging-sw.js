@@ -25,7 +25,9 @@ messaging.onBackgroundMessage((payload) => {
     data: payload.data || {},
   };
 
-  self.registration.showNotification(title, options);
+  self.registration.showNotification(title, options).catch((err) => {
+    console.error("showNotification failed:", err);
+  });
 });
 
 self.addEventListener("notificationclick", (event) => {

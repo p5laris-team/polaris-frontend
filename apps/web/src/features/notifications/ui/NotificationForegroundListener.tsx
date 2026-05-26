@@ -30,9 +30,14 @@ export function NotificationForegroundListener() {
       
       // 브라우저 시스템 네이티브 알림(팝업) 강제 실행
       if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-        new window.Notification(copy.title, {
-          body: copy.body,
-        });
+        try {
+          new window.Notification(copy.title, {
+            body: copy.body,
+            icon: "/icons/icon-192.png",
+          });
+        } catch (e) {
+          console.error("Failed to create system notification:", e);
+        }
       }
 
       void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
