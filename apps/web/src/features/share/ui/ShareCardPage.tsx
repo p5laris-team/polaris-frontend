@@ -39,6 +39,8 @@ import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "
 import "./ShareCardPage.css";
 
 const HEADLINE_MAX_LENGTH = 100;
+const SHARE_CARD_FONT_FAMILY =
+  '"SUIT Variable", "SUIT", "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
 
 // 사용자가 바로 고를 수 있는 기본 카드 문구입니다. 직접 입력하면 이 값은 덮어씁니다.
 const presetMessages = [
@@ -446,11 +448,18 @@ async function createShareCardImageBlob({
     loadCanvasImage(stampImageUrl),
     loadCanvasImage(stardustImageUrl),
   ]);
+  await waitForCanvasFonts();
 
   const darkBackground = backgroundKey === "night";
   const inkColor = darkBackground ? "#fff6dc" : "#4d3025";
   const mutedColor = darkBackground ? "rgba(255, 246, 220, 0.82)" : "#7a5746";
   const pillFill = darkBackground ? "rgba(12, 24, 42, 0.62)" : "rgba(255, 255, 255, 0.72)";
+  const messageBox = {
+    x: 166,
+    y: 800,
+    width: 748,
+    height: 156,
+  };
 
   drawImageCover(context, backgroundImage, 0, 0, width, height);
 
@@ -469,7 +478,7 @@ async function createShareCardImageBlob({
   drawImageContain(context, brandLogoImage, 435, 110, 210, 52);
   context.restore();
 
-  drawImageContain(context, characterImage, 312, 250, 456, 456);
+  drawImageContain(context, characterImage, 312, 252, 456, 420);
 
   if (completedCount > 0) {
     context.save();
@@ -489,9 +498,10 @@ async function createShareCardImageBlob({
   }
 
   context.fillStyle = inkColor;
-  context.font = "900 86px sans-serif";
   context.textAlign = "center";
-  context.fillText(characterName, 540, 735);
+  context.textBaseline = "top";
+  setCanvasFont(context, 900, fitCanvasTextSize(context, characterName, 690, 76, 52, 900));
+  context.fillText(characterName, 540, 694);
 
   context.save();
   context.shadowColor = darkBackground ? "rgba(5, 12, 24, 0.28)" : "rgba(93, 61, 30, 0.1)";
@@ -503,13 +513,20 @@ async function createShareCardImageBlob({
       : darkBackground
         ? "rgba(12, 24, 42, 0.58)"
         : "rgba(255, 252, 239, 0.68)";
-  roundedRect(context, 166, 776, 748, 150, 38);
+  roundedRect(context, messageBox.x, messageBox.y, messageBox.width, messageBox.height, 38);
   context.fill();
   context.restore();
 
   context.fillStyle = mutedColor;
-  context.font = "800 45px sans-serif";
-  wrapCanvasText(context, headline, 540, 828, 700, 58, 3);
+  setCanvasFont(context, 800, 43);
+  drawWrappedCanvasTextInBox(context, headline, {
+    x: 540,
+    y: messageBox.y,
+    width: 700,
+    height: messageBox.height,
+    lineHeight: 56,
+    maxLines: 2,
+  });
 
   drawStatPill(context, {
     fillStyle: pillFill,
@@ -626,6 +643,54 @@ function loadCanvasImage(source: string) {
   });
 }
 
+/** 웹폰트가 로드되기 전에 canvas를 그리면 배포 브라우저의 fallback 폰트 기준으로 저장될 수 있어 먼저 기다립니다. */
+async function waitForCanvasFonts() {
+  if (typeof document === "undefined" || !document.fonts) {
+    return;
+  }
+
+  try {
+    await Promise.allSettled([
+      document.fonts.load(`900 76px ${SHARE_CARD_FONT_FAMILY}`),
+      document.fonts.load(`800 43px ${SHARE_CARD_FONT_FAMILY}`),
+      document.fonts.load(`800 34px ${SHARE_CARD_FONT_FAMILY}`),
+      document.fonts.load(`900 58px ${SHARE_CARD_FONT_FAMILY}`),
+    ]);
+    await document.fonts.ready;
+  } catch {
+    // 폰트 로딩 실패는 카드 생성을 막지 않고, 명시한 fallback font stack으로 계속 그린다.
+  }
+}
+
+/** canvas font 선언을 한곳에서 맞춰 미리보기 CSS와 저장 이미지의 한글 폰트 차이를 줄입니다. */
+function setCanvasFont(
+  context: CanvasRenderingContext2D,
+  weight: number,
+  size: number,
+) {
+  context.font = `${weight} ${size}px ${SHARE_CARD_FONT_FAMILY}`;
+}
+
+/** 긴 캐릭터 이름도 카드 폭을 넘거나 아래 문구 박스와 겹치지 않도록 글자 크기를 줄입니다. */
+function fitCanvasTextSize(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  initialSize: number,
+  minSize: number,
+  weight: number,
+) {
+  let size = initialSize;
+  setCanvasFont(context, weight, size);
+
+  while (size > minSize && context.measureText(text).width > maxWidth) {
+    size -= 2;
+    setCanvasFont(context, weight, size);
+  }
+
+  return size;
+}
+
 /** 이미지 비율을 유지하면서 지정 영역을 빈틈없이 채웁니다. */
 function drawImageCover(
   context: CanvasRenderingContext2D,
@@ -706,11 +771,12 @@ function drawStatPill(
 
   context.textAlign = "center";
   context.fillStyle = labelColor;
-  context.font = "800 34px sans-serif";
-  context.fillText(label, x + 155, y + 58);
+  context.textBaseline = "top";
+  setCanvasFont(context, 800, 34);
+  context.fillText(label, x + 155, y + 28);
   context.fillStyle = valueColor;
-  context.font = "900 58px sans-serif";
-  context.fillText(value, x + 155, y + 120);
+  setCanvasFont(context, 900, 58);
+  context.fillText(value, x + 155, y + 72);
 }
 
 /** canvas에는 CSS border-radius가 없어서 둥근 사각형 path를 직접 만듭니다. */
@@ -735,14 +801,11 @@ function roundedRect(
   context.closePath();
 }
 
-/** canvas 텍스트가 카드 영역을 넘지 않도록 줄바꿈과 최대 줄 수를 적용합니다. */
-function wrapCanvasText(
+/** canvas 텍스트가 카드 영역을 넘지 않도록 줄바꿈과 최대 줄 수를 계산합니다. */
+function getCanvasTextLines(
   context: CanvasRenderingContext2D,
   text: string,
-  x: number,
-  y: number,
   maxWidth: number,
-  lineHeight: number,
   maxLines = 3,
 ) {
   const lines: string[] = [];
@@ -777,8 +840,37 @@ function wrapCanvasText(
     );
   }
 
-  visibleLines.forEach((visibleLine, index) => {
-    context.fillText(visibleLine, x, y + index * lineHeight);
+  return visibleLines;
+}
+
+/** 메시지를 투명 박스 안에서 세로 중앙 정렬해 이름/통계 영역과 겹치지 않게 그립니다. */
+function drawWrappedCanvasTextInBox(
+  context: CanvasRenderingContext2D,
+  text: string,
+  {
+    x,
+    y,
+    width,
+    height,
+    lineHeight,
+    maxLines,
+  }: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    lineHeight: number;
+    maxLines: number;
+  },
+) {
+  const lines = getCanvasTextLines(context, text, width, maxLines);
+  const totalTextHeight = lines.length * lineHeight;
+  const top = y + Math.max(0, (height - totalTextHeight) / 2);
+
+  context.textAlign = "center";
+  context.textBaseline = "top";
+  lines.forEach((line, index) => {
+    context.fillText(line, x, top + index * lineHeight);
   });
 }
 
