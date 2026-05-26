@@ -3,7 +3,7 @@
  * 계정 정보, 활동 요약, 로컬 알림 설정, 로그아웃을 한 곳에서 다루며
  * 서버에 없는 세부 알림 설정은 Zustand persist로 이 기기에만 저장합니다.
  */
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
@@ -32,6 +32,16 @@ import {
   useMyPageSettingsStore,
 } from "@/features/my-page/model/myPageSettingsStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
+import { useRegisterFcmTokenMutation } from "@/features/notifications/api/notificationApi";
+import {
+  getNotificationPermission,
+  getPushAvailability,
+  getPushRegistrationErrorMessage,
+  getStoredPushTokenRegisteredAt,
+  rememberPushTokenRegistered,
+  requestFcmRegistrationToken,
+  type PushAvailability,
+} from "@/features/notifications/model/pushMessaging";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
@@ -49,6 +59,15 @@ export function MyPage() {
   const { year, month } = useMemo(() => getCurrentYearMonth(), []);
   const attendanceQuery = useAttendanceRecordsQuery(year, month);
   const logoutMutation = useLogoutMyPageSessionMutation();
+  const registerFcmTokenMutation = useRegisterFcmTokenMutation();
+  const [pushAvailability, setPushAvailability] = useState<PushAvailability>("checking");
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
+    () => getNotificationPermission(),
+  );
+  const [pushRegisteredAt, setPushRegisteredAt] = useState<string | null>(
+    () => getStoredPushTokenRegisteredAt(),
+  );
+  const [isRequestingPushToken, setIsRequestingPushToken] = useState(false);
 
   const notificationSettings = useMyPageSettingsStore();
   const currentStreak = useMemo(
@@ -56,6 +75,22 @@ export function MyPage() {
     [attendanceQuery.data?.records],
   );
   const pageError = userQuery.error ?? homeQuery.error ?? attendanceQuery.error ?? null;
+  const isPushRegistrationPending = isRequestingPushToken || registerFcmTokenMutation.isPending;
+
+  useEffect(() => {
+    let mounted = true;
+
+    setPushPermission(getNotificationPermission());
+    void getPushAvailability().then((availability) => {
+      if (mounted) {
+        setPushAvailability(availability);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   /** 서버 로그아웃 확인 실패와 관계없이 이 기기의 토큰과 query cache는 반드시 정리합니다. */
   const handleLogout = () => {
@@ -77,6 +112,25 @@ export function MyPage() {
   /** 마이페이지 알림 설정 store의 boolean 값을 토글합니다. */
   const handleToggleSetting = (key: MyPageNotificationSettingKey) => {
     notificationSettings.toggleNotificationSetting(key);
+  };
+
+  /** 브라우저 권한 요청, FCM token 발급, notification 서버 저장까지 한 번에 처리합니다. */
+  const handleRegisterWebPush = async () => {
+    setIsRequestingPushToken(true);
+    try {
+      const token = await requestFcmRegistrationToken();
+      await registerFcmTokenMutation.mutateAsync({ token });
+      const registeredAt = rememberPushTokenRegistered();
+
+      setPushPermission(getNotificationPermission());
+      setPushRegisteredAt(registeredAt);
+      showToast("이 기기에서 알림을 받을 준비가 됐어요.");
+    } catch (error) {
+      setPushPermission(getNotificationPermission());
+      showToast(getPushRegistrationErrorMessage(error));
+    } finally {
+      setIsRequestingPushToken(false);
+    }
   };
 
   if (userQuery.isLoading || homeQuery.isLoading || attendanceQuery.isLoading) {
@@ -175,6 +229,14 @@ export function MyPage() {
               icon={<BellRing size={20} strokeWidth={1.8} />}
               label="전체 알림"
               onChange={() => handleToggleSetting("enabled")}
+            />
+            <PushRegistrationRow
+              availability={pushAvailability}
+              disabled={!notificationsEnabled}
+              isPending={isPushRegistrationPending}
+              permission={pushPermission}
+              registeredAt={pushRegisteredAt}
+              onClick={handleRegisterWebPush}
             />
             <SettingToggle
               checked={notificationsEnabled && notificationSettings.missionOffer}
@@ -356,6 +418,56 @@ function SummaryButton({
   );
 }
 
+/** 이 브라우저에서 실제 알림을 받을 수 있도록 FCM token을 발급/저장하는 행입니다. */
+function PushRegistrationRow({
+  availability,
+  disabled,
+  isPending,
+  permission,
+  registeredAt,
+  onClick,
+}: {
+  availability: PushAvailability;
+  disabled: boolean;
+  isPending: boolean;
+  permission: NotificationPermission | "unsupported";
+  registeredAt: string | null;
+  onClick: () => void;
+}) {
+  const status = getPushRegistrationStatus({
+    availability,
+    disabled,
+    permission,
+    registeredAt,
+  });
+  const canRequest =
+    !disabled &&
+    availability === "supported" &&
+    permission !== "denied" &&
+    permission !== "unsupported";
+
+  return (
+    <div className={`my-page__push-row ${disabled ? "my-page__push-row--disabled" : ""}`}>
+      <span className="my-page__setting-icon">
+        <BellRing size={20} strokeWidth={1.8} />
+      </span>
+      <span className="my-page__setting-copy">
+        <strong>이 기기 알림</strong>
+        <small>{status.description}</small>
+      </span>
+      <Button
+        className="my-page__push-button"
+        disabled={!canRequest || isPending}
+        onClick={onClick}
+        size="compact"
+        variant={status.buttonVariant}
+      >
+        {isPending ? "등록 중..." : status.buttonLabel}
+      </Button>
+    </div>
+  );
+}
+
 /** 알림 설정 한 줄입니다. checkbox를 switch 스타일로 감싼 공통 UI입니다. */
 function SettingToggle({
   checked,
@@ -385,6 +497,101 @@ function SettingToggle({
       </span>
     </label>
   );
+}
+
+function getPushRegistrationStatus({
+  availability,
+  disabled,
+  permission,
+  registeredAt,
+}: {
+  availability: PushAvailability;
+  disabled: boolean;
+  permission: NotificationPermission | "unsupported";
+  registeredAt: string | null;
+}): {
+  description: string;
+  buttonLabel: string;
+  buttonVariant: "primary" | "secondary";
+} {
+  if (disabled) {
+    return {
+      description: "전체 알림을 켜면 이 기기에서도 알림을 받을 수 있어요.",
+      buttonLabel: "대기",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (availability === "checking") {
+    return {
+      description: "이 브라우저에서 알림을 받을 수 있는지 확인하고 있어요.",
+      buttonLabel: "확인 중",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (availability === "disabled") {
+    return {
+      description: "현재 환경에서는 이 기기 알림 기능이 꺼져 있어요.",
+      buttonLabel: "꺼짐",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (availability === "not-configured") {
+    return {
+      description: "알림 연결 설정이 아직 준비되지 않았어요.",
+      buttonLabel: "준비 중",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (availability === "unsupported" || permission === "unsupported") {
+    return {
+      description: "이 브라우저에서는 앱 알림을 받을 수 없어요.",
+      buttonLabel: "미지원",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (permission === "denied") {
+    return {
+      description: "브라우저 설정에서 알림 권한을 다시 허용해야 해요.",
+      buttonLabel: "차단됨",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (permission === "granted" && registeredAt) {
+    return {
+      description: `이 기기에서 알림을 받을 준비가 됐어요. 마지막 확인: ${formatPushRegisteredAt(registeredAt)}`,
+      buttonLabel: "다시 확인",
+      buttonVariant: "secondary",
+    };
+  }
+
+  if (permission === "granted") {
+    return {
+      description: "브라우저 권한은 허용되어 있어요. 한 번만 연결해 주세요.",
+      buttonLabel: "연결하기",
+      buttonVariant: "primary",
+    };
+  }
+
+  return {
+    description: "브라우저 알림을 허용하면 이 기기에서 소식을 받을 수 있어요.",
+    buttonLabel: "켜기",
+    buttonVariant: "primary",
+  };
+}
+
+function formatPushRegisteredAt(value: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 /** 마이페이지 하단 바로가기 목록의 한 줄입니다. */

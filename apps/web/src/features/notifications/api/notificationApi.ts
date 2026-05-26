@@ -14,6 +14,8 @@ import {
   type NotificationListResponse,
   type NotificationReadRequest,
   type NotificationReadResponse,
+  type RegisterFcmTokenRequest,
+  type RegisterFcmTokenResponse,
 } from "@/features/notifications/model/notificationTypes";
 import { apiClient, unwrapApiResponse } from "@/shared/api";
 import { runtimeConfig } from "@/shared/config/env";
@@ -59,6 +61,20 @@ export function markNotificationRead(
   );
 }
 
+/** 이 브라우저에서 발급한 FCM registration token을 notification 서버에 저장합니다. */
+export function registerFcmToken(body: RegisterFcmTokenRequest) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve<RegisterFcmTokenResponse>({
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  return unwrapApiResponse<RegisterFcmTokenResponse>(
+    apiClient.post("/api/notification/v1/subscriptions/", body),
+  );
+}
+
 /** 알림 목록 화면에서 전체/읽지 않음 탭을 조회하는 hook입니다. */
 export function useNotificationsQuery(filter: NotificationFilter) {
   return useQuery({
@@ -69,6 +85,21 @@ export function useNotificationsQuery(filter: NotificationFilter) {
         cursor: null,
         size: DEFAULT_NOTIFICATION_PAGE_SIZE,
       }),
+  });
+}
+
+/** FCM token 저장 후 알림 목록과 홈 배지를 다시 맞춥니다. */
+export function useRegisterFcmTokenMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: RegisterFcmTokenRequest) => registerFcmToken(body),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
+      ]);
+    },
   });
 }
 
