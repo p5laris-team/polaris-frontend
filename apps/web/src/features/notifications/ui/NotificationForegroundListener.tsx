@@ -27,8 +27,14 @@ export function NotificationForegroundListener() {
 
     void listenForegroundPushMessages((payload) => {
       const copy = getForegroundPushToastCopy(payload);
+      
+      // 브라우저 시스템 네이티브 알림(팝업) 강제 실행
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new window.Notification(copy.title, {
+          body: copy.body,
+        });
+      }
 
-      showToast(`${copy.title}: ${copy.body}`);
       void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
       void queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() });
     })
