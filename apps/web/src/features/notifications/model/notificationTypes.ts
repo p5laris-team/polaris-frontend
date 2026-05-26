@@ -61,3 +61,14 @@ export type NotificationReadResponse = {
   read: boolean;
   updatedAt: string;
 };
+
+/** FCM registration token을 notification 서버에 저장하는 요청입니다. */
+export type RegisterFcmTokenRequest = {
+  token: string;
+};
+
+/** FCM registration token 저장 후 서버가 반환하는 토큰 row 정보입니다. */
+export type RegisterFcmTokenResponse = {
+  id: number;
+  createdAt: string;
+};
