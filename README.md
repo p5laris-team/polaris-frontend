@@ -1,360 +1,328 @@
-# Polaris Design System
+# Polaris Frontend
 
-> 매일의 작은 루틴이 별친구를 자라게 해요.
+Polaris는 사용자가 고른 별친구 캐릭터와 함께 작은 루틴 미션을 수행하는 AI 다마고치형 루틴 서비스입니다. 이 저장소는 Polaris의 프론트엔드 앱, 디자인 기준 문서, UI kit, 이미지 에셋을 함께 관리합니다.
 
-**Polaris**는 AI 다마고치형 루틴 컴패니언 서비스를 위한 디자인 시스템입니다. 사용자는 자신만의 별친구 캐릭터를 키우며, 매일의 미션을 완료해 친구를 자라게 합니다. 모바일 퍼스트 웹앱(React)과 안드로이드 네이티브 앱(React Native) 두 표면을 위해 하나의 시각 언어를 공유합니다.
+현재 실제 앱 구현은 `apps/web`의 React + TypeScript + Vite 웹앱입니다. `docs`, `ui_kits`, `preview`는 구현 기준과 초기 시안을 확인하기 위한 자료입니다.
 
-레퍼런스 톤: **말해보카**(캐릭터 중심의 따뜻함) + **토스**(여백, 절제된 정보 밀도).
+## Quickstart
 
----
-
-## 📦 Sources & Inputs
-
-이 디자인 시스템은 다음 GitHub 저장소를 시드(seed)로 받았습니다:
-
-- [p5laris-team/polaris-frontend](https://github.com/p5laris-team/polaris-frontend) — React 웹앱 (현재 비어 있음)
-- [p5laris-team/polaris](https://github.com/p5laris-team/polaris) — 메인 저장소 (현재 README만 존재)
-
-> ⚠️ 두 저장소 모두 작업 시점에 비어 있어, 이 디자인 시스템은 **사용자 응답을 기반으로 한 v0** 입니다. 실제 코드가 자라나면 이 문서가 진실의 원천(source of truth)이 되도록 의도되었습니다.
-
----
-
-## 🌟 Brand Concept
-
-### 한 줄 정의
-
-> **별친구를 키우며 루틴을 완성하는, 따뜻한 AI 다마고치.**
-
-### 핵심 기둥 (Brand pillars)
-
-1. **따뜻함 (Warmth)** — 페이퍼 톤 배경, 둥근 모서리, 캐릭터의 동그란 얼굴. 디지털인데 종이 다이어리처럼 포근한 느낌.
-2. **차분함 (Calm)** — 자극적이지 않은 색·모션. 토스처럼 한 번에 적게, 여백 많이. 사용자가 부담 없이 매일 들어올 수 있어야 함.
-3. **돌봄 (Care)** — 사용자가 캐릭터를 돌보는 동시에, 시스템이 사용자를 돌본다는 양방향 감각. "오늘 잘 지내셨어요?" 같은 부드러운 안부.
-4. **성장 (Growth)** — 작은 액션이 쌓여 시각적 변화로 이어짐. 캐릭터 표정·인벤토리·통계가 점진적으로 풍성해짐.
-
-### 캐릭터 (Mascot)
-
-사용자가 온보딩에서 셋 중 하나를 선택:
-
-| 이름 | 컨셉 | 메인 컬러 |
-|---|---|---|
-| **노바 (Nova)** | 별이 내려앉은 알친구 | 버터 옐로우 + 화이트 |
-| **쪼리 (Jjori)** | 모험을 좋아하는 생쥐친구 | 그레이 + 스카이 블루 |
-| **무무 (Mumu)** | 새싹이 돋아난 나무밑둥 | 우드 브라운 + 민트 |
-| **별이 (Byeori)** | (레거시) 통통한 별친구 | 테라코타 + 버터 옐로우 |
-| **구름이 (Gureumi)** | (레거시) 부드러운 구름친구 | 화이트 + 스카이 블루 |
-| **콩이 (Kongi)** | (레거시) 동그란 새싹친구 | 버터 옐로우 + 민트 |
-
-각 캐릭터는 기본/행복/졸림/슬픔 등 표정 상태(mood)를 가지며, 루틴 완료에 따라 표정·크기·악세서리가 변화합니다.
-
-> ⚠️ 현재 캐릭터 SVG는 **임시 플레이스홀더**입니다. 정식 일러스트레이터의 작업으로 교체하는 것을 권장합니다. `assets/character-*.svg`를 동일한 viewBox(200×200)로 교체하면 모든 화면에 자동 반영됩니다.
-
----
-
-## ✍️ CONTENT FUNDAMENTALS — 콘텐츠 원칙
-
-### 톤 & 보이스
-
-- **존댓말 기본**, 부드러운 `~해요/~세요` 어미. 너무 격식적이지 않게.
-- **사용자 호칭**: `당신`이라 직접 호명하지 않고, 행동을 주어로 두거나 자연스럽게 생략.
-- **시스템 발화**: 캐릭터가 말을 거는 형태가 핵심. "별이가 배고파해요" "오늘 같이 산책할까요?" 같은 1인칭 캐릭터 발화 또는 캐릭터-사용자 사이 매개 톤.
-- **명령형은 부드럽게**: `시작하기` ✓ / `지금 바로 시작!` ✗
-- **부정 표현 회피**: `실패`보다 `다음에 다시 도전해요`, `오류`보다 `잠깐 연결이 흐려졌어요`.
-
-### 케이싱
-
-- 한국어 라벨/버튼: 그대로 자연스럽게 (`시작하기`, `미션 보러가기`)
-- 영문 라벨: 문장형 케이스 (`Get started`)
-- 헤딩: 부제목과 분리하여 줄바꿈 처리, 부제는 더 옅은 색
-
-### 카피 길이
-
-- **헤드라인**: 한국어 8~14자 (모바일 한 줄)
-- **부제/리드**: 16~30자
-- **버튼**: 2~6자 (`시작하기`, `다음`, `데려가기`)
-- **빈 상태**: 한 줄 따뜻한 문장 + 한 줄 액션 안내
-- **캐릭터 발화**: 12~24자, 말풍선 안에 들어갈 정도
-
-### 이모지 / 특수문자
-
-- **이모지는 거의 사용하지 않음**. 캐릭터 일러스트가 감정 표현을 담당.
-- 예외: 별 글리프 `★` `✦` `✧`를 축하·완료 순간에 절제해서.
-- 알림/푸시에서 한정적으로 ✨ 정도 허용.
-
-### 구체적 카피 예시
-
-| 상황 | ✅ Polaris 스타일 | ❌ 피할 카피 |
-|---|---|---|
-| 온보딩 시작 | `오늘부터 함께할 친구를 골라볼까요?` | `Polaris에 오신 것을 환영합니다! 🎉` |
-| 캐릭터 발화 (홈) | `오늘은 어떤 미션을 함께할까요?` | `안녕! 미션 시작해!` |
-| 미션 완료 | `별이가 두 칸 자랐어요.` | `미션 완료! +100 EXP` |
-| 빈 미션 목록 | `오늘의 미션이 비어 있어요.\n별이가 무엇을 할지 기다리고 있어요.` | `데이터가 없습니다.` |
-| 에러 | `잠시 연결이 흐려졌어요.\n다시 시도해 주세요.` | `네트워크 오류. 다시 시도하세요.` |
-| 푸시 알림 | `별이가 같이 산책하고 싶대요 ✦` | `[알림] 미션을 수행하세요.` |
-| 로그아웃 직전 | `별이가 잠깐 잠들 거예요.\n다음에 또 만나요.` | `정말 로그아웃 하시겠습니까?` |
-| 상점 비어있음 | `아직 모은 별가루가 부족해요.\n미션을 완료해 모아볼까요?` | `재화 부족` |
-
-### 라이팅 체크리스트
-
-- [ ] 존댓말 `~요/~세요` 어미?
-- [ ] 8~14자 안에 핵심이?
-- [ ] 느낌표·이모지에 기대지 않음?
-- [ ] 명령형이 부드러운가?
-- [ ] 부정 표현을 긍정적으로 바꿀 수 있는가?
-- [ ] 캐릭터 발화라면 자연스러운 1인칭인가?
-
----
-
-## 🎨 VISUAL FOUNDATIONS — 시각 기초
-
-### 컬러 시스템
-
-전체 토큰은 [`colors_and_type.css`](./colors_and_type.css) 참고. **3개의 테마 옵션**을 제공하며, 사용자/제품 단계에서 하나를 선택하거나 사용자 설정으로 노출할 수 있습니다.
-
-| 테마 | 배경 | 메인 (Primary) | 액센트 | 분위기 |
-|---|---|---|---|---|
-| **Latte** (기본) | `#FAF5E9` 따뜻한 크림 | `#E07A5F` 테라코타 | `#F4D35E` 버터 옐로우 | 종이 다이어리, 가장 따뜻 |
-| **Mint** | `#EEF7F0` 청량 민트 | `#4FB3A4` 소프트 틸 | `#F4D35E` 버터 | 산뜻하고 식물적 |
-| **Cloud** | `#F2F5FB` 페이퍼 스카이 | `#6F90DA` 소프트 블루 | `#F7B5A8` 피치 | 차분하고 새벽 같은 |
-
-**테마 전환**: `<html data-theme="latte|mint|cloud">` 속성으로. 기본은 Latte.
-**다크 모드**: `<html data-mode="dark">`. 모든 테마와 결합 가능.
-
-**의미 색**: 성공 `#5B9A6F` 세이지, 경고 `#D98531` 호박, 위험 `#C95252` 차분한 코랄 — 모두 채도를 낮춰 브랜드와 통일감 유지.
-
-**시멘틱 토큰 우선**: `--fg-1`, `--bg-1`, `--primary`, `--border-2`를 우선 사용. 원시 팔레트(`--clay-700`)는 fallback.
-
-### 타이포그래피
-
-- **본문/UI 기본**: **Pretendard Variable** — 요즘 한글 디자인 표준. 안정적이고 모던.
-- **디스플레이 옵션**: **SUIT Variable** — Pretendard보다 살짝 더 둥글고 친근. 헤딩과 큰 숫자에 사용.
-- **캐릭터 / 감성**: **Gaegu** — 손글씨 느낌. 캐릭터 말풍선, 빈 상태 한 줄 카피 한정.
-- **모노스페이스**: **JetBrains Mono** — 통계 수치, 코드.
-
-> 두 가지 헤딩 스타일을 사용 시점에 선택할 수 있도록 `--font-display`를 분리했습니다. 기본은 SUIT이며, Pretendard만 쓰고 싶으면 토큰에서 `--font-display`를 `var(--font-sans)`로 변경하면 됩니다.
-
-**스케일 (Toss 영향)**: 본문이 17px, 헤딩은 22~32px로 큼직. 한 화면에 정보를 적게, 여백을 많이.
-
-**라인 하이트**: 한글 가독성 위해 본문 1.55~1.7로 넉넉. `letter-spacing`은 한글 본문 0, 헤딩만 -0.02em.
-
-### 간격 (Spacing) — Toss 스타일
-
-- 4px 베이스: `0, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 64, 80, 96`
-- 모바일 화면 좌우 가장자리: **`--space-6 (24px)`**
-- 카드 내부 패딩: **`--space-6 (24px)`**
-- 인풋 내부 패딩: 세로 `--space-4`, 가로 `--space-5`
-- 섹션 사이: `--space-8 (32px)` 또는 `--space-12 (48px)`
-- 큰 히어로 영역 상하: `--space-12 ~ --space-20`
-
-### 배경 (Backgrounds)
-
-- **단색 + 미세한 별가루** 패턴이 기본. 풀블리드 사진 배경은 거의 사용하지 않음.
-- **그라데이션 규칙**:
-  - 큰 보라→파랑 그라디언트 **금지** (AI 슬롭 룩)
-  - 허용: 같은 색의 100→200 단계 미묘 그라디언트 (히어로의 따뜻한 후광)
-  - 허용: 캐릭터 뒤 원형 글로우 (`--bg-character` 사용)
-- **별가루 패턴**: [`assets/pattern-stardust.svg`](./assets/pattern-stardust.svg) 반복 타일링. 어두운/큰 영역에 0.4~0.6 opacity로 절제 사용.
-
-### 카드 & 보더
-
-- **카드 = 흰 배경 + 1px hairline + 옅은 그림자** (좌측 컬러 보더 금지)
-- 기본: `background: var(--bg-2)`, `border: 1px solid var(--border-1)`, `border-radius: var(--radius-lg)(20px)`, `box-shadow: var(--shadow-sm)`
-- 캐릭터 카드는 특별: `box-shadow: var(--shadow-character)` (메인 컬러 살짝 빛나는 그림자)
-- 보더 컬러는 항상 `rgba(45,36,24,alpha)` (다크: `rgba(255,245,226,alpha)`) — 컬러 보더 금지
-
-### 코너 반경 — **둥글둥글 취향**
-
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--radius-xs` | 6px | 작은 칩, 인디케이터 |
-| `--radius-sm` | 10px | 인풋 안 작은 컨트롤 |
-| `--radius-md` | 14px | 인풋, 작은 버튼 |
-| `--radius-button` | 16px | **버튼 전용 (살짝 더 둥글게)** |
-| `--radius-lg` | 20px | **카드 기본** |
-| `--radius-xl` | 28px | 큰 카드, 시트 |
-| `--radius-2xl` | 36px | 모달 상단, 메인 히어로 |
-| `--radius-pill` | 999px | 칩, 태그, 작은 배지 |
-
-기본 컴포넌트는 20px 카드 + 16px 버튼이 가장 자주 등장하는 페어.
-
-### 그림자 / Elevation
-
-5단계 + 캐릭터 전용 1개. 색은 **따뜻한 회갈색**(`rgba(45, 36, 24, …)`).
-
-- `--shadow-xs` 호버 hint
-- `--shadow-sm` 카드 기본
-- `--shadow-md` FAB, 메뉴
-- `--shadow-lg` 모달
-- `--shadow-xl` 풀스크린 시트
-- `--shadow-character` 캐릭터 카드 전용 — 메인 컬러 살짝 빛나는 페더
-
-글로우:
-- `--glow-primary` 4px 반투명 메인 컬러 (포커스 링)
-- `--glow-accent` 축하 순간 한정 (목표 달성)
-
-### 모션 (Animation)
-
-**원칙: 부드럽고 친근. UI는 절제, 캐릭터는 살짝 통통.**
-
-- 이징: `--ease-out`(0.22, 1, 0.36, 1) 기본. 마지막 부드럽게 안착.
-- **캐릭터 등장·점프**는 `--ease-spring`(0.34, 1.56, 0.64, 1)로 살짝 통통.
-- 시간: micro 80 / fast 140 / base 220 / slow 360 / deliberate 520 / character 680ms.
-- 페이지 진입: fade + 8px 위로 슬라이드, 220ms.
-- **반복 펄스 금지**. 캐릭터 호흡(breathing) 애니메이션은 4초 cycle, 매우 미묘하게 OK.
-- `prefers-reduced-motion: reduce` 항상 존중.
-
-### 호버 / 프레스
-
-- **호버 (웹)**: primary 버튼 → `--primary-hover`. 카드 → 그림자 한 단계 상승 + 2px 위로.
-- **프레스 (모바일)**: 버튼 `scale(0.96)` 100ms. 카드 → `--bg-3` 살짝 깜빡.
-- **포커스**: 키보드 포커스에 항상 `--glow-primary` 4px 링. `outline:none` 금지.
-
-### 투명도 & 블러
-
-- 블러는 매우 절제. 풀스크린 모달 스크림(`--scrim`)은 단색 반투명.
-- 예외: 모바일 sticky 헤더에 `backdrop-filter: blur(8px)` + 반투명 배경.
-- 카드 내부 glassmorphism은 사용 금지.
-
-### 이미지 톤
-
-- 캐릭터 일러스트는 **flat + 단순 형태 + 한 톤의 채도 낮은 색**. 그라디언트나 사실적 셰이딩 없음.
-- 사진을 쓴다면 자연광, 따뜻한 톤, 채도 낮음. 형광 채도 금지.
-- 일러스트는 1~2색 + 흑갈색 라인 스타일.
-
-### 레이아웃 규칙
-
-- 모바일 퍼스트, 기본 컨테이너 `max-width: 480px`. 그 위는 가운데 정렬 + 양쪽 여백.
-- 모바일 고정 요소: 상단 헤더 56px, 하단 탭바 64px + safe-area-inset-bottom.
-- 모든 인터랙티브 요소 최소 터치 영역 **44×44px**.
-- 풀블리드 섹션의 내부 콘텐츠는 항상 좌우 24px 패딩.
-
-### Don't List
-
-Polaris에서 **하지 않는** 것들:
-
-- 보라→파랑 큰 면적 그라디언트 (AI 슬롭 룩)
-- 카드 좌측 컬러 보더만 두기 (`border-left: 4px solid #...`)
-- 채도 높은 형광 컬러
-- 이모지로 카드 헤더 장식
-- 무한 펄스/스파클 애니메이션
-- 시스템 폰트 스택만 의존 (Pretendard·SUIT 반드시 로드)
-- 캐릭터에 비례 무시한 sticker처럼 박힌 표정 (모든 표정은 같은 SVG 시스템 안에서)
-
----
-
-## 🔣 ICONOGRAPHY — 아이콘
-
-### 시스템 (혼용)
-
-답변에 따라 **커스텀 일러스트 + 아이콘 혼용** 방식을 채택:
-
-1. **기능 아이콘**: [**Lucide**](https://lucide.dev) — 24×24, 1.5px stroke, 둥근 캡. 모던하고 군더더기 없음.
-2. **카테고리 / 감정 일러스트**: 커스텀 SVG (`assets/cat-*.svg`, `assets/character-*.svg`). 동그란 컨테이너 + 1~2색 + 단순 형태.
-
-### 사용 규칙
-
-- 기본 크기: 인라인 라벨 `20px` / 단독 아이콘 버튼 `24px` / 히어로 영역 `28~32px`.
-- 색은 `currentColor` — 상위 텍스트 색 상속.
-- 액션 아이콘: `--primary` / 정보: `--fg-2` / 위험: `--danger`.
-- 채우기 아이콘은 **선택된 상태** 한정 (탭바 활성, 즐겨찾기 ON).
-- 커스텀 일러스트(`cat-*.svg`)는 80×80 둥근 배경 컨테이너로 통일.
-
-### CDN / 설치
+처음 실행할 때는 백엔드 없이도 화면을 볼 수 있는 fixture 모드가 가장 편합니다.
 
 ```bash
-# Web
-npm install lucide-react
+cd /Users/corapark/Documents/p5laris/polaris-frontend
 
-# React Native
-npm install lucide-react-native react-native-svg
+corepack enable
+corepack prepare pnpm@9.15.0 --activate
+
+pnpm install
+cp apps/web/.env.example apps/web/.env.local
+pnpm dev:web
 ```
 
-```jsx
-import { Heart, Sparkles, ChevronRight } from 'lucide-react';
-<Heart size={20} strokeWidth={1.75} />
+개발 서버 기본 주소는 `http://127.0.0.1:5173`입니다.
+
+`corepack`을 사용할 수 없는 환경에서는 아래처럼 pnpm을 직접 설치해도 됩니다.
+
+```bash
+npm install -g pnpm@9.15.0
 ```
 
-### 브랜드 자산
+## 실제 API 연결
 
-| 파일 | 용도 |
+기본 fixture 모드는 `VITE_USE_API_FIXTURES=true`라서 API 서버가 없어도 동작합니다. 백엔드와 붙여 볼 때는 `apps/web/.env.local`을 아래처럼 바꿉니다.
+
+```env
+VITE_USE_API_FIXTURES=false
+VITE_API_BASE_URL=http://127.0.0.1:8080
+VITE_OAUTH_REDIRECT_URI=http://127.0.0.1:5173/oauth/google/callback
+```
+
+`polaris` 백엔드를 쓰면 gateway 기본 포트가 `8080`입니다. `p5laris-local` 백엔드를 같이 띄운 경우에는 local gateway 포트에 맞춰 `VITE_API_BASE_URL=http://127.0.0.1:18080`처럼 바꾸면 됩니다.
+
+환경 변수를 바꾼 뒤에는 Vite dev server를 껐다가 다시 켜 주세요.
+
+## Scripts
+
+| 명령어 | 설명 |
 |---|---|
-| `assets/logo-wordmark.svg` | 캐릭터 + "Polaris" 워드마크 (헤더, 마케팅) |
-| `assets/logomark.svg` | 64×64 앱 아이콘 / 파비콘 |
-| `assets/star-mark.svg` | 4포인트 별 단독 (currentColor, 작은 액센트) |
-| `assets/character-nova.png` | 노바 — 기본 표정 |
-| `assets/character-nova-happy.png` | 노바 — 행복 |
-| `assets/character-nova-sleepy.png` | 노바 — 졸림 |
-| `assets/character-jjori.png` | 쪼리 — 기본 |
-| `assets/character-mumu.png` | 무무 — 기본 |
-| `assets/character-byeori.svg` | 별이 — 기본 표정 (레거시) |
-| `assets/character-byeori-happy.svg` | 별이 — 행복 (레거시) |
-| `assets/character-byeori-sleepy.svg` | 별이 — 졸림 (레거시) |
-| `assets/character-gureumi.svg` | 구름이 — 기본 (레거시) |
-| `assets/character-kongi.svg` | 콩이 — 기본 (레거시) |
-| `assets/pattern-stardust.svg` | 별가루 배경 패턴 (타일 반복) |
-| `assets/illustration-empty.svg` | 빈 상태 일러스트 |
-| `assets/cat-morning.svg` | 카테고리 — 모닝 |
-| `assets/cat-fitness.svg` | 카테고리 — 운동 |
-| `assets/cat-reading.svg` | 카테고리 — 독서 |
-| `assets/cat-mind.svg` | 카테고리 — 마음 |
-| `assets/item-*.svg` | 상점 아이템 (모자, 리본, 풍선, 트로피) |
+| `pnpm dev:web` | 웹앱 개발 서버를 실행합니다. |
+| `pnpm build:web` | TypeScript 검사 후 production bundle을 만듭니다. |
+| `pnpm preview:web` | production build 결과를 로컬에서 미리 봅니다. |
+| `pnpm typecheck:web` | TypeScript 타입 검사만 실행합니다. |
 
-### 이모지
+## 저장소 구조
 
-거의 사용 금지. 예외:
-- 알림에서 ✨ ✦ 정도 한정
-- 본문 텍스트에서는 사용 안 함
+```text
+.
+├── apps/web/              # 실제 React + Vite 웹앱
+├── assets/                # 로고, 캐릭터, 카테고리, 아이템 이미지
+├── docs/                  # PRD, API 명세, 화면 설계, 디자인 문서
+├── fonts/                 # 폰트 로딩/자체 호스팅 가이드
+├── preview/               # 디자인 토큰/컴포넌트 HTML 프리뷰
+├── ui_kits/               # 초기 웹/모바일 클릭스루 프로토타입
+├── colors_and_type.css    # 공통 디자인 토큰
+├── AGENTS.md              # 구현 기준과 AI 작업 지침
+├── package.json           # pnpm workspace scripts
+└── pnpm-workspace.yaml    # pnpm workspace 설정
+```
 
-### 폰트 안에 들어있는 아이콘?
+## 웹앱 구조
 
-별도 아이콘 폰트 없음. SVG + Lucide 사용.
+`apps/web/src`는 화면 단위로 고치기 쉽게 나눠져 있습니다.
 
----
+```text
+apps/web/src/
+├── app/                   # 앱 조립부: 초기화, provider, 최상위 App
+├── routes/                # URL 경로와 라우팅
+├── entities/              # 여러 feature가 공유하는 도메인 타입
+├── features/              # 실제 화면/기능 단위 코드
+├── shared/                # 공통 API, 설정, 스타일, UI 컴포넌트
+├── stores/                # 전역 클라이언트 상태
+└── main.tsx               # React 앱 진입점
+```
 
-## 📁 Index — 파일 안내
+`features` 안의 각 기능은 보통 같은 모양을 따릅니다.
 
-| 경로 | 내용 |
+```text
+features/mission/
+├── api/                   # 실제 API 호출, React Query hook, query key
+├── model/                 # fixture, mapper, store, 화면 계산 로직
+└── ui/                    # 화면 컴포넌트와 CSS
+```
+
+이 구조 덕분에 “미션 화면을 고친다”면 대부분 `features/mission`부터 보면 되고, “공통 버튼을 고친다”면 `shared/ui/Button`을 보면 됩니다.
+
+## 코드 주석 읽는 법
+
+프론트 코드의 주석은 팀원이 빠르게 구조를 이해하고, 포트폴리오에서 기술 판단을 설명할 수 있게 남겨 둡니다.
+
+| 주석 위치 | 의미 |
 |---|---|
-| [`README.md`](./README.md) | 이 문서 — 브랜드 컨셉, 콘텐츠·시각 원칙, 아이콘 가이드 |
-| [`SKILL.md`](./SKILL.md) | Agent Skill 메타데이터 |
-| [`colors_and_type.css`](./colors_and_type.css) | 모든 디자인 토큰 (3 테마 + 다크모드) |
-| [`assets/`](./assets/) | 로고, 캐릭터, 카테고리·아이템 일러스트, 패턴 |
-| [`fonts/`](./fonts/) | 웹폰트 가이드 (CDN 기본, 자체호스팅 교체 가이드) |
-| [`preview/`](./preview/) | 디자인 시스템 카드 (Design System 탭에서 렌더됨) |
-| [`ui_kits/web/`](./ui_kits/web/) | 웹 UI 키트 — React/JSX, 7개 핵심 화면 |
-| [`ui_kits/mobile/`](./ui_kits/mobile/) | 모바일 UI 키트 — RN 호환 스타일, Android 프레임 |
+| 파일 맨 위 block 주석 | 이 파일이 프로그램에서 맡는 책임입니다. 처음 보는 파일이면 이 주석부터 읽으면 됩니다. |
+| exported function/hook 주석 | 다른 파일에서 호출할 수 있는 함수가 언제, 왜 쓰이는지 설명합니다. |
+| type/enum 주석 | 백엔드 상태값이나 요청/응답 필드가 제품에서 무슨 뜻인지 설명합니다. |
+| 한 줄 주석 | 인증, 동시성, 캐시 무효화, 멱등성, fallback처럼 코드만 봐서는 이유가 덜 보이는 부분에 붙입니다. |
+| `SCR-xxx` 주석 | PR 번호가 아니라 `docs/product/07-Screen-Design-Specification.md`의 화면 ID입니다. 화면 명세와 구현을 연결하기 위한 표시입니다. |
 
----
+개인 작업명, PR 번호, “나중에 대충” 같은 메모는 코드에 남기지 않습니다. 필요하면 README나 이슈에 작업 맥락으로 정리하고, 코드에는 제품/기술 기준으로 설명합니다.
 
-## ⚙️ 빠른 사용 예 (Quickstart)
+## 어디를 고칠까
 
-```html
-<link rel="stylesheet" href="./colors_and_type.css">
-<!-- 테마 전환 -->
-<html data-theme="latte" data-mode="light">
-  <body>
-    <h1>오늘의 미션</h1>
-    <p class="text-lead">별이가 함께할 준비를 마쳤어요.</p>
-    <button class="btn-primary">시작하기</button>
-  </body>
-</html>
+| 고치고 싶은 것 | 먼저 볼 파일 |
+|---|---|
+| 로그인 버튼, OAuth callback | `features/auth/ui`, `features/auth/api/authApi.ts`, `stores/authStore.ts` |
+| 로그인 후 첫 화면 이동 | `app/providers/AppInitializer.tsx`, `routes/AppRouter.tsx` |
+| 홈 캐릭터/미션 카드 | `features/home/ui/HomePage.tsx`, `features/home/model/homeMappers.ts` |
+| 미션 거절/다음 미션/완료 인증 | `features/mission/api/missionApi.ts`, `features/mission/ui` |
+| 미션 상태값 의미 | `entities/mission/types.ts` |
+| 캐릭터 상태/돌봄 | `features/character/ui/CharacterCarePage.tsx`, `features/character/model/characterCareTypes.ts` |
+| 캐릭터 이미지가 다르게 나올 때 | `features/character/model/characterAssetResolver.ts`, `shared/assets/polarisAssets.ts` |
+| 상점 상품/구매 | `features/shop/ui/ShopPage.tsx`, `features/shop/api/shopApi.ts` |
+| 보관함/스킨 장착 | `features/inventory/ui/InventoryPage.tsx`, `features/inventory/api/inventoryApi.ts` |
+| 별조각 거래내역 | `features/wallet/ui/WalletPage.tsx`, `features/wallet/model/walletTypes.ts` |
+| 공유 카드/공유 보상 | `features/share/ui/ShareCardPage.tsx`, `features/share/api/shareApi.ts` |
+| 출석 체크 | `features/attendance/ui/AttendancePage.tsx`, `features/attendance/api/attendanceApi.ts` |
+| 알림 목록/읽음 처리 | `features/notifications/ui/NotificationsPage.tsx`, `features/notifications/api/notificationApi.ts` |
+| 마이페이지/알림 설정 | `features/my-page/ui/MyPage.tsx`, `features/my-page/model/myPageSettingsStore.ts` |
+| 버튼, 카드, 헤더 같은 공통 UI | `shared/ui` |
+
+## 핵심 흐름
+
+앱 시작 흐름은 아래 순서입니다.
+
+```text
+main.tsx
+→ AppProviders
+→ App
+→ AppInitializer
+→ AppRouter
+→ 각 feature page
 ```
 
-React에서:
+`AppProviders`는 React Query, React Router, ToastProvider처럼 앱 전체에 필요한 provider를 묶습니다.
 
-```jsx
-import './colors_and_type.css';
-import { Button, MissionCard, CharacterStage } from './ui_kits/web/components';
+`AppInitializer`는 로그인 토큰이 있을 때 온보딩 프로필과 활성 캐릭터를 먼저 조회해서 새로고침 후에도 사용자를 올바른 화면으로 보내기 위한 초기화 계층입니다.
+
+`AppRouter`는 로그인, 온보딩, 홈, 미션, 캐릭터, 상점, 인벤토리, 지갑, 공유, 출석, 알림, 마이페이지 라우트를 관리합니다. fixture 모드에서는 실제 로그인 없이도 화면 흐름을 확인할 수 있습니다.
+
+## API와 상태 관리
+
+서버 상태는 TanStack Query를 사용합니다. API 호출과 query key는 각 feature의 `api` 폴더에 둡니다.
+
+클라이언트 상태는 Zustand를 사용합니다. 로그인 세션은 `stores/authStore.ts`, 온보딩 진행 상태는 `features/onboarding/model/onboardingStore.ts`에 있습니다.
+
+HTTP 공통 처리는 `shared/api/httpClient.ts`에 있습니다.
+
+여기서 신경 쓴 부분:
+
+| 항목 | 설명 |
+|---|---|
+| 공통 응답 unwrap | 백엔드의 `ApiResponse<T>`를 `unwrapApiResponse`로 풀어 화면에서는 성공 데이터만 다루게 했습니다. |
+| 토큰 자동 첨부 | Axios request interceptor에서 access token을 붙입니다. |
+| 선제적 토큰 갱신 | access token 만료 30초 전이면 refresh token으로 먼저 갱신합니다. |
+| 401 재시도 | 응답이 401이면 한 번만 token refresh 후 원래 요청을 재시도합니다. |
+| refresh 중복 방지 | 동시에 여러 요청이 401을 만나도 `refreshPromise` 하나를 공유해 token refresh 요청이 중복으로 나가지 않게 했습니다. |
+| fixture 전환 | `VITE_USE_API_FIXTURES` 값 하나로 실제 API와 fixture 데이터를 바꿔 탈 수 있습니다. |
+| query invalidation | 미션 완료, 거절, 구매, 출석처럼 데이터가 바뀌는 mutation 후 관련 query를 다시 불러오게 했습니다. |
+
+## 디자인 기준
+
+화면 디자인은 새로 해석하지 않고 기존 UI kit과 디자인 문서를 기준으로 맞춥니다.
+
+먼저 볼 파일:
+
+| 상황 | 먼저 볼 곳 |
+|---|---|
+| 화면 생김새가 헷갈릴 때 | `ui_kits/web/index.html`, `ui_kits/web/styles.css` |
+| 모바일 기준까지 확인할 때 | `ui_kits/mobile/index.html` |
+| 제품 의도와 화면 목록을 볼 때 | `docs/product/PRD.md`, `docs/product/07-Screen-Design-Specification.md` |
+| API request/response를 볼 때 | `docs/api/01-API-spec.md` |
+| 색상/폰트/토큰을 볼 때 | `colors_and_type.css`, `docs/design/00-design-system.md` |
+| 에셋 파일명을 찾을 때 | `assets/`, `shared/assets/polarisAssets.ts` |
+
+Polaris의 톤은 “해야 할 일 관리 앱”보다 “작은 일상을 같이 살아주는 캐릭터 앱”에 가깝습니다. 그래서 에러, 빈 상태, 버튼 문구도 너무 딱딱하지 않게 유지합니다.
+
+## 자주 고치는 방법
+
+### 새 페이지를 추가할 때
+
+1. `features/{기능명}/ui`에 페이지 컴포넌트를 만듭니다.
+2. 필요한 API가 있으면 `features/{기능명}/api`에 API 함수와 hook을 만듭니다.
+3. fixture가 필요하면 `features/{기능명}/model`에 `*Fixtures.ts`를 둡니다.
+4. `routes/paths.ts`에 URL을 추가합니다.
+5. `routes/AppRouter.tsx`에 `<Route />`를 추가합니다.
+6. 하단 탭에 들어갈 화면이면 `features/navigation`도 같이 수정합니다.
+
+### API endpoint를 붙일 때
+
+1. `docs/api/01-API-spec.md`에서 endpoint와 응답 타입을 확인합니다.
+2. 여러 feature에서 공유할 타입이면 `entities`에 둡니다.
+3. 특정 화면 전용 타입이면 해당 feature의 `model`에 둡니다.
+4. `shared/api`에서 export되는 `apiClient`와 `unwrapApiResponse`를 사용합니다.
+5. fixture 모드에서도 같은 화면 흐름이 되도록 fixture 함수를 같이 만듭니다.
+
+### 화면 스타일을 고칠 때
+
+1. 먼저 `colors_and_type.css`의 토큰을 확인합니다.
+2. 특정 화면 CSS는 해당 feature의 `ui/*.css`에서 수정합니다.
+3. 여러 화면이 같이 쓰는 컴포넌트는 `shared/ui`에서 수정합니다.
+4. 임의 색상, 임의 radius, 임의 그림자를 만들기 전에 UI kit에 같은 패턴이 있는지 확인합니다.
+
+### 로그인/인증 쪽을 고칠 때
+
+1. OAuth 진입과 callback은 `features/auth`를 봅니다.
+2. access token과 refresh token 보관은 `stores/authStore.ts`를 봅니다.
+3. 토큰 첨부와 재발급은 `shared/api/httpClient.ts`를 봅니다.
+4. 로그인 여부에 따른 라우팅은 `routes/AppRouter.tsx`의 `ProtectedRoute`와 `RootRedirect`를 봅니다.
+
+### 미션 흐름을 고칠 때
+
+1. 미션 조회/생성/거절/완료 API는 `features/mission/api/missionApi.ts`를 봅니다.
+2. 현재 미션 카드와 홈 요약은 `features/home`도 함께 봅니다.
+3. 답변 페이지는 `MissionAnswerPage.tsx`, 결과 페이지는 `MissionResultPage.tsx`입니다.
+4. 거절 후 다음 미션 요청은 하나의 mutation 안에서 순서를 보장합니다.
+
+### 캐릭터/아이템 이미지가 안 맞을 때
+
+1. 실제 이미지 파일은 `assets/`에 있습니다.
+2. 웹에서 쓰는 asset 경로 매핑은 `shared/assets/polarisAssets.ts`를 봅니다.
+3. 캐릭터 상태별 이미지 선택은 `features/character/model/characterAssetResolver.ts`를 봅니다.
+4. 아이템 이미지는 `features/item/model/itemAssetResolver.ts`를 봅니다.
+
+## 신경 쓴 내용
+
+이 프로젝트는 화면만 얹은 코드가 아니라 실제 운영을 생각해 아래 부분을 챙겼습니다.
+
+| 영역 | 신경 쓴 내용 |
+|---|---|
+| API 전환성 | 백엔드가 준비되기 전에는 fixture로 개발하고, 준비되면 환경 변수로 실제 API를 연결합니다. |
+| 인증 안정성 | access token 만료 전 갱신과 401 후 재시도를 모두 처리합니다. |
+| 동시성 | token refresh 요청이 동시에 여러 번 나가지 않도록 공유 Promise로 묶었습니다. |
+| 서버 상태 | TanStack Query query key와 invalidation으로 화면 데이터가 오래된 상태로 남지 않게 했습니다. |
+| 도메인 분리 | feature별로 `api/model/ui`를 나눠 어디를 고칠지 찾기 쉽게 했습니다. |
+| 디자인 일관성 | `colors_and_type.css`, UI kit, `shared/ui` 컴포넌트를 기준으로 화면 톤을 맞췄습니다. |
+| 개발 편의성 | fixture 모드, 디자인 시스템 preview, path alias를 둬 백엔드 없이도 화면을 빠르게 확인할 수 있습니다. |
+| 운영 확장성 | Sentry 같은 프론트 모니터링을 붙일 수 있도록 release/env/source map 기준으로 확장하기 쉬운 Vite 구조입니다. |
+| 주석 기준 | 파일 책임, 타입/enum 의미, 동시성/정합성 판단을 한국어 주석으로 남겨 팀원이 빠르게 따라올 수 있게 했습니다. |
+
+## 대용량/운영 확장 포인트
+
+지금은 MVP 규모에 맞춰 단순하게 구현했지만, 데이터가 커지면 아래 순서로 확장하면 됩니다.
+
+| 영역 | 확장 방향 |
+|---|---|
+| 목록 데이터 | 알림, 지갑, 상점, 보관함은 이미 cursor page 타입을 사용합니다. 실제 무한 스크롤이 필요해지면 `useInfiniteQuery`로 바꾸면 됩니다. |
+| 렌더링 성능 | 알림/거래내역이 수백 건 이상으로 늘면 `react-virtual` 같은 가상 리스트를 붙여 DOM 개수를 줄입니다. |
+| API 부하 | 홈처럼 자주 보는 데이터는 `staleTime`을 조정하고, mutation 후 필요한 query만 invalidation합니다. |
+| 인증 동시성 | refresh token 요청은 공유 Promise로 묶어 여러 API가 동시에 401을 받아도 재발급 요청이 한 번만 나가게 했습니다. |
+| 보상 중복 방지 | 공유 보상은 `idempotencyKey`를 보내 같은 공유 카드로 보상이 중복 지급되지 않게 설계했습니다. |
+| 이미지 트래픽 | 캐릭터/스킨 이미지가 늘면 CDN URL과 로컬 fallback을 같이 유지하고, 필요한 화면에서만 preload를 붙입니다. |
+| 모니터링 | 운영 배포 후에는 Sentry release/env/source map 설정으로 프론트 에러와 사용자 영향도를 추적합니다. |
+
+## 운영 전 체크리스트
+
+배포 전에 최소한 아래를 확인합니다.
+
+```bash
+pnpm typecheck:web
+pnpm build:web
+pnpm preview:web
 ```
 
-React Native에서는 토큰을 JS 객체로 변환한 `tokens.js`를 import — `ui_kits/mobile/README.md` 참고.
+운영 환경에서는 fixture를 반드시 끕니다.
 
----
+```env
+VITE_USE_API_FIXTURES=false
+VITE_API_BASE_URL=https://api.example.com
+```
 
-## 🛠 Caveats — 알려진 한계
+나중에 Sentry를 붙이면 아래를 같이 챙깁니다.
 
-- 캐릭터·일러스트 SVG는 모두 **임시 플레이스홀더**입니다. 정식 일러스트레이터의 작업으로 교체하는 것을 강하게 권장합니다. (동일 viewBox로 교체 시 자동 반영)
-- 폰트(Pretendard, SUIT, Gaegu, JetBrains Mono)는 모두 CDN(jsDelivr/Google Fonts)에서 로드. 오프라인·자체호스팅이 필요하면 [`fonts/README.md`](./fonts/README.md) 가이드 참고.
-- 두 GitHub 저장소가 비어 있어 실제 코드베이스에서 컴포넌트를 역공학할 수 없었습니다. 저장소가 채워지면 이 시스템을 재검증하세요.
-- React Native UI 키트는 RN 호환 스타일로 작성되었지만, 실제 RN 런타임 검증은 별도로 필요합니다 (현재는 HTML/JSX로 시각적 재현).
-- 3가지 테마(Latte/Mint/Cloud)는 모두 동일한 컴포넌트와 토큰 구조에서 동작하므로, 최종 하나를 선택하거나 사용자 설정으로 노출 가능합니다.
+| 항목 | 이유 |
+|---|---|
+| `environment` | production/staging/local 에러를 분리하기 위해 필요합니다. |
+| `release` | 어떤 배포 버전부터 에러가 생겼는지 추적하기 위해 필요합니다. |
+| source map upload | minified JS 에러를 실제 TypeScript 파일/라인으로 보기 위해 필요합니다. |
+| 민감정보 필터링 | token, email, 입력값 같은 개인정보가 외부로 나가지 않게 하기 위해 필요합니다. |
+| 낮은 sampling | 무료 quota와 사용자 프라이버시를 지키기 위해 필요합니다. |
+
+## 문제 해결
+
+### 화면이 로그인으로만 이동할 때
+
+`VITE_USE_API_FIXTURES=false`이면 실제 로그인 세션이 없을 때 `/login`으로 이동합니다. 백엔드 없이 화면을 보고 싶으면 fixture 모드를 켭니다.
+
+```env
+VITE_USE_API_FIXTURES=true
+```
+
+### API 호출이 전부 실패할 때
+
+`VITE_API_BASE_URL`이 현재 gateway 포트와 맞는지 확인합니다.
+
+```env
+# polaris 백엔드
+VITE_API_BASE_URL=http://127.0.0.1:8080
+
+# p5laris-local 백엔드
+VITE_API_BASE_URL=http://127.0.0.1:18080
+```
+
+### 새 환경 변수가 반영되지 않을 때
+
+Vite는 dev server 시작 시 환경 변수를 읽습니다. `.env.local`을 바꿨다면 `pnpm dev:web`을 다시 실행합니다.
+
+### 이미지 import가 안 될 때
+
+`@polaris-assets` alias는 `apps/web/vite.config.ts`와 `apps/web/tsconfig.json`에 같이 등록되어 있습니다. alias를 바꾸면 두 파일을 함께 수정해야 합니다.
+
+## 문서 인덱스
+
+| 영역 | 문서 |
+|---|---|
+| 제품 기준 | `docs/product/PRD.md` |
+| 화면 설계 | `docs/product/07-Screen-Design-Specification.md` |
+| API 명세 | `docs/api/01-API-spec.md` |
+| 디자인 시스템 | `docs/design/00-design-system.md` |
+| UI/UX 에셋 | `docs/design/08-UIUX-Asset-Production-Guide.md` |
+| 구현 기준 | `AGENTS.md` |

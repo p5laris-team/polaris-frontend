@@ -1,0 +1,67 @@
+name: Deploy Web
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and Deploy Web
+    runs-on: ubuntu-latest
+
+    env:
+      DEPLOY_PATH: /opt/p5laris/nginx/html
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck web
+        run: pnpm typecheck:web
+
+      - name: Create production env file
+        working-directory: apps/web
+        run: printf '%s\n' "${{ vars.WEB_ENV_PRODUCTION }}" > .env.production
+
+      - name: Build web
+        run: pnpm build:web
+
+      - name: Add SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/lightsail.pem
+          chmod 600 ~/.ssh/lightsail.pem
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload build to server
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/lightsail.pem" \
+            apps/web/dist/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${DEPLOY_PATH}/"
+
+      - name: Reload nginx
+        run: |
+          ssh -i ~/.ssh/lightsail.pem \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "docker exec p5laris-nginx nginx -t && docker exec p5laris-nginx nginx -s reload"

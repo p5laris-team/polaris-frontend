@@ -1,0 +1,437 @@
+/**
+ * 별친구 상태 상세와 돌봄 화면입니다.
+ * 활성 캐릭터의 hunger/energy/affection 상태를 읽고,
+ * 보유 소모품을 사용해 돌봄 로그를 생성한 뒤 상태 query를 갱신합니다.
+ */
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Shirt } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { toCharacterKey, type CharacterStates } from "@/entities/character/types";
+import {
+  useActiveCharacterQuery,
+  useCharacterStatusQuery,
+  useCreateCareLogMutation,
+} from "@/features/character/api/characterCareApi";
+import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  getCharacterCareIntro,
+  getCharacterCareItemShortageMessage,
+  getCharacterCareReactionMessage,
+} from "@/features/character/model/characterCareMessages";
+import { type CareActionType } from "@/features/character/model/characterCareTypes";
+import { useInventoryConsumableItemsQuery } from "@/features/inventory/api/inventoryApi";
+import {
+  type InventoryItemEffectType,
+  type UserInventoryItem,
+} from "@/features/inventory/model/inventoryTypes";
+import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
+import { routes } from "@/routes/paths";
+import { getUserFacingErrorMessage } from "@/shared/api";
+import {
+  AppShell,
+  Button,
+  Card,
+  CareActionFeedback,
+  CharacterStage,
+  Header,
+  StatusGauge,
+  Tag,
+  useToast,
+} from "@/shared/ui";
+import { consumableItemAssets, type CharacterMood } from "@/shared/assets/polarisAssets";
+
+import "./CharacterCarePage.css";
+
+type CareActionConfig = {
+  type: CareActionType;
+  label: string;
+  effectType: InventoryItemEffectType;
+  itemLabel: string;
+  description: string;
+};
+
+type CareFeedbackTone = "feed" | "sleep" | "play";
+
+type CareFeedbackState = {
+  imageUrl: string;
+  mood: CharacterMood;
+  tone: CareFeedbackTone;
+};
+
+// 돌봄 버튼은 화면 정책과 소모품 effectType을 연결하는 작은 설정 테이블입니다.
+const careActions: CareActionConfig[] = [
+  {
+    type: "FEED",
+    label: "밥 주기",
+    effectType: "FOOD",
+    itemLabel: "별사탕밥",
+    description: "포만감을 회복해요",
+  },
+  {
+    type: "SLEEP",
+    label: "재우기",
+    effectType: "REST",
+    itemLabel: "구름 베개",
+    description: "기운을 회복해요",
+  },
+  {
+    type: "PLAY",
+    label: "놀아주기",
+    effectType: "PLAY",
+    itemLabel: "별 장난감",
+    description: "애정을 회복해요",
+  },
+];
+
+const careFeedbackPresets: Record<
+  CareActionType,
+  {
+    mood: CharacterMood;
+    tone: CareFeedbackTone;
+  }
+> = {
+  FEED: {
+    mood: "happy",
+    tone: "feed",
+  },
+  SLEEP: {
+    mood: "sleepy",
+    tone: "sleep",
+  },
+  PLAY: {
+    mood: "happy",
+    tone: "play",
+  },
+};
+
+export function CharacterCarePage() {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const activeCharacterQuery = useActiveCharacterQuery();
+  const characterId = activeCharacterQuery.data?.id ?? null;
+  const statusQuery = useCharacterStatusQuery(characterId);
+  const consumablesQuery = useInventoryConsumableItemsQuery();
+  const careMutation = useCreateCareLogMutation();
+  const [careMessage, setCareMessage] = useState<string | null>(null);
+  const [careFeedback, setCareFeedback] = useState<CareFeedbackState | null>(null);
+  const careFeedbackTimeoutRef = useRef<number | null>(null);
+
+  const character = activeCharacterQuery.data;
+  const states = statusQuery.data?.states ?? character?.states;
+  const gauges = useMemo(() => (states ? toCareGauges(states) : []), [states]);
+  const consumableItems = consumablesQuery.data?.items ?? [];
+
+  useEffect(() => {
+    setCareMessage(null);
+  }, [character?.id]);
+
+  useEffect(
+    () => () => {
+      if (careFeedbackTimeoutRef.current) {
+        window.clearTimeout(careFeedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  /** 돌봄 성공 직후 캐릭터 반응 이미지를 잠깐 띄우고 이전 timeout은 정리합니다. */
+  const showCareFeedback = (action: CareActionConfig) => {
+    if (!character) return;
+
+    const preset = careFeedbackPresets[action.type];
+    const feedbackImageUrl = resolveCharacterImageUrl({
+      character: toCharacterKey(character.characterTypeCode),
+      mood: preset.mood,
+      equippedSkin: character.equippedSkin ?? null,
+      assetUrls: character.assetUrls,
+      fallbackUrl: character.currentAssetUrl,
+    });
+
+    if (careFeedbackTimeoutRef.current) {
+      window.clearTimeout(careFeedbackTimeoutRef.current);
+    }
+
+    setCareFeedback({
+      imageUrl: feedbackImageUrl,
+      mood: preset.mood,
+      tone: preset.tone,
+    });
+
+    careFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setCareFeedback(null);
+      careFeedbackTimeoutRef.current = null;
+    }, 1600);
+  };
+
+  /** 소모품 수량을 확인한 뒤 돌봄 로그 생성 API를 호출합니다. */
+  const handleCare = (action: CareActionConfig, item: UserInventoryItem | null) => {
+    if (!character) return;
+
+    if (!item || item.quantity <= 0) {
+      showToast(
+        getCharacterCareItemShortageMessage(
+          toCharacterKey(character.characterTypeCode),
+          action.itemLabel,
+        ),
+      );
+      return;
+    }
+
+    careMutation.mutate(
+      {
+        characterId: character.id,
+        body: {
+          actionType: action.type,
+          itemId: item.itemId,
+        },
+      },
+      {
+        onSuccess: (result) => {
+          const reactionMessage = getCharacterCareReactionMessage(
+            toCharacterKey(character.characterTypeCode),
+            action.type,
+            result.characterMessage,
+          );
+          setCareMessage(reactionMessage);
+          showCareFeedback(action);
+          showToast(reactionMessage);
+        },
+        onError: (error) => {
+          showToast(getUserFacingErrorMessage(error));
+        },
+      },
+    );
+  };
+
+  if (activeCharacterQuery.isLoading || statusQuery.isLoading || consumablesQuery.isLoading) {
+    return <CharacterCareLoadingPage />;
+  }
+
+  if (
+    activeCharacterQuery.isError ||
+    statusQuery.isError ||
+    consumablesQuery.isError ||
+    !character ||
+    !states
+  ) {
+    const error = activeCharacterQuery.error ?? statusQuery.error ?? consumablesQuery.error;
+
+    return (
+      <CharacterCareFrame>
+        <div className="character-care-page__state">
+          <h2>별친구 상태를 못 불러왔어요.</h2>
+          <p>{getUserFacingErrorMessage(error)}</p>
+          <Button
+            onClick={() => {
+              void activeCharacterQuery.refetch();
+              void statusQuery.refetch();
+              void consumablesQuery.refetch();
+            }}
+          >
+            다시 불러오기
+          </Button>
+        </div>
+      </CharacterCareFrame>
+    );
+  }
+
+  const characterKey = toCharacterKey(character.characterTypeCode);
+  const mood = toCharacterMood(states);
+  const characterImageUrl = resolveCharacterImageUrl({
+    character: characterKey,
+    mood,
+    states,
+    equippedSkin: character.equippedSkin ?? null,
+    assetUrls: character.assetUrls,
+    fallbackUrl: character.currentAssetUrl,
+  });
+  const displayedCareMessage = careMessage ?? getCharacterCareIntro(characterKey);
+
+  return (
+    <CharacterCareFrame>
+      <div className="character-care-page__body">
+        {/* SCR-012 캐릭터 상세: 활성 캐릭터와 상태 API를 합쳐 돌봄 전 현재 컨디션을 보여준다. */}
+        <CharacterStage
+          bubble={displayedCareMessage}
+          character={characterKey}
+          imageUrl={characterImageUrl}
+          mood={mood}
+          name={character.name}
+        />
+
+        <Card className="character-care-page__status-card">
+          <div className="character-care-page__section-title">
+            <h2>상태 상세</h2>
+            <Tag variant={mood === "happy" ? "primary" : "neutral"}>Lv.1 별친구</Tag>
+          </div>
+          <div className="character-care-page__gauge-list">
+            {gauges.map((gauge) => (
+              <div className="character-care-page__gauge-item" key={gauge.key}>
+                <div className="character-care-page__gauge-heading">
+                  <span className={`character-care-page__gauge-icon character-care-page__gauge-icon--${gauge.key}`}>
+                    {gauge.icon}
+                  </span>
+                  <span className="character-care-page__gauge-copy">
+                    <strong>{gauge.label}</strong>
+                    <small>{gauge.description}</small>
+                  </span>
+                  <strong className="character-care-page__gauge-value">{gauge.value}%</strong>
+                </div>
+                <StatusGauge
+                  label={`${gauge.label} ${gauge.description}`}
+                  showLabel={false}
+                  tone={gauge.tone}
+                  value={gauge.value}
+                />
+                <p>{gauge.guide}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <section className="character-care-page__care-section" aria-label="돌봄 활동 선택">
+          <div className="character-care-page__section-title">
+            <h2>돌봄 활동 선택</h2>
+            {/*<span>보유 아이템으로 실행</span>*/}
+          </div>
+
+          <div className="character-care-page__care-grid">
+            {careActions.map((action) => {
+              const item = findCareConsumable(consumableItems, action.effectType);
+              const isUnavailable = !item || item.quantity <= 0;
+
+              return (
+                <button
+                  className={`character-care-page__care-action${
+                    isUnavailable ? " character-care-page__care-action--empty" : ""
+                  }`}
+                  disabled={careMutation.isPending || isUnavailable}
+                  key={action.type}
+                  onClick={() => handleCare(action, item)}
+                  type="button"
+                >
+                  <span
+                    className={`character-care-page__care-action-asset character-care-page__care-action-asset--${action.effectType.toLowerCase()}`}
+                  >
+                    <img alt="" src={consumableItemAssets[action.effectType]} />
+                  </span>
+                  <strong>{action.label}</strong>
+                  <small>{action.description}</small>
+                  <span className="character-care-page__care-action-item">
+                    {item ? item.name : action.itemLabel}
+                  </span>
+                  <em>{item ? `보유 ${item.quantity}개` : "보유 0개"}</em>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <Card className="character-care-page__inventory-callout">
+          <div>
+            <strong>스킨은 보관함에서 바꿀 수 있어요.</strong>
+            <p>보유 스킨을 장착하거나 기본 외형으로 되돌릴 수 있습니다.</p>
+          </div>
+          <Button variant="secondary" onClick={() => navigate(routes.inventory)}>
+            <Shirt size={18} strokeWidth={1.8} />
+            스킨 바꾸기
+          </Button>
+        </Card>
+      </div>
+      {careFeedback ? (
+        <CareActionFeedback
+          imageUrl={careFeedback.imageUrl}
+          isOpen
+          mood={careFeedback.mood}
+          tone={careFeedback.tone}
+        />
+      ) : null}
+    </CharacterCareFrame>
+  );
+}
+
+/** 돌봄 화면의 헤더, 하단 탭, 모바일 앱 shell을 공통으로 제공합니다. */
+function CharacterCareFrame({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+
+  return (
+    <main className="character-care-page">
+      <AppShell>
+        <Header title="상태 상세 및 돌봄" onBack={() => navigate(routes.home)} />
+        {children}
+        <AppBottomNavigation />
+      </AppShell>
+    </main>
+  );
+}
+
+/** 상태와 보유 소모품을 불러오는 동안 표시하는 skeleton 화면입니다. */
+function CharacterCareLoadingPage() {
+  return (
+    <CharacterCareFrame>
+      <div className="character-care-page__body">
+        <div className="character-care-page__skeleton character-care-page__skeleton--stage" />
+        <div className="character-care-page__skeleton" />
+        <div className="character-care-page__skeleton character-care-page__skeleton--actions" />
+      </div>
+    </CharacterCareFrame>
+  );
+}
+
+/** 백엔드 상태 객체를 게이지 UI가 바로 사용할 라벨, 값, 안내 문구로 변환합니다. */
+function toCareGauges(states: CharacterStates) {
+  return [
+    {
+      key: "hunger",
+      icon: "🍚",
+      label: "포만감",
+      value: states.hunger.value,
+      description: states.hunger.label,
+      tone: toGaugeTone(states.hunger.grade),
+      guide: "시간이 지나면 조금씩 배고파져요. 먹이 아이템으로 든든하게 만들 수 있어요.",
+    },
+    {
+      key: "energy",
+      icon: "💤",
+      label: "기운",
+      value: states.energy.value,
+      description: states.energy.label,
+      tone: toGaugeTone(states.energy.grade),
+      guide: "기운이 낮아지면 졸린 표정이 돼요. 휴식 아이템으로 푹 쉬게 할 수 있어요.",
+    },
+    {
+      key: "affection",
+      icon: "♡",
+      label: "애정",
+      value: states.affection.value,
+      description: states.affection.label,
+      tone: toGaugeTone(states.affection.grade),
+      guide: "미션 완료와 장난감 아이템 사용으로 조금씩 가까워져요.",
+    },
+  ] as const;
+}
+
+/** 여러 소모품 중 해당 돌봄 효과에 맞고 수량이 남은 아이템을 우선 선택합니다. */
+function findCareConsumable(items: UserInventoryItem[], effectType: InventoryItemEffectType) {
+  const candidates = items.filter(
+    (item) => item.itemType === "CONSUMABLE" && item.effectType === effectType,
+  );
+
+  return candidates.find((item) => item.quantity > 0) ?? candidates[0] ?? null;
+}
+
+/** GOOD/NORMAL/BAD 상태 등급을 게이지 색상 톤으로 바꿉니다. */
+function toGaugeTone(grade: CharacterStates[keyof CharacterStates]["grade"]) {
+  if (grade === "GOOD") return "good";
+  if (grade === "BAD") return "bad";
+  return "normal";
+}
+
+/** 캐릭터 상태 등급을 화면에서 쓸 대표 표정으로 변환합니다. */
+function toCharacterMood(states?: CharacterStates): CharacterMood {
+  if (!states) return "idle";
+  if (states.energy?.grade === "BAD") return "sleepy";
+  if (states.affection?.grade === "GOOD") return "happy";
+  return "idle";
+}
