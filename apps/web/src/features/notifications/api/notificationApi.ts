@@ -6,16 +6,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
 import {
+  demoGetNotificationSetting,
   demoGetNotifications,
   demoMarkNotificationRead,
+  demoUpdateNotificationSetting,
 } from "@/features/notifications/model/notificationFixtures";
 import {
   type NotificationListRequest,
   type NotificationListResponse,
   type NotificationReadRequest,
   type NotificationReadResponse,
+  type NotificationSetting,
   type RegisterFcmTokenRequest,
   type RegisterFcmTokenResponse,
+  type UpdateNotificationSettingRequest,
 } from "@/features/notifications/model/notificationTypes";
 import { apiClient, unwrapApiResponse } from "@/shared/api";
 import { runtimeConfig } from "@/shared/config/env";
@@ -28,6 +32,7 @@ const DEFAULT_NOTIFICATION_PAGE_SIZE = 20;
 export const notificationQueryKeys = {
   all: ["notifications"] as const,
   list: (filter: NotificationFilter) => [...notificationQueryKeys.all, "list", filter] as const,
+  setting: () => [...notificationQueryKeys.all, "setting"] as const,
 };
 
 /** 알림 목록을 조회합니다. filter에 따라 read 파라미터를 선택적으로 보냅니다. */
@@ -75,6 +80,26 @@ export function registerFcmToken(body: RegisterFcmTokenRequest) {
   );
 }
 
+/** 로그인한 사용자의 알림 수신 설정을 조회합니다. */
+export function getNotificationSetting() {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoGetNotificationSetting());
+  }
+
+  return unwrapApiResponse<NotificationSetting>(apiClient.get("/api/notification/v1/settings"));
+}
+
+/** 로그인한 사용자의 알림 수신 설정을 갱신합니다. */
+export function updateNotificationSetting(body: UpdateNotificationSettingRequest) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoUpdateNotificationSetting(body));
+  }
+
+  return unwrapApiResponse<NotificationSetting>(
+    apiClient.patch("/api/notification/v1/settings", body),
+  );
+}
+
 /** 알림 목록 화면에서 전체/읽지 않음 탭을 조회하는 hook입니다. */
 export function useNotificationsQuery(filter: NotificationFilter) {
   return useQuery({
@@ -99,6 +124,41 @@ export function useRegisterFcmTokenMutation() {
         queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all }),
         queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
       ]);
+    },
+  });
+}
+
+/** 마이페이지 알림 설정 카드에서 사용하는 조회 hook입니다. */
+export function useNotificationSettingQuery() {
+  return useQuery({
+    queryKey: notificationQueryKeys.setting(),
+    queryFn: getNotificationSetting,
+  });
+}
+
+/** 알림 설정 저장 mutation입니다. 저장 중에도 UI가 즉시 반응하도록 query cache를 먼저 갱신합니다. */
+export function useUpdateNotificationSettingMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: UpdateNotificationSettingRequest) => updateNotificationSetting(body),
+    onMutate: async (nextSetting) => {
+      await queryClient.cancelQueries({ queryKey: notificationQueryKeys.setting() });
+      const previousSetting = queryClient.getQueryData<NotificationSetting>(
+        notificationQueryKeys.setting(),
+      );
+
+      queryClient.setQueryData(notificationQueryKeys.setting(), nextSetting);
+
+      return { previousSetting };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousSetting) {
+        queryClient.setQueryData(notificationQueryKeys.setting(), context.previousSetting);
+      }
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: notificationQueryKeys.setting() });
     },
   });
 }

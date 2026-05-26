@@ -240,7 +240,7 @@ function getNotificationMeta(type: NotificationType) {
     };
   }
 
-  if (type === "STATE_BAD" || type === "STATE_CRITICAL" || type === "CHARACTER_STATE") {
+  if (type === "CARE" || type === "STATE_BAD" || type === "STATE_CRITICAL" || type === "CHARACTER_STATE") {
     return {
       icon: <HeartPulse size={20} strokeWidth={1.8} />,
       label: "상태",
@@ -248,11 +248,27 @@ function getNotificationMeta(type: NotificationType) {
     };
   }
 
-  if (type === "DAILY_REMINDER") {
+  if (type === "ATTENDANCE" || type === "DAILY_REMINDER") {
     return {
       icon: <CalendarCheck size={20} strokeWidth={1.8} />,
       label: "리마인더",
       tone: "daily",
+    };
+  }
+
+  if (type === "ACHIEVEMENT") {
+    return {
+      icon: <CalendarCheck size={20} strokeWidth={1.8} />,
+      label: "달성",
+      tone: "daily",
+    };
+  }
+
+  if (type === "SHARE") {
+    return {
+      icon: <ShoppingBag size={20} strokeWidth={1.8} />,
+      label: "공유",
+      tone: "system",
     };
   }
 
@@ -264,10 +280,13 @@ function getNotificationMeta(type: NotificationType) {
 }
 
 /** 알림 targetType을 현재 앱에서 이동 가능한 route로 연결합니다. */
-function resolveNotificationRoute(targetType: NotificationTargetType) {
+function resolveNotificationRoute(targetType: NotificationTargetType | null) {
   // API targetType만으로 바로 갈 수 있는 화면에 연결한다. 미션 상세 화면은 아직 없어서 홈으로 보낸다.
   if (targetType === "MISSION") return routes.home;
   if (targetType === "CHARACTER") return routes.character;
+  if (targetType === "ITEM") return routes.inventory;
+  if (targetType === "ACHIEVEMENT") return routes.home;
+  if (targetType === "SHARE") return routes.share;
   if (targetType === "ATTENDANCE") return routes.attendance;
   if (targetType === "WALLET") return routes.wallet;
   if (targetType === "SHOP") return routes.shop;
