@@ -9,20 +9,31 @@ export type NotificationType =
   | "MISSION"
   // 새 미션 제안 알림입니다.
   | "MISSION_OFFER"
+  // 캐릭터 돌봄/상태 관련 알림입니다.
+  | "CARE"
   // 캐릭터 상태가 나빠졌다는 알림입니다.
   | "STATE_BAD"
   // 캐릭터 상태가 특히 위험하다는 알림입니다.
   | "STATE_CRITICAL"
   // 캐릭터 상태 변화 전체를 포괄하는 알림입니다.
   | "CHARACTER_STATE"
+  // 출석 알림입니다.
+  | "ATTENDANCE"
   // 출석/미션을 잊지 않게 알려주는 일일 알림입니다.
   | "DAILY_REMINDER"
+  // 업적 달성 알림입니다.
+  | "ACHIEVEMENT"
+  // 공유 보상/공유 상태 알림입니다.
+  | "SHARE"
   // 이벤트, 점검, 일반 안내처럼 특정 도메인에 묶이지 않는 알림입니다.
   | "SYSTEM";
 
 export type NotificationTargetType =
   | "MISSION"
   | "CHARACTER"
+  | "ITEM"
+  | "ACHIEVEMENT"
+  | "SHARE"
   | "ATTENDANCE"
   | "WALLET"
   | "SHOP"
@@ -34,7 +45,7 @@ export type AppNotification = {
   notificationType: NotificationType;
   title: string;
   message: string;
-  targetType: NotificationTargetType;
+  targetType: NotificationTargetType | null;
   targetId: number | null;
   read: boolean;
   createdAt: string;
@@ -72,3 +83,17 @@ export type RegisterFcmTokenResponse = {
   id: number;
   createdAt: string;
 };
+
+/** 사용자의 알림 수신 설정입니다. 서버 저장값을 그대로 화면 상태로 사용합니다. */
+export type NotificationSetting = {
+  pushEnabled: boolean;
+  missionOfferEnabled: boolean;
+  characterStateEnabled: boolean;
+  dailyReminderEnabled: boolean;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+};
+
+/** 알림 설정 수정 요청입니다. PATCH 시 전체 설정 스냅샷을 보냅니다. */
+export type UpdateNotificationSettingRequest = NotificationSetting;
