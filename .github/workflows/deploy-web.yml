@@ -63,4 +63,4 @@ jobs:
         run: |
           ssh -i ~/.ssh/lightsail.pem \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "sudo nginx -t && sudo systemctl reload nginx"
+            "docker exec p5laris-nginx nginx -t && docker exec p5laris-nginx nginx -s reload"
