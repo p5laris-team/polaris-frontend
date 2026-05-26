@@ -43,7 +43,7 @@ jobs:
 
       - name: Create production env file
         working-directory: apps/web
-        run: printf '%s\n' "${{ secrets.WEB_ENV_PRODUCTION }}" > .env.production
+        run: printf '%s\n' "${{ vars.WEB_ENV_PRODUCTION }}" > .env.production
 
       - name: Build web
         run: pnpm build:web
