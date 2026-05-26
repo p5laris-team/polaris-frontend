@@ -1,4 +1,5 @@
 .icon-button {
+  position: relative;
   width: 40px;
   height: 40px;
   display: inline-grid;
