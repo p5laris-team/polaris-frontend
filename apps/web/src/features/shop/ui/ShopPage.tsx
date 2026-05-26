@@ -207,10 +207,10 @@ export function ShopPage() {
           <section className="shop-page__section" aria-labelledby="skin-shop-title" role="tabpanel">
             <div className="shop-page__section-head">
               <div>
-                <span className="shop-page__eyebrow">스킨 꾸미기</span>
+                {/*<span className="shop-page__eyebrow">스킨 꾸미기</span>*/}
                 <h2 id="skin-shop-title">별친구 스킨</h2>
               </div>
-              <Tag variant="primary">스킨 상점</Tag>
+              {/*<Tag variant="primary">스킨 상점</Tag>*/}
             </div>
 
             <div className="shop-page__skin-grid" role="list">
@@ -271,10 +271,10 @@ export function ShopPage() {
           >
             <div className="shop-page__section-head">
               <div>
-                <span className="shop-page__eyebrow">돌봄 소모품</span>
+                {/*<span className="shop-page__eyebrow">돌봄 소모품</span>*/}
                 <h2 id="consumable-shop-title">아이템 채우기</h2>
               </div>
-              <Tag variant="neutral">반복 구매</Tag>
+              {/*<Tag variant="neutral">반복 구매</Tag>*/}
             </div>
 
             <div className="shop-page__consumable-list" role="list">

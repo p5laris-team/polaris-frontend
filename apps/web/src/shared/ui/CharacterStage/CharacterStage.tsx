@@ -39,7 +39,7 @@ export function CharacterStage({
       </div>
       <div className="character-stage__name">{name}</div>
       {bubble ? <div className="character-stage__bubble">{bubble}</div> : null}
-      {stats.length ? (
+      {/*{stats.length ? (
         <div className="character-stage__stats" aria-label="캐릭터 요약">
           {stats.map((stat) => (
             <span className="character-stage__stat" key={stat.label}>
@@ -47,7 +47,7 @@ export function CharacterStage({
             </span>
           ))}
         </div>
-      ) : null}
+      ) : null}*/}
     </>
   );
 

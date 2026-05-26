@@ -131,7 +131,7 @@ export function MyPage() {
 
         <section className="my-page__section" aria-labelledby="my-page-summary-title">
           <SectionHeading
-            eyebrow="활동 요약"
+            eyebrow=""
             title="오늘의 별친구 상태"
           />
           <div className="my-page__summary-grid">
@@ -164,7 +164,7 @@ export function MyPage() {
 
         <section className="my-page__section" aria-labelledby="my-page-settings-title">
           <SectionHeading
-            eyebrow="알림 설정"
+            eyebrow=""
             title="내 리듬에 맞추기"
           />
           <Card className="my-page__settings-card">
@@ -237,7 +237,7 @@ export function MyPage() {
 
         <section className="my-page__section" aria-labelledby="my-page-links-title">
           <SectionHeading
-            eyebrow="바로가기"
+            eyebrow=""
             title="자주 보는 메뉴"
           />
           <Card className="my-page__link-list">

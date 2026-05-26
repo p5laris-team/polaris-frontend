@@ -293,7 +293,7 @@ export function CharacterCarePage() {
         <section className="character-care-page__care-section" aria-label="돌봄 활동 선택">
           <div className="character-care-page__section-title">
             <h2>돌봄 활동 선택</h2>
-            <span>보유 아이템으로 실행</span>
+            {/*<span>보유 아이템으로 실행</span>*/}
           </div>
 
           <div className="character-care-page__care-grid">
