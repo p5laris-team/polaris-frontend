@@ -71,7 +71,7 @@ export function WalletPage() {
               className="wallet-page__balance-amount"
               size="lg"
             />
-            <p>미션, 출석, 공유, 스킨 구매 흐름을 한 곳에서 확인해요.</p>
+            {/*<p>미션, 출석, 공유, 스킨 구매 흐름을 한 곳에서 확인해요.</p>*/}
           </div>
         </Card>
 
@@ -95,10 +95,10 @@ export function WalletPage() {
         <section className="wallet-page__section" aria-labelledby="wallet-transactions-title">
           <div className="wallet-page__section-head">
             <div>
-              <span className="wallet-page__eyebrow">거래내역</span>
+              {/*<span className="wallet-page__eyebrow">거래내역</span>*/}
               <h2 id="wallet-transactions-title">최근 별조각 흐름</h2>
             </div>
-            <Tag variant="primary">{transactions.length}건</Tag>
+            {/*<Tag variant="primary">{transactions.length}건</Tag>*/}
           </div>
 
           {transactions.length > 0 ? (

@@ -149,10 +149,10 @@ export function InventoryPage() {
         <section className="inventory-page__section" aria-labelledby="inventory-skin-title">
           <div className="inventory-page__section-head">
             <div>
-              <span className="inventory-page__eyebrow">스킨 보관함</span>
+              {/*<span className="inventory-page__eyebrow">스킨 보관함</span>*/}
               <h2 id="inventory-skin-title">보유 스킨</h2>
             </div>
-            <Tag variant="primary">기본 외형 해제 지원</Tag>
+            {/*<Tag variant="primary">기본 외형 해제 지원</Tag>*/}
           </div>
 
           <div className="inventory-page__skin-grid" role="list">
