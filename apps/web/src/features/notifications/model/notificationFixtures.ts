@@ -4,6 +4,7 @@ import {
   type NotificationListRequest,
   type NotificationListResponse,
   type NotificationReadResponse,
+  type NotificationSetting,
 } from "@/features/notifications/model/notificationTypes";
 
 const DEMO_PAGE_SIZE = 20;
@@ -50,6 +51,16 @@ let demoNotifications: AppNotification[] = [
     createdAt: toIsoFromNow({ days: 2 }),
   },
 ];
+
+let demoNotificationSetting: NotificationSetting = {
+  pushEnabled: true,
+  missionOfferEnabled: true,
+  characterStateEnabled: true,
+  dailyReminderEnabled: true,
+  quietHoursEnabled: false,
+  quietHoursStart: "22:00",
+  quietHoursEnd: "08:00",
+};
 
 syncDemoUnreadCount();
 
@@ -103,6 +114,15 @@ export function demoMarkNotificationRead(notificationId: number): NotificationRe
     read: true,
     updatedAt: new Date().toISOString(),
   };
+}
+
+export function demoGetNotificationSetting(): NotificationSetting {
+  return demoNotificationSetting;
+}
+
+export function demoUpdateNotificationSetting(setting: NotificationSetting): NotificationSetting {
+  demoNotificationSetting = setting;
+  return demoNotificationSetting;
 }
 
 function syncDemoUnreadCount() {

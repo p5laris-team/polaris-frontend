@@ -1,7 +1,6 @@
 /**
  * 마이페이지 화면입니다.
- * 계정 정보, 활동 요약, 로컬 알림 설정, 로그아웃을 한 곳에서 다루며
- * 서버에 없는 세부 알림 설정은 Zustand persist로 이 기기에만 저장합니다.
+ * 계정 정보, 활동 요약, 서버 알림 설정, 로그아웃을 한 곳에서 다룹니다.
  */
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,12 +26,16 @@ import { useAttendanceRecordsQuery } from "@/features/attendance/api/attendanceA
 import { type AttendanceRecord } from "@/features/attendance/model/attendanceTypes";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import { useLogoutMyPageSessionMutation, useMyPageUserQuery } from "@/features/my-page/api/myPageApi";
-import {
-  type MyPageNotificationSettingKey,
-  useMyPageSettingsStore,
-} from "@/features/my-page/model/myPageSettingsStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
-import { useRegisterFcmTokenMutation } from "@/features/notifications/api/notificationApi";
+import {
+  useNotificationSettingQuery,
+  useRegisterFcmTokenMutation,
+  useUpdateNotificationSettingMutation,
+} from "@/features/notifications/api/notificationApi";
+import {
+  type NotificationSetting,
+  type UpdateNotificationSettingRequest,
+} from "@/features/notifications/model/notificationTypes";
 import {
   getNotificationPermission,
   getPushAvailability,
@@ -49,6 +52,13 @@ import { useAuthStore } from "@/stores/authStore";
 
 import "./MyPage.css";
 
+type NotificationSettingToggleKey =
+  | "pushEnabled"
+  | "missionOfferEnabled"
+  | "characterStateEnabled"
+  | "dailyReminderEnabled"
+  | "quietHoursEnabled";
+
 export function MyPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -60,6 +70,8 @@ export function MyPage() {
   const attendanceQuery = useAttendanceRecordsQuery(year, month);
   const logoutMutation = useLogoutMyPageSessionMutation();
   const registerFcmTokenMutation = useRegisterFcmTokenMutation();
+  const notificationSettingQuery = useNotificationSettingQuery();
+  const updateNotificationSettingMutation = useUpdateNotificationSettingMutation();
   const [pushAvailability, setPushAvailability] = useState<PushAvailability>("checking");
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
     () => getNotificationPermission(),
@@ -69,13 +81,15 @@ export function MyPage() {
   );
   const [isRequestingPushToken, setIsRequestingPushToken] = useState(false);
 
-  const notificationSettings = useMyPageSettingsStore();
+  const notificationSettings = notificationSettingQuery.data;
   const currentStreak = useMemo(
     () => getCurrentStreak(attendanceQuery.data?.records ?? []),
     [attendanceQuery.data?.records],
   );
-  const pageError = userQuery.error ?? homeQuery.error ?? attendanceQuery.error ?? null;
+  const pageError =
+    userQuery.error ?? homeQuery.error ?? attendanceQuery.error ?? notificationSettingQuery.error ?? null;
   const isPushRegistrationPending = isRequestingPushToken || registerFcmTokenMutation.isPending;
+  const isNotificationSettingSaving = updateNotificationSettingMutation.isPending;
 
   useEffect(() => {
     let mounted = true;
@@ -109,9 +123,32 @@ export function MyPage() {
     });
   };
 
-  /** 마이페이지 알림 설정 store의 boolean 값을 토글합니다. */
-  const handleToggleSetting = (key: MyPageNotificationSettingKey) => {
-    notificationSettings.toggleNotificationSetting(key);
+  /** 서버에 알림 설정 전체 스냅샷을 저장합니다. PATCH 계약상 모든 필드를 함께 보냅니다. */
+  const saveNotificationSettings = (nextSetting: UpdateNotificationSettingRequest) => {
+    updateNotificationSettingMutation.mutate(nextSetting, {
+      onError: (error) => {
+        showToast(getUserFacingErrorMessage(error));
+      },
+    });
+  };
+
+  const handleToggleSetting = (key: NotificationSettingToggleKey) => {
+    if (!notificationSettings) return;
+
+    saveNotificationSettings({
+      ...notificationSettings,
+      [key]: !notificationSettings[key],
+    });
+  };
+
+  const handleQuietHoursChange = (range: Partial<Pick<NotificationSetting, "quietHoursStart" | "quietHoursEnd">>) => {
+    if (!notificationSettings) return;
+
+    saveNotificationSettings({
+      ...notificationSettings,
+      quietHoursStart: range.quietHoursStart ?? notificationSettings.quietHoursStart,
+      quietHoursEnd: range.quietHoursEnd ?? notificationSettings.quietHoursEnd,
+    });
   };
 
   /** 브라우저 권한 요청, FCM token 발급, notification 서버 저장까지 한 번에 처리합니다. */
@@ -133,11 +170,16 @@ export function MyPage() {
     }
   };
 
-  if (userQuery.isLoading || homeQuery.isLoading || attendanceQuery.isLoading) {
+  if (
+    userQuery.isLoading ||
+    homeQuery.isLoading ||
+    attendanceQuery.isLoading ||
+    notificationSettingQuery.isLoading
+  ) {
     return <MyPageLoadingPage />;
   }
 
-  if (pageError || !userQuery.data || !homeQuery.data) {
+  if (pageError || !userQuery.data || !homeQuery.data || !notificationSettings) {
     return (
       <MyPageFrame>
         <div className="my-page__state">
@@ -148,6 +190,7 @@ export function MyPage() {
               void userQuery.refetch();
               void homeQuery.refetch();
               void attendanceQuery.refetch();
+              void notificationSettingQuery.refetch();
             }}
           >
             다시 불러오기
@@ -159,7 +202,7 @@ export function MyPage() {
 
   const user = userQuery.data;
   const home = homeQuery.data;
-  const notificationsEnabled = notificationSettings.enabled;
+  const notificationsEnabled = notificationSettings.pushEnabled;
 
   return (
     <MyPageFrame>
@@ -222,13 +265,13 @@ export function MyPage() {
             title="내 리듬에 맞추기"
           />
           <Card className="my-page__settings-card">
-            {/* 세부 설정은 서버 저장 API가 생기기 전까지 localStorage에만 보관한다. */}
             <SettingToggle
-              checked={notificationSettings.enabled}
+              checked={notificationSettings.pushEnabled}
+              disabled={isNotificationSettingSaving}
               description="앱 안에서 받는 알림을 한 번에 켜거나 꺼요."
               icon={<BellRing size={20} strokeWidth={1.8} />}
               label="전체 알림"
-              onChange={() => handleToggleSetting("enabled")}
+              onChange={() => handleToggleSetting("pushEnabled")}
             />
             <PushRegistrationRow
               availability={pushAvailability}
@@ -239,33 +282,33 @@ export function MyPage() {
               onClick={handleRegisterWebPush}
             />
             <SettingToggle
-              checked={notificationsEnabled && notificationSettings.missionOffer}
+              checked={notificationsEnabled && notificationSettings.missionOfferEnabled}
               description="새 미션 제안과 미션 흐름 알림을 받아요."
-              disabled={!notificationsEnabled}
+              disabled={!notificationsEnabled || isNotificationSettingSaving}
               icon={<Target size={20} strokeWidth={1.8} />}
               label="미션 제안 알림"
-              onChange={() => handleToggleSetting("missionOffer")}
+              onChange={() => handleToggleSetting("missionOfferEnabled")}
             />
             <SettingToggle
-              checked={notificationsEnabled && notificationSettings.characterState}
+              checked={notificationsEnabled && notificationSettings.characterStateEnabled}
               description="배고픔, 피로도처럼 상태가 나빠질 때 알려줘요."
-              disabled={!notificationsEnabled}
+              disabled={!notificationsEnabled || isNotificationSettingSaving}
               icon={<HeartPulse size={20} strokeWidth={1.8} />}
               label="상태 알림"
-              onChange={() => handleToggleSetting("characterState")}
+              onChange={() => handleToggleSetting("characterStateEnabled")}
             />
             <SettingToggle
-              checked={notificationsEnabled && notificationSettings.dailyReminder}
+              checked={notificationsEnabled && notificationSettings.dailyReminderEnabled}
               description="하루에 한 번 출석과 미션을 잊지 않게 알려줘요."
-              disabled={!notificationsEnabled}
+              disabled={!notificationsEnabled || isNotificationSettingSaving}
               icon={<CalendarCheck size={20} strokeWidth={1.8} />}
               label="일일 리마인더"
-              onChange={() => handleToggleSetting("dailyReminder")}
+              onChange={() => handleToggleSetting("dailyReminderEnabled")}
             />
             <SettingToggle
               checked={notificationsEnabled && notificationSettings.quietHoursEnabled}
               description="정한 시간에는 알림을 조용히 묶어둘게요."
-              disabled={!notificationsEnabled}
+              disabled={!notificationsEnabled || isNotificationSettingSaving}
               icon={<Moon size={20} strokeWidth={1.8} />}
               label="방해 금지 시간"
               onChange={() => handleToggleSetting("quietHoursEnabled")}
@@ -274,9 +317,13 @@ export function MyPage() {
               <label>
                 <span>시작</span>
                 <input
-                  disabled={!notificationsEnabled || !notificationSettings.quietHoursEnabled}
+                  disabled={
+                    !notificationsEnabled ||
+                    !notificationSettings.quietHoursEnabled ||
+                    isNotificationSettingSaving
+                  }
                   onChange={(event) =>
-                    notificationSettings.setQuietHours({ start: event.currentTarget.value })
+                    handleQuietHoursChange({ quietHoursStart: event.currentTarget.value })
                   }
                   type="time"
                   value={notificationSettings.quietHoursStart}
@@ -285,15 +332,22 @@ export function MyPage() {
               <label>
                 <span>종료</span>
                 <input
-                  disabled={!notificationsEnabled || !notificationSettings.quietHoursEnabled}
+                  disabled={
+                    !notificationsEnabled ||
+                    !notificationSettings.quietHoursEnabled ||
+                    isNotificationSettingSaving
+                  }
                   onChange={(event) =>
-                    notificationSettings.setQuietHours({ end: event.currentTarget.value })
+                    handleQuietHoursChange({ quietHoursEnd: event.currentTarget.value })
                   }
                   type="time"
                   value={notificationSettings.quietHoursEnd}
                 />
               </label>
             </div>
+            {isNotificationSettingSaving ? (
+              <p className="my-page__setting-status">알림 설정을 저장하고 있어요.</p>
+            ) : null}
           </Card>
         </section>
 
