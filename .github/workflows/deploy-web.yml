@@ -3,6 +3,8 @@ name: Deploy Web
 on:
   push:
     branches:
+      - main
+      - dev
       - feat/FIVE-39
   workflow_dispatch:
 
