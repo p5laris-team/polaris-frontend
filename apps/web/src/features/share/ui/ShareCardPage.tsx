@@ -3,7 +3,7 @@
  * 오늘 완료한 미션과 별친구 이미지를 canvas 카드로 합성하고,
  * presigned upload 이후 Web Share API 또는 클립보드 복사로 공유 보상을 기록합니다.
  */
-import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from "react";
 import {
   Copy,
   ImagePlus,
@@ -62,6 +62,7 @@ export function ShareCardPage() {
   const [headline, setHeadline] = useState(presetMessages[0]);
   const [backgroundKey, setBackgroundKey] = useState<ShareCardBackgroundKey>("default");
   const [shareCard, setShareCard] = useState<ShareCardResponse | null>(null);
+  const [localRewardClaimed, setLocalRewardClaimed] = useState<boolean | null>(null);
   const homeQuery = useHomeQuery();
   const activeCharacterQuery = useActiveCharacterQuery();
   const todayMissionsQuery = useTodayMissionsQuery();
@@ -72,6 +73,7 @@ export function ShareCardPage() {
   const character = home?.character ?? null;
   const todayMissions = todayMissionsQuery.data;
   const todayShareStatus = todayShareStatusQuery.data;
+  const shareRewardClaimed = localRewardClaimed ?? todayShareStatus?.rewardClaimed ?? false;
   const characterKey = toCharacterKey(character?.characterTypeCode);
   const backgroundImageUrl = shareCardAssets.backgrounds[backgroundKey];
   const activeCharacter = activeCharacterQuery.data;
@@ -100,6 +102,11 @@ export function ShareCardPage() {
     todayShareStatusQuery.isLoading;
   const trimmedHeadline = headline.trim();
   const canCreateCard = Boolean(character && trimmedHeadline);
+
+  useEffect(() => {
+    if (!todayShareStatus) return;
+    setLocalRewardClaimed((previous) => previous === true || todayShareStatus.rewardClaimed);
+  }, [todayShareStatus]);
 
   /** 현재 미리보기 상태를 canvas 이미지로 만들고 백엔드에 공유 카드 생성을 요청합니다. */
   const handleCreateShareCard = async () => {
@@ -148,6 +155,8 @@ export function ShareCardPage() {
       return;
     }
 
+    const rewardClaimedBeforeShare = shareRewardClaimed;
+
     try {
       const shareResult = await shareOrCopyLink({
         headline: trimmedHeadline,
@@ -163,10 +172,12 @@ export function ShareCardPage() {
         },
         {
           onSuccess: (result) => {
+            const rewardPaidNow = !rewardClaimedBeforeShare && result.rewardPaid && result.rewardStarPiece > 0;
+            setLocalRewardClaimed(true);
             showToast(
-              result.rewardPaid
+              rewardPaidNow
                 ? `공유 완료! 별조각 ${result.rewardStarPiece}개를 받았어요.`
-                : "공유 완료! 오늘 보상은 이미 받았어요.",
+                : "공유 완료! 별조각 보상은 하루 한 번만 받을 수 있어요.",
             );
           },
           onError: (error) => {
@@ -361,9 +372,18 @@ export function ShareCardPage() {
             variant="secondary"
           >
             {canUseWebShare() ? <Share2 size={18} strokeWidth={1.9} /> : <Copy size={18} strokeWidth={1.9} />}
-            {createShareEventMutation.isPending ? "공유 기록 중..." : canUseWebShare() ? "공유하기" : "링크 복사하고 보상 받기"}
+            {getShareButtonLabel({
+              isPending: createShareEventMutation.isPending,
+              rewardClaimed: shareRewardClaimed,
+              webShareAvailable: canUseWebShare(),
+            })}
           </Button>
         </div>
+        <p className="share-card-page__reward-note">
+          {shareRewardClaimed
+            ? "공유는 계속 가능해요. 별조각 보상은 하루 한 번만 받을 수 있어요."
+            : "오늘 첫 공유를 하면 별조각 보상을 받을 수 있어요."}
+        </p>
       </div>
     </ShareCardFrame>
   );
@@ -594,6 +614,20 @@ async function shareOrCopyLink({
 /** 현재 브라우저에서 navigator.share를 사용할 수 있는지 확인합니다. */
 function canUseWebShare() {
   return typeof navigator !== "undefined" && typeof navigator.share === "function";
+}
+
+function getShareButtonLabel({
+  isPending,
+  rewardClaimed,
+  webShareAvailable,
+}: {
+  isPending: boolean;
+  rewardClaimed: boolean;
+  webShareAvailable: boolean;
+}) {
+  if (isPending) return "공유 기록 중...";
+  if (webShareAvailable) return "공유하기";
+  return rewardClaimed ? "링크 복사하기" : "링크 복사하고 보상 받기";
 }
 
 /** Clipboard API 실패까지 대비해 textarea 기반 복사 fallback을 제공합니다. */
