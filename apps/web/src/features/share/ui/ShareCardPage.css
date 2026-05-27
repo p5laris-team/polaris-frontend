@@ -416,6 +416,14 @@
   gap: 10px;
 }
 
+.share-card-page__reward-note {
+  margin: 8px 2px 0;
+  color: var(--fg-3);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .share-card-page__state {
   margin: auto;
   padding: 32px 20px;
