@@ -228,7 +228,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .inventory-page {
     padding: 0;
   }

@@ -289,7 +289,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .attendance-page {
     padding: 0;
   }

@@ -250,7 +250,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .notifications-page {
     padding: 0;
   }

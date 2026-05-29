@@ -68,7 +68,7 @@ a {
   padding: 28px 16px 80px;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .app-page,
   .preview-page {
     padding: 0;

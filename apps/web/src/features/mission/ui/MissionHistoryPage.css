@@ -427,7 +427,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .mission-history {
     padding: 0;
   }
