@@ -268,3 +268,17 @@
     display: none;
   }
 }
+
+.notifications-page__sentinel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  margin-top: 14px;
+}
+
+.notifications-page__sentinel-loading {
+  color: var(--fg-3);
+  font-size: 13px;
+  font-weight: 800;
+}
