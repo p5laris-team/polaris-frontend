@@ -6,6 +6,7 @@
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from "react";
 import {
   Copy,
+  Download,
   ImagePlus,
   MessageSquareText,
   Share2,
@@ -62,6 +63,7 @@ export function ShareCardPage() {
   const [headline, setHeadline] = useState(presetMessages[0]);
   const [backgroundKey, setBackgroundKey] = useState<ShareCardBackgroundKey>("default");
   const [shareCard, setShareCard] = useState<ShareCardResponse | null>(null);
+  const [shareCardImageBlob, setShareCardImageBlob] = useState<Blob | null>(null);
   const [localRewardClaimed, setLocalRewardClaimed] = useState<boolean | null>(null);
   const homeQuery = useHomeQuery();
   const activeCharacterQuery = useActiveCharacterQuery();
@@ -113,6 +115,7 @@ export function ShareCardPage() {
     if (!character || !trimmedHeadline) return;
 
     try {
+      setShareCardImageBlob(null);
       const imageBlob = await createShareCardImageBlob({
         backgroundKey,
         backgroundImageUrl,
@@ -136,6 +139,7 @@ export function ShareCardPage() {
         {
           onSuccess: (card) => {
             setShareCard(card);
+            setShareCardImageBlob(imageBlob);
             showToast("공유 카드가 준비됐어요.");
           },
           onError: (error) => {
@@ -146,6 +150,24 @@ export function ShareCardPage() {
     } catch (error) {
       showToast(getUserFacingErrorMessage(error));
     }
+  };
+
+  /** 카드 생성에 사용한 PNG Blob을 브라우저 다운로드로 저장합니다. */
+  const handleDownloadShareCard = () => {
+    if (!shareCardImageBlob) {
+      showToast("저장할 공유 카드를 먼저 만들어 주세요.");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(shareCardImageBlob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = "polaris-share-card.png";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+    showToast("공유 카드 이미지를 저장했어요.");
   };
 
   /** 생성된 공유 카드 링크를 실제 공유하거나 복사한 뒤 보상 이벤트를 멱등키와 함께 기록합니다. */
@@ -377,6 +399,14 @@ export function ShareCardPage() {
               rewardClaimed: shareRewardClaimed,
               webShareAvailable: canUseWebShare(),
             })}
+          </Button>
+          <Button
+            disabled={!shareCardImageBlob}
+            onClick={handleDownloadShareCard}
+            variant="secondary"
+          >
+            <Download size={18} strokeWidth={1.9} />
+            이미지 저장
           </Button>
         </div>
         <p className="share-card-page__reward-note">
