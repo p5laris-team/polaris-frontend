@@ -242,3 +242,38 @@
     padding-inline: 18px;
   }
 }
+
+.home-page__wallet-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  color: var(--fg-1);
+  transition: background 0.2s, transform 0.2s;
+  height: 32px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.home-page__wallet-button:hover,
+.home-page__wallet-button:active {
+  background: var(--bg-3);
+  transform: scale(0.97);
+}
+
+.home-page__wallet-button .star-piece-amount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+  height: 100%;
+}

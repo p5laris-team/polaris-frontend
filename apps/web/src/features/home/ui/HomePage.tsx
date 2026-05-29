@@ -149,7 +149,7 @@ export function HomePage() {
   };
 
   return (
-    <HomeFrame unreadNotificationCount={home.unreadNotificationCount}>
+    <HomeFrame unreadNotificationCount={home.unreadNotificationCount} starPieceCount={home.walletStarPiece}>
       <div className="home-page__body">
         {/* SCR-006 캐릭터 영역: 홈 API의 캐릭터 상태와 현재 미션 대사를 함께 보여준다. */}
         <div className="home-page__stage-wrap">
@@ -269,9 +269,11 @@ export function HomePage() {
 function HomeFrame({
   children,
   unreadNotificationCount,
+  starPieceCount,
 }: {
   children: React.ReactNode;
   unreadNotificationCount?: number;
+  starPieceCount?: number;
 }) {
   const navigate = useNavigate();
 
@@ -281,9 +283,20 @@ function HomeFrame({
         <Header
           title={<img alt="Polaris" className="home-page__brand-logo" src={brandAssets.logoWordmark} />}
           left={
-            <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
-              <img alt="" className="home-page__wallet-icon" src={currencyAssets.starPiece} />
-            </IconButton>
+            typeof starPieceCount === "number" ? (
+              <button
+                className="home-page__wallet-button"
+                onClick={() => navigate(routes.wallet)}
+                aria-label="별조각 내역"
+                type="button"
+              >
+                <StarPieceAmount amount={starPieceCount} size="sm" />
+              </button>
+            ) : (
+              <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
+                <img alt="" className="home-page__wallet-icon" src={currencyAssets.starPiece} />
+              </IconButton>
+            )
           }
           right={
             <IconButton aria-label="알림" onClick={() => navigate(routes.notifications)}>

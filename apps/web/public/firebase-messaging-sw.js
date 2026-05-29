@@ -17,11 +17,19 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || payload.data?.title || "새 알림";
+  // If the push message contains a notification payload, FCM automatically handles the display of the notification.
+  // We must not call showNotification here to avoid duplicate notifications.
+  if (payload.notification) {
+    console.log("FCM automatically handles this notification payload. Skipping manual showNotification to prevent duplicates.");
+    return;
+  }
+
+  const title = payload.data?.title || "새 알림";
+  const origin = self.location.origin;
   const options = {
-    body: payload.notification?.body || payload.data?.body || "Polaris에 새 소식이 도착했어요.",
-    icon: "/icons/icon-192.png",
-    badge: "/icons/icon-192.png",
+    body: payload.data?.body || "Polaris에 새 소식이 도착했어요.",
+    icon: origin + "/icons/icon-192.png",
+    badge: origin + "/icons/icon-192.png",
     data: payload.data || {},
   };
 
