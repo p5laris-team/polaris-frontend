@@ -28,17 +28,9 @@ export function NotificationForegroundListener() {
     void listenForegroundPushMessages((payload) => {
       const copy = getForegroundPushToastCopy(payload);
       
-      // 브라우저 시스템 네이티브 알림(팝업) 강제 실행
-      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-        try {
-          new window.Notification(copy.title, {
-            body: copy.body,
-            icon: "/icons/icon-192.png",
-          });
-        } catch (e) {
-          console.error("Failed to create system notification:", e);
-        }
-      }
+      // 포그라운드 상태에서는 시스템 네이티브 알림의 중복 노출을 피하기 위해
+      // 시스템 팝업을 직접 생성하지 않고, 대신 유려한 인앱 토스트 알림을 노출합니다.
+      showToast(`${copy.title}: ${copy.body}`);
 
       void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
       void queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() });
