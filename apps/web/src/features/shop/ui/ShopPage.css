@@ -158,6 +158,80 @@
   line-height: 1.25;
 }
 
+.shop-page__care-status-card {
+  margin-bottom: 12px;
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
+
+.shop-page__care-status-head p {
+  margin: 2px 0 0;
+  color: var(--fg-3);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.shop-page__care-status-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.shop-page__care-status-item {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 9px;
+  border-radius: 14px;
+  background: var(--bg-3);
+  border: 1px solid transparent;
+}
+
+.shop-page__care-status-item--good {
+  border-color: color-mix(in srgb, var(--success) 24%, transparent);
+}
+
+.shop-page__care-status-item--bad {
+  border-color: color-mix(in srgb, var(--danger) 22%, transparent);
+  background: color-mix(in srgb, var(--danger) 7%, var(--bg-3));
+}
+
+.shop-page__care-status-label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--fg-3);
+}
+
+.shop-page__care-status-label svg {
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.shop-page__care-status-label span {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-page__care-status-item strong {
+  flex: 0 0 auto;
+  color: var(--fg-1);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
 .shop-page__skin-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getCharacterTypeLabelById,
   toCharacterTypeId,
+  type CharacterStates,
 } from "@/entities/character/types";
 import { resolveItemImageUrl } from "@/features/item/model/itemAssetResolver";
 import {
@@ -155,6 +156,7 @@ export function ShopPage() {
   }
 
   const activeCharacterTypeId = toCharacterTypeId(homeQuery.data?.character?.characterTypeCode);
+  const characterStates = homeQuery.data?.character?.states ?? null;
   const skinItems = (skinsQuery.data?.items ?? []).filter((item) =>
     isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
   );
@@ -277,6 +279,8 @@ export function ShopPage() {
               {/*<Tag variant="neutral">반복 구매</Tag>*/}
             </div>
 
+            {characterStates ? <CareStatusSummary states={characterStates} /> : null}
+
             <div className="shop-page__consumable-list" role="list">
               {consumableItems.map((item) => {
                 const cantAfford = walletStarPiece < item.price;
@@ -344,6 +348,56 @@ export function ShopPage() {
         onQuantityChange={setSelectedQuantity}
       />
     </ShopFrame>
+  );
+}
+
+/** 소모품을 고르기 전에 현재 캐릭터에게 필요한 돌봄 상태를 보여줍니다. */
+function CareStatusSummary({ states }: { states: CharacterStates }) {
+  const statusItems = [
+    {
+      key: "hunger",
+      label: "포만감",
+      value: states.hunger.value,
+      tone: getStatusTone(states.hunger.grade),
+      Icon: Utensils,
+    },
+    {
+      key: "energy",
+      label: "기운",
+      value: states.energy.value,
+      tone: getStatusTone(states.energy.grade),
+      Icon: Moon,
+    },
+    {
+      key: "affection",
+      label: "애정",
+      value: states.affection.value,
+      tone: getStatusTone(states.affection.grade),
+      Icon: Gamepad2,
+    },
+  ] as const;
+
+  return (
+    <Card className="shop-page__care-status-card">
+      <div className="shop-page__care-status-head">
+        <span className="shop-page__eyebrow">지금 필요한 돌봄</span>
+        <p>상태를 보고 필요한 아이템을 골라봐요.</p>
+      </div>
+      <div className="shop-page__care-status-list" aria-label="캐릭터 상태 요약">
+        {statusItems.map(({ Icon, key, label, tone, value }) => (
+          <div
+            className={`shop-page__care-status-item shop-page__care-status-item--${tone}`}
+            key={key}
+          >
+            <div className="shop-page__care-status-label">
+              <Icon size={15} strokeWidth={1.9} />
+              <span>{label}</span>
+            </div>
+            <strong>{value}%</strong>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -516,6 +570,13 @@ function isVisibleForCharacter(
 /** 스킨의 적용 범위를 공용 또는 캐릭터 전용 라벨로 바꿉니다. */
 function getSkinScopeLabel(characterTypeId: number | null | undefined) {
   return characterTypeId ? `${getCharacterTypeLabelById(characterTypeId)} 전용` : "공용";
+}
+
+/** 캐릭터 상태 등급을 상점 요약 카드의 강조 톤으로 바꿉니다. */
+function getStatusTone(grade: CharacterStates[keyof CharacterStates]["grade"]) {
+  if (grade === "GOOD") return "good";
+  if (grade === "BAD") return "bad";
+  return "normal";
 }
 
 /** 소모품 effectType 또는 이름을 기준으로 회복 대상과 아이콘을 정합니다. */
