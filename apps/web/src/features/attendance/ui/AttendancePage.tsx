@@ -74,30 +74,6 @@ export function AttendancePage() {
     <AttendanceFrame>
       <div className="attendance-page__body">
         {/* SCR-019 출석 체크: 월간 기록 조회 결과로 오늘 강조와 출석 스탬프를 계산한다. */}
-        <div className="attendance-page__streak-row">
-          <Card className="attendance-page__streak-card">
-            <Flame size={20} strokeWidth={1.8} />
-            <span>연속 출석</span>
-            <strong>{streakCount}일</strong>
-          </Card>
-          <Card className="attendance-page__streak-card">
-            <Sparkles size={20} strokeWidth={1.8} />
-            <span>이번 달 도장</span>
-            <strong>{records.length}개</strong>
-          </Card>
-        </div>
-
-        {showWeeklyStreakBanner ? (
-          <Card className="attendance-page__streak-banner">
-            <img alt="" src={attendanceAssets.streak7} />
-            <div>
-              <span>7일 연속 달성</span>
-              <strong>한 주를 반짝 채웠어요.</strong>
-              <p>오늘도 별친구와 약속을 이어가고 있어요.</p>
-            </div>
-          </Card>
-        ) : null}
-
         <Card className="attendance-page__calendar-card">
           <div className="attendance-page__calendar-head">
             <h2>{month}월 달력</h2>
@@ -185,6 +161,30 @@ export function AttendancePage() {
                 : "오늘 출석하기"}
           </Button>
         </Card>
+
+        <div className="attendance-page__streak-row">
+          <Card className="attendance-page__streak-card">
+            <Flame size={20} strokeWidth={1.8} />
+            <span>연속 출석</span>
+            <strong>{streakCount}일</strong>
+          </Card>
+          <Card className="attendance-page__streak-card">
+            <Sparkles size={20} strokeWidth={1.8} />
+            <span>이번 달 도장</span>
+            <strong>{records.length}개</strong>
+          </Card>
+        </div>
+
+        {showWeeklyStreakBanner ? (
+          <Card className="attendance-page__streak-banner">
+            <img alt="" src={attendanceAssets.streak7} />
+            <div>
+              <span>7일 연속 달성</span>
+              <strong>한 주를 반짝 채웠어요.</strong>
+              <p>오늘도 별친구와 약속을 이어가고 있어요.</p>
+            </div>
+          </Card>
+        ) : null}
       </div>
     </AttendanceFrame>
   );
