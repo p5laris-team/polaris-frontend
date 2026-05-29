@@ -50,16 +50,16 @@ const shopCategories: Array<{
   icon: LucideIcon;
 }> = [
   {
-    type: "SKIN",
-    label: "스킨",
-    description: "외형 꾸미기",
-    icon: Sparkles,
-  },
-  {
     type: "CONSUMABLE",
     label: "돌봄 소모품",
     description: "밥/휴식/놀이",
     icon: PackagePlus,
+  },
+  {
+    type: "SKIN",
+    label: "스킨",
+    description: "외형 꾸미기",
+    icon: Sparkles,
   },
 ];
 
@@ -71,7 +71,7 @@ export function ShopPage() {
   const purchaseMutation = usePurchaseShopItemMutation();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const [activeCategory, setActiveCategory] = useState<ShopItemType>("SKIN");
+  const [activeCategory, setActiveCategory] = useState<ShopItemType>("CONSUMABLE");
 
   const walletStarPiece = homeQuery.data?.wallet.starPiece ?? 0;
   const shopError = homeQuery.isError
@@ -491,7 +491,7 @@ function ShopLoadingPage() {
     <ShopFrame>
       <div className="shop-page__body">
         <div className="shop-page__skeleton shop-page__skeleton--wallet" />
-        <div className="shop-page__skin-grid">
+        <div className="shop-page__loading-list">
           <div className="shop-page__skeleton shop-page__skeleton--item" />
           <div className="shop-page__skeleton shop-page__skeleton--item" />
         </div>

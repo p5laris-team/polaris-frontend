@@ -164,6 +164,11 @@
   gap: 12px;
 }
 
+.shop-page__loading-list {
+  display: grid;
+  gap: 10px;
+}
+
 .shop-page__skin-card {
   min-width: 0;
   padding: 12px;
