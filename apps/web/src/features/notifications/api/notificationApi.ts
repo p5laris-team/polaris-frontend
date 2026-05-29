@@ -2,7 +2,7 @@
  * 알림 목록 조회와 읽음 처리를 담당하는 API 계층입니다.
  * 알림을 읽으면 홈의 unread count도 함께 바뀌므로 홈 캐시를 같이 갱신합니다.
  */
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 
 import { homeQueryKeys } from "@/features/home/api/homeApi";
 import {
@@ -100,16 +100,22 @@ export function updateNotificationSetting(body: UpdateNotificationSettingRequest
   );
 }
 
-/** 알림 목록 화면에서 전체/읽지 않음 탭을 조회하는 hook입니다. */
+/** 알림 목록 화면에서 전체/읽지 않음 탭을 무한 스크롤로 조회하는 hook입니다. */
 export function useNotificationsQuery(filter: NotificationFilter) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: notificationQueryKeys.list(filter),
-    queryFn: () =>
+    queryFn: ({ pageParam }) =>
       getNotifications({
         read: filter === "unread" ? false : undefined,
-        cursor: null,
+        cursor: pageParam,
         size: DEFAULT_NOTIFICATION_PAGE_SIZE,
       }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.pageInfo.hasNext ? (lastPage.pageInfo.nextCursor as string) : undefined,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 }
 

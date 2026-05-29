@@ -28,5 +28,8 @@ export function useHomeQuery() {
   return useQuery({
     queryKey: homeQueryKeys.summary(),
     queryFn: getHome,
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 }

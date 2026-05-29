@@ -3,7 +3,7 @@
  * 전체/안 읽음 필터를 바꾸며 알림을 조회하고,
  * 사용자가 알림을 누르면 단건 읽음 처리 후 연결된 화면으로 이동합니다.
  */
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarCheck,
   Check,
@@ -15,16 +15,20 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   type NotificationFilter,
+  markNotificationRead,
   useMarkNotificationReadMutation,
   useNotificationsQuery,
+  notificationQueryKeys,
 } from "@/features/notifications/api/notificationApi";
 import {
   type AppNotification,
   type NotificationTargetType,
   type NotificationType,
 } from "@/features/notifications/model/notificationTypes";
+import { useHomeQuery, homeQueryKeys } from "@/features/home/api/homeApi";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
@@ -42,37 +46,118 @@ export function NotificationsPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [filter, setFilter] = useState<NotificationFilter>("all");
+  const homeQuery = useHomeQuery();
+  const unreadCount = homeQuery.data?.notifications.unreadCount ?? 0;
   const [pendingNotificationId, setPendingNotificationId] = useState<number | null>(null);
   const notificationsQuery = useNotificationsQuery(filter);
   const markReadMutation = useMarkNotificationReadMutation();
-  const notifications = notificationsQuery.data?.items ?? [];
+  const queryClient = useQueryClient();
 
-  /** 알림을 누르면 읽음 처리 후 targetType에 맞는 화면으로 이동합니다. */
-  const handleSelectNotification = (notification: AppNotification) => {
-    const targetRoute = resolveNotificationRoute(notification.targetType);
-    const moveToTarget = () => {
-      if (targetRoute) {
-        navigate(targetRoute);
-      } else {
-        showToast("연결된 화면이 없는 알림이에요.");
-      }
-    };
+  const [displayNotifications, setDisplayNotifications] = useState<AppNotification[]>([]);
+  const [processedIds, setProcessedIds] = useState<Set<number>>(new Set());
+  
+  const fetchedNotifications = useMemo(
+    () => notificationsQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [notificationsQuery.data?.pages],
+  );
 
-    if (notification.read) {
-      moveToTarget();
+  // 탭 필터가 바뀌면 화면 표시 목록 및 처리된 ID 초기화
+  useEffect(() => {
+    setDisplayNotifications([]);
+    setProcessedIds(new Set());
+  }, [filter]);
+
+  // 가져온 알림 데이터와 로컬 상태 동기화 및 머지
+  useEffect(() => {
+    if (fetchedNotifications.length === 0) {
+      setDisplayNotifications([]);
       return;
     }
 
-    setPendingNotificationId(notification.id);
-    markReadMutation.mutate(notification.id, {
-      onSuccess: moveToTarget,
-      onError: (error) => {
-        showToast(getUserFacingErrorMessage(error));
-      },
-      onSettled: () => {
-        setPendingNotificationId(null);
-      },
+    setDisplayNotifications((prev) => {
+      const prevMap = new Map(prev.map((item) => [item.id, item]));
+      return fetchedNotifications.map((fetchedItem) => {
+        const prevItem = prevMap.get(fetchedItem.id);
+        if (prevItem) {
+          // 로컬에서 변경된 read 상태를 그대로 유지
+          return {
+            ...fetchedItem,
+            read: prevItem.read,
+          };
+        }
+        return fetchedItem;
+      });
     });
+  }, [fetchedNotifications]);
+
+
+
+  // 탭 필터(filter)가 바뀔 때 이전 탭에서 읽음 처리된 데이터를 반영하기 위해 알림 캐시 무효화
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
+  }, [filter, queryClient]);
+
+  // 페이지를 나갈 때(언마운트 시) 알림 캐시를 무효화하여 나중에 재진입 시 최신 목록을 가져오게 합니다.
+  useEffect(() => {
+    return () => {
+      void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
+    };
+  }, [queryClient]);
+
+  const observerRef = useRef<HTMLDivElement | null>(null);
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = notificationsQuery;
+
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          void fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentSentinel = observerRef.current;
+    if (currentSentinel) {
+      observer.observe(currentSentinel);
+    }
+
+    return () => {
+      if (currentSentinel) {
+        observer.unobserve(currentSentinel);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  /** 알림을 누르면 읽음 상태로 갱신합니다. (페이지 이동 없음) */
+  const handleSelectNotification = (notification: AppNotification) => {
+    const currentNotification = displayNotifications.find((item) => item.id === notification.id) ?? notification;
+
+    if (currentNotification.read) {
+      return;
+    }
+
+    setPendingNotificationId(currentNotification.id);
+    markNotificationRead(currentNotification.id)
+      .then(() => {
+        setDisplayNotifications((prev) =>
+          prev.map((item) => (item.id === currentNotification.id ? { ...item, read: true } : item))
+        );
+        void queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() });
+      })
+      .catch((error) => {
+        showToast(getUserFacingErrorMessage(error));
+      })
+      .finally(() => {
+        setPendingNotificationId(null);
+      });
   };
 
   if (notificationsQuery.isLoading) {
@@ -95,32 +180,47 @@ export function NotificationsPage() {
     <NotificationsFrame>
       <div className="notifications-page__body">
         <div className="notifications-page__filter" aria-label="알림 필터">
-          {(Object.keys(filterLabels) as NotificationFilter[]).map((filterKey) => (
-            <button
-              aria-pressed={filter === filterKey}
-              className={filter === filterKey ? "notifications-page__filter-button--active" : ""}
-              key={filterKey}
-              onClick={() => setFilter(filterKey)}
-              type="button"
-            >
-              {filterLabels[filterKey]}
-            </button>
-          ))}
+          {(Object.keys(filterLabels) as NotificationFilter[]).map((filterKey) => {
+            const label = filterLabels[filterKey];
+            const displayLabel =
+              filterKey === "unread" && unreadCount > 0
+                ? `${label} ${unreadCount}`
+                : label;
+
+            return (
+              <button
+                aria-pressed={filter === filterKey}
+                className={filter === filterKey ? "notifications-page__filter-button--active" : ""}
+                key={filterKey}
+                onClick={() => setFilter(filterKey)}
+                type="button"
+              >
+                {displayLabel}
+              </button>
+            );
+          })}
         </div>
 
         {/* 전체 읽음 API가 명세에 없어서 MVP에서는 각 알림을 누를 때 단건 PATCH로 읽음 처리한다. */}
-        {notifications.length > 0 ? (
-          <ul className="notifications-page__list" aria-label="알림 목록">
-            {notifications.map((notification) => (
-              <NotificationItem
-                disabled={markReadMutation.isPending}
-                key={notification.id}
-                notification={notification}
-                pending={pendingNotificationId === notification.id}
-                onClick={() => handleSelectNotification(notification)}
-              />
-            ))}
-          </ul>
+        {displayNotifications.length > 0 ? (
+          <>
+            <ul className="notifications-page__list" aria-label="알림 목록">
+              {displayNotifications.map((notification) => (
+                <NotificationItem
+                  disabled={markReadMutation.isPending}
+                  key={notification.id}
+                  notification={notification}
+                  pending={pendingNotificationId === notification.id}
+                  onClick={() => handleSelectNotification(notification)}
+                />
+              ))}
+            </ul>
+            <div className="notifications-page__sentinel" ref={observerRef}>
+              {isFetchingNextPage ? (
+                <p className="notifications-page__sentinel-loading">알림을 더 가져오는 중...</p>
+              ) : null}
+            </div>
+          </>
         ) : (
           <Card className="notifications-page__empty-card">
             <img
