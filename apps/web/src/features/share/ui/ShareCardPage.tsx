@@ -38,7 +38,7 @@ import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "
 
 import "./ShareCardPage.css";
 
-const HEADLINE_MAX_LENGTH = 100;
+const HEADLINE_MAX_LENGTH = 40;
 const SHARE_CARD_FONT_FAMILY =
   '"SUIT Variable", "SUIT", "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
 

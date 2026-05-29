@@ -969,14 +969,14 @@ function ShareScreen({ character, equippedSkin, onClaimShareReward, onBack, onSh
 
           <div style={{ marginTop: 20 }}>
             <TextField
-              label="다짐 메시지 문구 작성 (최대 100자)"
+              label="다짐 메시지 문구 작성 (최대 40자)"
               type="text"
               placeholder="예: 오늘도 조금 반짝였음."
               value={slogan}
               onChange={e => {
-                if (e.target.value.length <= 100) setSlogan(e.target.value);
+                if (e.target.value.length <= 40) setSlogan(e.target.value);
               }}
-              hint={`${slogan.length}/100 자`}
+              hint={`${slogan.length}/40 자`}
             />
           </div>
         </div>
