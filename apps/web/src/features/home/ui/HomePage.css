@@ -33,8 +33,45 @@
     drop-shadow(0 2px 3px rgba(123, 76, 15, 0.18));
 }
 
+.home-page__stage-wrap {
+  position: relative;
+}
+
+.home-page__status-chips {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  pointer-events: none;
+}
+
+.home-page__status-chip {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 999px;
+  color: var(--fg-2);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 10px rgba(45, 36, 24, 0.08);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.1;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.home-page__status-chip--good {
+  color: var(--success);
+}
+
+.home-page__status-chip--bad {
+  color: var(--danger);
+}
+
 .home-page__quick-row {
-  margin-top: 16px;
+  margin-top: 14px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -69,19 +106,8 @@
   font-size: 11px;
 }
 
-.home-page__gauges {
-  margin-top: 12px;
-  display: grid;
-  gap: 13px;
-  padding-block: 22px;
-}
-
-.home-page__gauges .status-gauge {
-  gap: 6px;
-}
-
 .home-page__mission-section {
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .home-page__section-title {
@@ -211,7 +237,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .home-page__body {
     padding-inline: 18px;
   }

@@ -276,7 +276,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .wallet-page {
     padding: 0;
   }
