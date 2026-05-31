@@ -44,7 +44,12 @@ jobs:
         run: printf '%s\n' "${{ vars.WEB_ENV_PRODUCTION }}" > .env.production
 
       - name: Build web
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: pnpm build:web
+
+      - name: Remove sourcemap files for security
+        run: rm -f apps/web/dist/assets/*.map
 
       - name: Add SSH key
         run: |
