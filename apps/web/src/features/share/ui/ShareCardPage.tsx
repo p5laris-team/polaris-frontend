@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import * as Sentry from "@sentry/react";
 
 import { toCharacterKey } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
@@ -148,6 +149,18 @@ export function ShareCardPage() {
         },
       );
     } catch (error) {
+      console.error("Failed to create share card:", error);
+      Sentry.withScope((scope) => {
+        scope.setTag("feature", "share_card");
+        scope.setTag("action", "create_card");
+        scope.setContext("Card Details", {
+          backgroundKey,
+          headlineLength: trimmedHeadline.length,
+          completedCount,
+          earnedStarPiece,
+        });
+        Sentry.captureException(error);
+      });
       showToast(getUserFacingErrorMessage(error));
     }
   };
@@ -208,6 +221,18 @@ export function ShareCardPage() {
         },
       );
     } catch (error) {
+      console.error("Failed to share or copy share card:", error);
+      Sentry.withScope((scope) => {
+        scope.setTag("feature", "share_card");
+        scope.setTag("action", "share_card");
+        if (shareCard) {
+          scope.setContext("Card Details", {
+            shareCardId: shareCard.shareCardId,
+            shareUrl: shareCard.shareUrl,
+          });
+        }
+        Sentry.captureException(error);
+      });
       showToast(getUserFacingErrorMessage(error));
     }
   };
