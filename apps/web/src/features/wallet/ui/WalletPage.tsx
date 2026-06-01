@@ -25,7 +25,8 @@ import {
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { AppShell, Button, Card, Header, StarPieceAmount, Tag } from "@/shared/ui";
+import { emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag } from "@/shared/ui";
 
 import "./WalletPage.css";
 
@@ -43,18 +44,16 @@ export function WalletPage() {
   if (walletError || !walletQuery.data || !transactionsQuery.data) {
     return (
       <WalletFrame>
-        <div className="wallet-page__state">
-          <h2>별조각 내역을 불러오지 못했어요.</h2>
-          <p>{getUserFacingErrorMessage(walletError)}</p>
-          <Button
-            onClick={() => {
-              void walletQuery.refetch();
-              void transactionsQuery.refetch();
-            }}
-          >
-            다시 불러오기
-          </Button>
-        </div>
+        <ErrorState
+          className="wallet-page__state"
+          description={getUserFacingErrorMessage(walletError)}
+          imageSrc={emptyStateAssets.mission}
+          onAction={() => {
+            void walletQuery.refetch();
+            void transactionsQuery.refetch();
+          }}
+          title="별조각 내역을 불러오지 못했어요."
+        />
       </WalletFrame>
     );
   }

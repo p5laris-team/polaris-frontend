@@ -5,6 +5,7 @@ export { Card } from "./Card/Card";
 export { CareActionFeedback } from "./CareActionFeedback/CareActionFeedback";
 export { CharacterStage } from "./CharacterStage/CharacterStage";
 export { Chip } from "./Chip/Chip";
+export { ErrorState } from "./ErrorState/ErrorState";
 export { Header } from "./Header/Header";
 export { IconButton } from "./IconButton/IconButton";
 export { MissionCard } from "./MissionCard/MissionCard";

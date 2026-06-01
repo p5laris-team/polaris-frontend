@@ -34,12 +34,13 @@ import {
   Card,
   CareActionFeedback,
   CharacterStage,
+  ErrorState,
   Header,
   StatusGauge,
   Tag,
   useToast,
 } from "@/shared/ui";
-import { consumableItemAssets, type CharacterMood } from "@/shared/assets/polarisAssets";
+import { consumableItemAssets, emptyStateAssets, type CharacterMood } from "@/shared/assets/polarisAssets";
 
 import "./CharacterCarePage.css";
 
@@ -219,19 +220,17 @@ export function CharacterCarePage() {
 
     return (
       <CharacterCareFrame>
-        <div className="character-care-page__state">
-          <h2>별친구 상태를 못 불러왔어요.</h2>
-          <p>{getUserFacingErrorMessage(error)}</p>
-          <Button
-            onClick={() => {
-              void activeCharacterQuery.refetch();
-              void statusQuery.refetch();
-              void consumablesQuery.refetch();
-            }}
-          >
-            다시 불러오기
-          </Button>
-        </div>
+        <ErrorState
+          className="character-care-page__state"
+          description={getUserFacingErrorMessage(error)}
+          imageSrc={emptyStateAssets.inventory}
+          onAction={() => {
+            void activeCharacterQuery.refetch();
+            void statusQuery.refetch();
+            void consumablesQuery.refetch();
+          }}
+          title="별친구 상태를 못 불러왔어요."
+        />
       </CharacterCareFrame>
     );
   }

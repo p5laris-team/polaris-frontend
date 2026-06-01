@@ -12,6 +12,7 @@ import { resolveCharacterImageUrl } from "@/features/character/model/characterAs
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import { mapHomeResponseToViewModel } from "@/features/home/model/homeMappers";
 import {
+  getMissionLimitMessage,
   useRejectAndRequestNextMissionMutation,
   useStartMissionCompletionSessionMutation,
   useTodayFocusMissionQuery,
@@ -20,13 +21,14 @@ import { mapCurrentMissionToHomeMission } from "@/features/mission/model/mission
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
-import { getUserFacingErrorMessage } from "@/shared/api";
+import { getUserFacingErrorMessage, isPolarisApiError } from "@/shared/api";
 import { brandAssets, currencyAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
 import {
   AppShell,
   Button,
   Card,
   CharacterStage,
+  ErrorState,
   Header,
   IconButton,
   MissionCard,
@@ -83,11 +85,13 @@ export function HomePage() {
   if (homeQuery.isError) {
     return (
       <HomeFrame>
-        <div className="home-page__state">
-          <h2>홈을 불러오지 못했어요.</h2>
-          <p>{getUserFacingErrorMessage(homeQuery.error)}</p>
-          <Button onClick={() => void homeQuery.refetch()}>다시 불러오기</Button>
-        </div>
+        <ErrorState
+          className="home-page__state"
+          description={getUserFacingErrorMessage(homeQuery.error)}
+          imageSrc={emptyStateAssets.mission}
+          onAction={() => void homeQuery.refetch()}
+          title="홈을 불러오지 못했어요."
+        />
       </HomeFrame>
     );
   }
@@ -119,7 +123,11 @@ export function HomePage() {
           showToast(rejection.characterMessage);
         },
         onError: (error) => {
-          showToast(getUserFacingErrorMessage(error));
+          const limitMessage = isPolarisApiError(error)
+            ? getMissionLimitMessage(error.apiError.code)
+            : null;
+
+          showToast(limitMessage ?? getUserFacingErrorMessage(error));
         },
       },
     );
@@ -187,11 +195,13 @@ export function HomePage() {
               <p>별친구가 지금 해볼 만한 미션을 고르고 있어요.</p>
             </Card>
           ) : focusMissionQuery.isError ? (
-            <Card className="home-page__state">
-              <h2>미션을 불러오지 못했어요.</h2>
-              <p>{getUserFacingErrorMessage(focusMissionQuery.error)}</p>
-              <Button onClick={() => void focusMissionQuery.refetch()}>다시 불러오기</Button>
-            </Card>
+            <ErrorState
+              className="home-page__state"
+              description={getUserFacingErrorMessage(focusMissionQuery.error)}
+              imageSrc={emptyStateAssets.mission}
+              onAction={() => void focusMissionQuery.refetch()}
+              title="미션을 불러오지 못했어요."
+            />
           ) : mission ? (
             <div className="home-page__mission-box">
               <div className="home-page__mission-meta">

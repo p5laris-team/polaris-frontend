@@ -4,20 +4,23 @@
  * 사용자의 답변을 제출해서 보상 지급 결과 화면으로 넘깁니다.
  */
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
+import { type MissionCompletionResultResponse } from "@/entities/mission/types";
 import { toCharacterKey } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
 import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
-import { useHomeQuery } from "@/features/home/api/homeApi";
+import { homeQueryKeys, useHomeQuery } from "@/features/home/api/homeApi";
 import {
+  missionQueryKeys,
   useCurrentMissionQuery,
   useStartMissionCompletionSessionMutation,
   useSubmitMissionCompletionAnswerMutation,
 } from "@/features/mission/api/missionApi";
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { routes } from "@/routes/paths";
-import { getUserFacingErrorMessage } from "@/shared/api";
+import { getUserFacingErrorMessage, isPolarisApiError } from "@/shared/api";
 import { AppShell, Button, Card, CharacterStage, Header, useToast } from "@/shared/ui";
 
 import "./MissionAnswerPage.css";
@@ -27,6 +30,7 @@ export function MissionAnswerPage() {
   const startedRef = useRef(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const homeQuery = useHomeQuery();
   const activeCharacterQuery = useActiveCharacterQuery();
   const currentMissionQuery = useCurrentMissionQuery();
@@ -96,7 +100,7 @@ export function MissionAnswerPage() {
 
   /** 답변 길이 검증을 통과한 경우에만 미션 완료 답변을 서버로 제출합니다. */
   const handleSubmit = () => {
-    if (!currentMission || !canSubmit) {
+    if (!currentMission || !currentCharacter || !canSubmit) {
       return;
     }
 
@@ -108,6 +112,25 @@ export function MissionAnswerPage() {
           navigate(routes.missionResult);
         },
         onError: (error) => {
+          if (isMissionRewardPendingError(error)) {
+            setActiveMission(currentMission, currentCharacter);
+            setCompletionResult(
+              createPendingRewardResult({
+                answerText: trimmedAnswer,
+                characterName: currentCharacter.name,
+                missionId: currentMission.id,
+                rewardStarPiece: currentMission.rewardStarPiece,
+                walletStarPiece: homeQuery.data?.wallet.starPiece ?? 0,
+              }),
+            );
+            void Promise.all([
+              queryClient.invalidateQueries({ queryKey: homeQueryKeys.all }),
+              queryClient.invalidateQueries({ queryKey: missionQueryKeys.all }),
+            ]);
+            navigate(routes.missionResult);
+            return;
+          }
+
           showToast(getUserFacingErrorMessage(error));
         },
       },
@@ -177,6 +200,42 @@ export function MissionAnswerPage() {
       </div>
     </MissionAnswerFrame>
   );
+}
+
+function isMissionRewardPendingError(error: unknown) {
+  return isPolarisApiError(error) && error.apiError.code === "MISSION_REWARD_FAILED";
+}
+
+function createPendingRewardResult({
+  answerText,
+  characterName,
+  missionId,
+  rewardStarPiece,
+  walletStarPiece,
+}: {
+  answerText: string;
+  characterName: string;
+  missionId: number;
+  rewardStarPiece: number;
+  walletStarPiece: number;
+}): MissionCompletionResultResponse {
+  return {
+    missionId,
+    status: "COMPLETED",
+    rewardStatus: "PENDING",
+    answer: {
+      text: answerText,
+      answeredAt: new Date().toISOString(),
+    },
+    reward: {
+      starPiece: rewardStarPiece,
+      affection: 0,
+    },
+    wallet: {
+      starPiece: walletStarPiece,
+    },
+    characterMessage: `${characterName}가 별조각 지급을 확인하고 있어요. 완료되면 알림으로 알려줄게요.`,
+  };
 }
 
 /** 인증 화면의 헤더와 모바일 앱 shell을 묶어 중복 레이아웃을 줄입니다. */
