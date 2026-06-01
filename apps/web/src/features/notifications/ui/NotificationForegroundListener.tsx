@@ -28,9 +28,21 @@ export function NotificationForegroundListener() {
     void listenForegroundPushMessages((payload) => {
       const copy = getForegroundPushToastCopy(payload);
       
-      // 포그라운드 상태에서는 시스템 네이티브 알림의 중복 노출을 피하기 위해
-      // 시스템 팝업을 직접 생성하지 않고, 대신 유려한 인앱 토스트 알림을 노출합니다.
-      showToast(`${copy.title}: ${copy.body}`);
+      // 브라우저 팝업 알림 (Notification API) 지원 여부 및 권한 검사
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification(copy.title, {
+            body: copy.body,
+            icon: `${window.location.origin}/icons/icon-192.png`,
+          });
+        } catch (error) {
+          // 일부 브라우저 예외 시 토스트로 폴백
+          showToast(`${copy.title}: ${copy.body}`);
+        }
+      } else {
+        // 권한이 없거나 지원하지 않는 경우 화면 하단 검은색 토스트로 폴백
+        showToast(`${copy.title}: ${copy.body}`);
+      }
 
       void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
       void queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() });
