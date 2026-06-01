@@ -324,7 +324,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .character-care-page {
     padding: 0;
   }
@@ -332,4 +332,41 @@
   .character-care-page__body {
     padding-inline: 18px;
   }
+}
+
+.character-care-page__stage-wrap {
+  position: relative;
+}
+
+.character-care-page__status-chips {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  pointer-events: none;
+}
+
+.character-care-page__status-chip {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 999px;
+  color: var(--fg-2);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 10px rgba(45, 36, 24, 0.08);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.1;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.character-care-page__status-chip--good {
+  color: var(--success);
+}
+
+.character-care-page__status-chip--bad {
+  color: var(--danger);
 }

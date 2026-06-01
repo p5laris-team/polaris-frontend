@@ -19,6 +19,7 @@ import { ShareCardPage } from "@/features/share/ui/ShareCardPage";
 import { ShopPage } from "@/features/shop/ui/ShopPage";
 import { WalletPage } from "@/features/wallet/ui/WalletPage";
 import { DesignSystemPreviewPage } from "@/pages/DesignSystemPreviewPage";
+import { TestErrorPage } from "@/pages/TestErrorPage";
 import { routes } from "@/routes/paths";
 import { runtimeConfig } from "@/shared/config/env";
 import { useAuthStore } from "@/stores/authStore";
@@ -34,6 +35,7 @@ export function AppRouter() {
       <Route path={routes.login} element={<LoginPage />} />
       <Route path={routes.googleCallback} element={<GoogleCallbackPage />} />
       <Route path={routes.designSystem} element={<DesignSystemPreviewPage />} />
+      <Route path={routes.testError} element={<TestErrorPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path={routes.onboardingCharacter} element={<CharacterSelectPage />} />

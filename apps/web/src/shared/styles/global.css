@@ -1,5 +1,6 @@
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -37,6 +38,20 @@ a {
 .polaris-app,
 .polaris-app * {
   letter-spacing: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.polaris-app input,
+.polaris-app textarea,
+.polaris-app [contenteditable="true"],
+.polaris-app [data-selectable="true"],
+.polaris-app input *,
+.polaris-app textarea *,
+.polaris-app [contenteditable="true"] *,
+.polaris-app [data-selectable="true"] * {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .app-page {
@@ -53,7 +68,7 @@ a {
   padding: 28px 16px 80px;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .app-page,
   .preview-page {
     padding: 0;

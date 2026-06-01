@@ -21,4 +21,6 @@ export const routes = {
   notifications: "/app/notifications",
   myPage: "/app/me",
   designSystem: "/dev/design-system",
+  testError: "/dev/test-error",
 };
+

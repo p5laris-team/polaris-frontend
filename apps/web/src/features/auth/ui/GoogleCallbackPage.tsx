@@ -5,6 +5,7 @@
  */
 import { type CSSProperties, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import * as Sentry from "@sentry/react";
 
 import { createGoogleSession } from "@/features/auth/api/authApi";
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
@@ -30,6 +31,10 @@ export function GoogleCallbackPage() {
     const state = searchParams.get("state");
 
     if (!code) {
+      const missingCodeError = new Error("OAuth code is missing in callback URL params");
+      Sentry.captureException(missingCodeError, {
+        tags: { feature: "oauth_callback" },
+      });
       showToast("로그인 인증 코드가 누락되었습니다.");
       navigate(routes.login, { replace: true });
       return;
@@ -55,6 +60,14 @@ export function GoogleCallbackPage() {
         navigate("/", { replace: true });
       } catch (error) {
         console.error("OAuth callback login failed:", error);
+        Sentry.withScope((scope) => {
+          scope.setTag("feature", "oauth_callback");
+          scope.setContext("OAuth State", {
+            hasCode: !!code,
+            hasState: !!state,
+          });
+          Sentry.captureException(error);
+        });
         showToast("로그인 도중 오류가 발생했습니다.");
         navigate(routes.login, { replace: true });
       }

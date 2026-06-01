@@ -1,0 +1,99 @@
+.error-boundary-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--color-latte-bg1, #fcfaf6);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  padding: var(--spacing-6, 24px);
+  box-sizing: border-box;
+}
+
+.error-boundary-fallback__card {
+  max-width: 420px;
+  width: 100%;
+  background: var(--color-latte-bg2, #ffffff);
+  border: 1px solid rgba(228, 222, 210, 0.6);
+  border-radius: var(--radius-20, 20px);
+  box-shadow: 0 8px 30px rgba(139, 126, 116, 0.08);
+  padding: 40px var(--spacing-6, 24px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInError 0.4s ease-out;
+}
+
+@keyframes fadeInError {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-boundary-fallback__icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: floatError 3s ease-in-out infinite;
+}
+
+@keyframes floatError {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.05);
+  }
+}
+
+.error-boundary-fallback__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-latte-txt-main, #3c3a36);
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.error-boundary-fallback__message {
+  font-size: 14px;
+  color: var(--color-latte-txt-sub, #8b7e74);
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+  word-break: keep-all;
+}
+
+.error-boundary-fallback__event-id {
+  font-size: 12px;
+  color: var(--color-latte-txt-muted, #bfae9e);
+  background: var(--color-latte-bg1, #fcfaf6);
+  padding: 8px 16px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  font-family: 'Outfit', sans-serif;
+  border: 1px dashed rgba(228, 222, 210, 0.4);
+}
+
+.error-boundary-fallback__event-id span {
+  font-weight: 600;
+  color: var(--color-latte-primary, #e27d60);
+  user-select: all;
+}
+
+.error-boundary-fallback__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.error-boundary-fallback__actions button {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  font-weight: 600;
+}

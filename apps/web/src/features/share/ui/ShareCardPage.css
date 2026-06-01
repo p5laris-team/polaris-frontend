@@ -469,7 +469,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .share-card-page {
     padding: 0;
   }

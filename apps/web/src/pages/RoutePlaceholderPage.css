@@ -37,7 +37,7 @@
   line-height: 1.55;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .placeholder-page__body {
     padding-inline: 18px;
   }

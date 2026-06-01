@@ -15,3 +15,5 @@ export { StatusGauge } from "./StatusGauge/StatusGauge";
 export { Tag } from "./Tag/Tag";
 export { TextField } from "./TextField/TextField";
 export { ToastProvider, useToast } from "./Toast/Toast";
+export { ErrorBoundary } from "./ErrorBoundary/ErrorBoundary";
+

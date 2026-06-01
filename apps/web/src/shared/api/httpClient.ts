@@ -1,9 +1,82 @@
 import axios, { AxiosHeaders, type AxiosError, type AxiosResponse } from "axios";
+import * as Sentry from "@sentry/react";
 
 import { useAuthStore } from "@/stores/authStore";
 import { PolarisApiError, createFallbackApiError } from "@/shared/api/apiError";
 import { type ApiResponse } from "@/shared/api/types";
 import { runtimeConfig } from "@/shared/config/env";
+
+/**
+ * Sentry로 API 에러를 선별 수집하고 마스킹하는 헬퍼 함수입니다.
+ */
+function captureApiClientError(error: any) {
+  if (!runtimeConfig.sentry.enabled) return;
+
+  const status = error.response?.status;
+  const url = error.config?.url || "";
+  const method = error.config?.method || "";
+  
+  let polarisErrorCode = "";
+  let message = error.message || "API Error";
+  
+  if (error instanceof PolarisApiError) {
+    polarisErrorCode = error.apiError.code || "";
+    message = error.apiError.message || message;
+  } else if (error.response?.data?.error) {
+    polarisErrorCode = error.response.data.error.code || "";
+    message = error.response.data.error.message || message;
+  }
+
+  // 필터 조건: 5xx 에러, 네트워크 장애(status 없음), 토큰 재발급 실패, 또는 핵심 실패 플로우 API
+  const is5xx = status >= 500 && status < 600;
+  const isNetworkError = !status && error.code !== "ERR_CANCELED";
+  const isTokenRefreshFailure = url.includes("/api/auth/v1/token-refreshes");
+  const isCrucialFailure = 
+    url.includes("/api/auth/v1/google/sessions") || 
+    url.includes("/completion-answers") || 
+    url.includes("/share-cards") ||
+    url.includes("/share-events") ||
+    url.includes("/item-purchases");
+
+  if (is5xx || isNetworkError || isTokenRefreshFailure || isCrucialFailure) {
+    Sentry.withScope((scope) => {
+      scope.setTag("feature", "api_client");
+      scope.setTag("api.method", method.toUpperCase());
+      
+      // 고유 식별자 방지용 템플릿화
+      const pathTemplate = url
+        .replace(/\/api\/mission\/v1\/missions\/\d+/g, "/api/mission/v1/missions/{missionId}")
+        .replace(/\/api\/character\/v1\/characters\/\d+/g, "/api/character/v1/characters/{characterId}")
+        .replace(/\/api\/notification\/v1\/notifications\/\d+/g, "/api/notification/v1/notifications/{notificationId}");
+      
+      scope.setTag("api.endpoint", `${method.toUpperCase()} ${pathTemplate}`);
+      if (status) {
+        scope.setTag("api.status", String(status));
+      }
+      if (polarisErrorCode) {
+        scope.setTag("api.error_code", polarisErrorCode);
+      }
+
+      scope.setContext("API Details", {
+        url,
+        method: method.toUpperCase(),
+        status,
+        polarisErrorCode,
+        message,
+        // PII 마스킹 처리 (Authorization 헤더 제거)
+        headers: error.config?.headers ? {
+          ...error.config.headers,
+          Authorization: "[MASKED]",
+          authorization: "[MASKED]",
+          "X-Refresh-Token": "[MASKED]",
+          "x-refresh-token": "[MASKED]",
+        } : undefined,
+      });
+
+      Sentry.captureException(error);
+    });
+  }
+}
 
 /**
  * Polaris REST API를 호출할 때 공통으로 사용하는 Axios 인스턴스입니다.
@@ -141,7 +214,9 @@ apiClient.interceptors.response.use(
     const body = response.data as Partial<ApiResponse<unknown>>;
 
     if (body && body.success === false) {
-      throw new PolarisApiError(body.error ?? createFallbackApiError("요청 처리에 실패했어요."));
+      const apiError = new PolarisApiError(body.error ?? createFallbackApiError("요청 처리에 실패했어요."));
+      captureApiClientError(apiError);
+      throw apiError;
     }
 
     return response;
@@ -168,10 +243,12 @@ apiClient.interceptors.response.use(
         const { refreshToken, clearSession } = useAuthStore.getState();
         if (!refreshToken) {
           clearSession();
+          let finalError: any = error;
           if (error.response?.data?.error) {
-            return Promise.reject(new PolarisApiError(error.response.data.error));
+            finalError = new PolarisApiError(error.response.data.error);
           }
-          return Promise.reject(error);
+          captureApiClientError(finalError);
+          return Promise.reject(finalError);
         }
 
         try {
@@ -197,16 +274,18 @@ apiClient.interceptors.response.use(
           originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`);
           return apiClient(originalRequest);
         } catch (refreshError) {
+          captureApiClientError(refreshError);
           return Promise.reject(refreshError);
         }
       }
     }
 
+    let finalError: any = error;
     if (error.response?.data?.error) {
-      return Promise.reject(new PolarisApiError(error.response.data.error));
+      finalError = new PolarisApiError(error.response.data.error);
     }
-
-    return Promise.reject(error);
+    captureApiClientError(finalError);
+    return Promise.reject(finalError);
   },
 );
 

@@ -31,7 +31,6 @@ import {
   IconButton,
   MissionCard,
   StarPieceAmount,
-  StatusGauge,
   Tag,
   useToast,
 } from "@/shared/ui";
@@ -150,54 +149,30 @@ export function HomePage() {
   };
 
   return (
-    <HomeFrame unreadNotificationCount={home.unreadNotificationCount}>
+    <HomeFrame unreadNotificationCount={home.unreadNotificationCount} starPieceCount={home.walletStarPiece}>
       <div className="home-page__body">
         {/* SCR-006 캐릭터 영역: 홈 API의 캐릭터 상태와 현재 미션 대사를 함께 보여준다. */}
-        <CharacterStage
-          character={home.character.key}
-          mood={home.character.mood}
-          imageUrl={characterImageUrl}
-          name={home.character.name}
-          bubble={focusMission?.characterMessage ?? home.character.bubble}
-          ariaLabel="별친구 돌봄 화면 열기"
-          onClick={() => navigate(routes.character)}
-        />
-
-        <div className="home-page__quick-row">
-          <button
-            className="home-page__quick-card"
-            type="button"
-            onClick={() => navigate(routes.attendance)}
-          >
-            <CalendarDays size={20} strokeWidth={1.75} />
-            <span>
-              <strong>출석 체크</strong>
-              <small>오늘의 도장 콕 찍기</small>
-            </span>
-          </button>
-          <button
-            className="home-page__quick-card"
-            type="button"
-            onClick={() => navigate(routes.share)}
-          >
-            <Share2 size={20} strokeWidth={1.75} />
-            <span>
-              <strong>카드 공유</strong>
-              <small>별조각 보상 받기</small>
-            </span>
-          </button>
+        <div className="home-page__stage-wrap">
+          <CharacterStage
+            character={home.character.key}
+            mood={home.character.mood}
+            imageUrl={characterImageUrl}
+            name={home.character.name}
+            bubble={focusMission?.characterMessage ?? home.character.bubble}
+            ariaLabel="별친구 돌봄 화면 열기"
+            onClick={() => navigate(routes.character)}
+          />
+          <div className="home-page__status-chips" aria-label="캐릭터 상태 요약">
+            {home.character.gauges.map((gauge) => (
+              <span
+                className={`home-page__status-chip home-page__status-chip--${gauge.tone}`}
+                key={gauge.key}
+              >
+                {gauge.label} {gauge.value}%
+              </span>
+            ))}
+          </div>
         </div>
-
-        <Card className="home-page__gauges">
-          {home.character.gauges.map((gauge) => (
-            <StatusGauge
-              key={gauge.key}
-              label={`${gauge.label} · ${gauge.description}`}
-              value={gauge.value}
-              tone={gauge.tone}
-            />
-          ))}
-        </Card>
 
         {/* SCR-007 미션 카드: 완료는 질문 세션으로, 거절은 즉시 거절 후 다음 미션 요청으로 이어진다. */}
         <section className="home-page__mission-section" aria-label="제안된 미션">
@@ -260,6 +235,31 @@ export function HomePage() {
             </Card>
           )}
         </section>
+
+        <div className="home-page__quick-row">
+          <button
+            className="home-page__quick-card"
+            type="button"
+            onClick={() => navigate(routes.attendance)}
+          >
+            <CalendarDays size={20} strokeWidth={1.75} />
+            <span>
+              <strong>출석 체크</strong>
+              <small>오늘의 도장 콕 찍기</small>
+            </span>
+          </button>
+          <button
+            className="home-page__quick-card"
+            type="button"
+            onClick={() => navigate(routes.share)}
+          >
+            <Share2 size={20} strokeWidth={1.75} />
+            <span>
+              <strong>카드 공유</strong>
+              <small>별조각 보상 받기</small>
+            </span>
+          </button>
+        </div>
       </div>
     </HomeFrame>
   );
@@ -269,9 +269,11 @@ export function HomePage() {
 function HomeFrame({
   children,
   unreadNotificationCount,
+  starPieceCount,
 }: {
   children: React.ReactNode;
   unreadNotificationCount?: number;
+  starPieceCount?: number;
 }) {
   const navigate = useNavigate();
 
@@ -281,9 +283,20 @@ function HomeFrame({
         <Header
           title={<img alt="Polaris" className="home-page__brand-logo" src={brandAssets.logoWordmark} />}
           left={
-            <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
-              <img alt="" className="home-page__wallet-icon" src={currencyAssets.starPiece} />
-            </IconButton>
+            typeof starPieceCount === "number" ? (
+              <button
+                className="home-page__wallet-button"
+                onClick={() => navigate(routes.wallet)}
+                aria-label="별조각 내역"
+                type="button"
+              >
+                <StarPieceAmount amount={starPieceCount} size="sm" />
+              </button>
+            ) : (
+              <IconButton aria-label="별조각 내역" onClick={() => navigate(routes.wallet)}>
+                <img alt="" className="home-page__wallet-icon" src={currencyAssets.starPiece} />
+              </IconButton>
+            )
           }
           right={
             <IconButton aria-label="알림" onClick={() => navigate(routes.notifications)}>

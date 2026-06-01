@@ -26,4 +26,10 @@ export const runtimeConfig = {
     },
     vapidKey: stringOrEmpty(import.meta.env.VITE_FIREBASE_VAPID_KEY),
   },
+  sentry: {
+    dsn: stringOrEmpty(import.meta.env.VITE_SENTRY_DSN),
+    environment: stringOrEmpty(import.meta.env.VITE_SENTRY_ENV || "development"),
+    enabled: import.meta.env.VITE_SENTRY_ENABLED === "true" || !!import.meta.env.VITE_SENTRY_DSN,
+    release: stringOrEmpty(import.meta.env.VITE_RELEASE_VERSION || "polaris-web@1.0.0"),
+  },
 };

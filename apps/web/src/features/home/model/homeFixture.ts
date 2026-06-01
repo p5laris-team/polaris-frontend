@@ -15,7 +15,7 @@ import {
 } from "@/entities/mission/types";
 import { demoRecordWalletTransaction } from "@/features/wallet/model/walletLedger";
 
-const MAX_DAILY_MISSION_OFFERS = 15;
+const MAX_DAILY_MISSION_OFFERS = 20;
 const todayMissionDate = getTodayDateKey();
 
 const missionTemplates: CurrentMissionResponse[] = [

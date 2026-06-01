@@ -194,7 +194,7 @@ export function MissionHistoryPage() {
           ))}
         </div>
 
-        {/* SCR-011 today API는 하루 최대 15개만 내려주므로 페이지네이션 없이 전체 스택을 한 번에 렌더링한다. */}
+        {/* SCR-011 today API는 하루 최대 20개만 내려주므로 페이지네이션 없이 전체 스택을 한 번에 렌더링한다. */}
         {filteredMissions.length > 0 ? (
           <ol className="mission-history__list" aria-label="오늘 미션 스택">
             {filteredMissions.map((mission) => (

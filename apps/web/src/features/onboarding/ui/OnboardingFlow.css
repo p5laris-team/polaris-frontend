@@ -391,7 +391,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .onboarding-page {
     padding: 0;
   }
