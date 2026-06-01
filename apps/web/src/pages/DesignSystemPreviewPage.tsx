@@ -88,7 +88,7 @@ export function DesignSystemPreviewPage() {
           <section className="design-preview__section">
             <div className="design-preview__section-title">
               <h2>미션 카드</h2>
-              <span>오늘 3 / 15</span>
+              <span>오늘 3 / 20</span>
             </div>
             <div className="design-preview__stack">
               <MissionCard
