@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import {
   type CharacterTypeSummary,
   type CreatedCharacterResponse,
+  type OnboardingAnswerValue,
   type OnboardingAnswers,
   type OnboardingQuestionKey,
 } from "@/features/onboarding/model/onboardingTypes";
@@ -15,7 +16,7 @@ type OnboardingSetupState = {
   completed: boolean;
   selectCharacter: (character: CharacterTypeSummary) => void;
   setCreatedCharacter: (character: CreatedCharacterResponse) => void;
-  setAnswer: (key: OnboardingQuestionKey, value: string) => void;
+  setAnswer: (key: OnboardingQuestionKey, value: OnboardingAnswerValue) => void;
   markCompleted: () => void;
   resetFlow: () => void;
 };

@@ -8,10 +8,12 @@ import { homeQueryKeys } from "@/features/home/api/homeApi";
 import {
   demoGetNotificationSetting,
   demoGetNotifications,
+  demoMarkAllNotificationsRead,
   demoMarkNotificationRead,
   demoUpdateNotificationSetting,
 } from "@/features/notifications/model/notificationFixtures";
 import {
+  type MarkAllNotificationsReadResponse,
   type NotificationListRequest,
   type NotificationListResponse,
   type NotificationReadRequest,
@@ -63,6 +65,17 @@ export function markNotificationRead(
 
   return unwrapApiResponse<NotificationReadResponse>(
     apiClient.patch(`/api/notification/v1/notifications/${notificationId}`, body),
+  );
+}
+
+/** 로그인한 사용자의 안 읽은 알림을 백엔드에서 한 번에 읽음 처리합니다. */
+export function markAllNotificationsRead() {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoMarkAllNotificationsRead());
+  }
+
+  return unwrapApiResponse<MarkAllNotificationsReadResponse>(
+    apiClient.patch("/api/notification/v1/notifications/read-all"),
   );
 }
 
@@ -175,6 +188,21 @@ export function useMarkNotificationReadMutation() {
 
   return useMutation({
     mutationFn: (notificationId: number) => markNotificationRead(notificationId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() }),
+      ]);
+    },
+  });
+}
+
+/** 알림 목록 화면의 '모두 읽음' 버튼에서 사용하는 mutation입니다. */
+export function useMarkAllNotificationsReadMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: markAllNotificationsRead,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all }),

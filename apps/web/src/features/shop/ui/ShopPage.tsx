@@ -39,8 +39,8 @@ import { useHomeQuery } from "@/features/home/api/homeApi";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { currencyAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, Modal, StarPieceAmount, Tag, useToast } from "@/shared/ui";
+import { currencyAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card, ErrorState, Header, Modal, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./ShopPage.css";
 
@@ -146,11 +146,13 @@ export function ShopPage() {
   if (shopError) {
     return (
       <ShopFrame>
-        <div className="shop-page__state">
-          <h2>상점 문을 잠깐 못 열었어요.</h2>
-          <p>{getUserFacingErrorMessage(shopError)}</p>
-          <Button onClick={handleRetry}>다시 불러오기</Button>
-        </div>
+        <ErrorState
+          className="shop-page__state"
+          description={getUserFacingErrorMessage(shopError)}
+          imageSrc={emptyStateAssets.inventory}
+          onAction={handleRetry}
+          title="상점 문을 잠깐 못 열었어요."
+        />
       </ShopFrame>
     );
   }

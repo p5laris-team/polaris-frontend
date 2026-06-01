@@ -1,6 +1,7 @@
 import { demoSetUnreadNotificationCount } from "@/features/home/model/homeFixture";
 import {
   type AppNotification,
+  type MarkAllNotificationsReadResponse,
   type NotificationListRequest,
   type NotificationListResponse,
   type NotificationReadResponse,
@@ -113,6 +114,24 @@ export function demoMarkNotificationRead(notificationId: number): NotificationRe
     id: notificationId,
     read: true,
     updatedAt: new Date().toISOString(),
+  };
+}
+
+export function demoMarkAllNotificationsRead(): MarkAllNotificationsReadResponse {
+  const now = new Date().toISOString();
+  const updatedCount = demoNotifications.filter((notification) => !notification.read).length;
+
+  demoNotifications = demoNotifications.map((notification) => ({
+    ...notification,
+    read: true,
+  }));
+
+  syncDemoUnreadCount();
+
+  return {
+    updatedCount,
+    unreadCount: 0,
+    updatedAt: now,
   };
 }
 

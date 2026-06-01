@@ -12,6 +12,7 @@ import {
   HeartPulse,
   LogOut,
   Mail,
+  MapPin,
   Moon,
   Package,
   ShieldCheck,
@@ -25,7 +26,14 @@ import { useNavigate } from "react-router-dom";
 import { useAttendanceRecordsQuery } from "@/features/attendance/api/attendanceApi";
 import { type AttendanceRecord } from "@/features/attendance/model/attendanceTypes";
 import { useHomeQuery } from "@/features/home/api/homeApi";
-import { useLogoutMyPageSessionMutation, useMyPageUserQuery } from "@/features/my-page/api/myPageApi";
+import {
+  useLogoutMyPageSessionMutation,
+  useMyPageUserQuery,
+  useMyWeatherRegionQuery,
+  useUpdateMyWeatherRegionMutation,
+  useWeatherRegionsQuery,
+} from "@/features/my-page/api/myPageApi";
+import { type WeatherRegionItem } from "@/features/my-page/model/myPageTypes";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import {
   useNotificationSettingQuery,
@@ -47,7 +55,8 @@ import {
 } from "@/features/notifications/model/pushMessaging";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
+import { emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 import { useAuthStore } from "@/stores/authStore";
 
 import "./MyPage.css";
@@ -72,6 +81,9 @@ export function MyPage() {
   const registerFcmTokenMutation = useRegisterFcmTokenMutation();
   const notificationSettingQuery = useNotificationSettingQuery();
   const updateNotificationSettingMutation = useUpdateNotificationSettingMutation();
+  const weatherRegionsQuery = useWeatherRegionsQuery();
+  const weatherRegionQuery = useMyWeatherRegionQuery();
+  const updateWeatherRegionMutation = useUpdateMyWeatherRegionMutation();
   const [pushAvailability, setPushAvailability] = useState<PushAvailability>("checking");
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
     () => getNotificationPermission(),
@@ -151,6 +163,22 @@ export function MyPage() {
     });
   };
 
+  const handleWeatherRegionChange = (regionCode: string) => {
+    if (!regionCode) return;
+
+    updateWeatherRegionMutation.mutate(
+      { regionCode },
+      {
+        onSuccess: (region) => {
+          showToast(`${region.displayName ?? "선택한 지역"} 기준으로 미션 날씨를 참고할게요.`);
+        },
+        onError: (error) => {
+          showToast(getUserFacingErrorMessage(error));
+        },
+      },
+    );
+  };
+
   /** 브라우저 권한 요청, FCM token 발급, notification 서버 저장까지 한 번에 처리합니다. */
   const handleRegisterWebPush = async () => {
     setIsRequestingPushToken(true);
@@ -182,20 +210,18 @@ export function MyPage() {
   if (pageError || !userQuery.data || !homeQuery.data || !notificationSettings) {
     return (
       <MyPageFrame>
-        <div className="my-page__state">
-          <h2>마이페이지를 불러오지 못했어요.</h2>
-          <p>{getUserFacingErrorMessage(pageError)}</p>
-          <Button
-            onClick={() => {
-              void userQuery.refetch();
-              void homeQuery.refetch();
-              void attendanceQuery.refetch();
-              void notificationSettingQuery.refetch();
-            }}
-          >
-            다시 불러오기
-          </Button>
-        </div>
+        <ErrorState
+          className="my-page__state"
+          description={getUserFacingErrorMessage(pageError)}
+          imageSrc={emptyStateAssets.notification}
+          onAction={() => {
+            void userQuery.refetch();
+            void homeQuery.refetch();
+            void attendanceQuery.refetch();
+            void notificationSettingQuery.refetch();
+          }}
+          title="마이페이지를 불러오지 못했어요."
+        />
       </MyPageFrame>
     );
   }
@@ -263,6 +289,19 @@ export function MyPage() {
           <SectionHeading
             eyebrow=""
             title="내 리듬에 맞추기"
+          />
+          <WeatherRegionSetting
+            isLoading={weatherRegionsQuery.isLoading || weatherRegionQuery.isLoading}
+            isSaving={updateWeatherRegionMutation.isPending}
+            regions={weatherRegionsQuery.data?.regions ?? []}
+            selectedRegionCode={weatherRegionQuery.data?.regionCode ?? ""}
+            selectedRegionName={weatherRegionQuery.data?.displayName ?? null}
+            error={weatherRegionsQuery.error ?? weatherRegionQuery.error ?? null}
+            onChange={handleWeatherRegionChange}
+            onRetry={() => {
+              void weatherRegionsQuery.refetch();
+              void weatherRegionQuery.refetch();
+            }}
           />
           <Card className="my-page__settings-card">
             <SettingToggle
@@ -469,6 +508,64 @@ function SummaryButton({
         <strong>{value}</strong>
       </span>
     </button>
+  );
+}
+
+/** 미션 추천이 참고할 날씨 권역을 직접 고르는 설정 카드입니다. */
+function WeatherRegionSetting({
+  error,
+  isLoading,
+  isSaving,
+  regions,
+  selectedRegionCode,
+  selectedRegionName,
+  onChange,
+  onRetry,
+}: {
+  error: unknown;
+  isLoading: boolean;
+  isSaving: boolean;
+  regions: WeatherRegionItem[];
+  selectedRegionCode: string;
+  selectedRegionName: string | null;
+  onChange: (regionCode: string) => void;
+  onRetry: () => void;
+}) {
+  return (
+    <Card className="my-page__weather-card">
+      <span className="my-page__weather-icon" aria-hidden="true">
+        <MapPin size={21} strokeWidth={1.8} />
+      </span>
+      <span className="my-page__weather-copy">
+        <strong>내 지역 기준</strong>
+        <small>
+          {selectedRegionName
+            ? `${selectedRegionName} 날씨를 미션 추천에 참고해요.`
+            : "미션 추천에 참고할 날씨 권역을 골라주세요."}
+        </small>
+      </span>
+      {error ? (
+        <Button className="my-page__weather-retry" onClick={onRetry} size="compact" variant="secondary">
+          다시 불러오기
+        </Button>
+      ) : (
+        <select
+          aria-label="내 지역 기준"
+          disabled={isLoading || isSaving || regions.length === 0}
+          onChange={(event) => onChange(event.currentTarget.value)}
+          value={selectedRegionCode}
+        >
+          <option value="" disabled>
+            {isLoading ? "불러오는 중" : "지역 선택"}
+          </option>
+          {regions.map((region) => (
+            <option key={region.regionCode} value={region.regionCode}>
+              {region.displayName}
+            </option>
+          ))}
+        </select>
+      )}
+    </Card>
   );
 }
 

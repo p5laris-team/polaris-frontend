@@ -10,6 +10,8 @@ export const routes = {
   onboardingQuestions: "/onboarding/questions",
   home: "/app/home",
   missions: "/app/missions",
+  missionDetail: "/app/missions/:missionId",
+  missionDetailPath: (missionId: number | string) => `/app/missions/${missionId}`,
   missionAnswer: "/app/missions/current/answer",
   missionResult: "/app/missions/current/result",
   character: "/app/character",

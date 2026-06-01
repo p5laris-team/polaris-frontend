@@ -15,6 +15,27 @@
   background: var(--danger);
 }
 
+.home-page .polaris-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.home-page .polaris-header > :first-child {
+  justify-self: start;
+}
+
+.home-page .polaris-header__title {
+  grid-column: 2;
+  width: 128px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.home-page .polaris-header > :last-child {
+  justify-self: end;
+}
+
 .home-page__brand-logo {
   display: block;
   width: 112px;

@@ -7,6 +7,7 @@ import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
 import { HomePage } from "@/features/home/ui/HomePage";
 import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
+import { MissionDetailPage } from "@/features/mission/ui/MissionDetailPage";
 import { MissionHistoryPage } from "@/features/mission/ui/MissionHistoryPage";
 import { MissionResultPage } from "@/features/mission/ui/MissionResultPage";
 import { MyPage } from "@/features/my-page/ui/MyPage";
@@ -43,6 +44,7 @@ export function AppRouter() {
         <Route path={routes.onboardingQuestions} element={<OnboardingSurveyPage />} />
         <Route path={routes.home} element={<HomePage />} />
         <Route path={routes.missions} element={<MissionHistoryPage />} />
+        <Route path={routes.missionDetail} element={<MissionDetailPage />} />
         <Route path={routes.missionAnswer} element={<MissionAnswerPage />} />
         <Route path={routes.missionResult} element={<MissionResultPage />} />
         <Route path={routes.character} element={<CharacterCarePage />} />

@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import {
   type OnboardingProfileResponse,
+  type OnboardingQuestion,
   type OnboardingQuestionsResponse,
   type SaveOnboardingProfileRequest,
   type SaveOnboardingProfileResponse,
@@ -31,24 +32,30 @@ export async function getOnboardingQuestions(): Promise<OnboardingQuestionsRespo
     return Promise.resolve(demoOnboardingQuestions);
   }
 
-  const rawQuestions = await unwrapApiResponse<any[]>(
+  const rawQuestions = await unwrapApiResponse<
+    Array<{
+      key: string;
+      content: string;
+      options: Array<{ key: string; value: string }>;
+      multipleSelection: boolean;
+      maxSelectionCount: number;
+    }>
+  >(
     apiClient.get("/api/onboarding/v1/questions"),
   );
 
   const items = rawQuestions.map((q) => {
     const keyMap: Record<string, OnboardingQuestionKey> = {
-      LIVING_TYPE: "livingType",
-      WAKE_UP_TIME: "wakeUpTime",
-      SLEEP_TIME: "sleepTime",
       PREFERRED_MISSION_TIME: "preferredMissionTime",
       ROUTINE_GOAL: "routineGoal",
       MISSION_INTENSITY: "missionIntensity",
-      ACTIVITY_PREFERENCE: "activityPreference",
+      MISSION_PLACE_CONTEXT: "missionPlaceContext",
+      AVOIDED_MISSION_TAGS: "avoidedMissionTags",
     };
 
     const key = keyMap[q.key] || (q.key as OnboardingQuestionKey);
 
-    const options = (q.options || []).map((opt: any) => {
+    const options = (q.options || []).map((opt) => {
       const optionValue = opt.key;
       const optionLabel = opt.value;
 
@@ -73,10 +80,12 @@ export async function getOnboardingQuestions(): Promise<OnboardingQuestionsRespo
     return {
       key,
       question: q.content,
-      type: "SINGLE_CHOICE" as const,
+      type: q.multipleSelection ? "MULTI_CHOICE" : "SINGLE_CHOICE",
       options,
       characterLine: matchedFixtureQuestion?.characterLine || "무... 다음 질문이에요.",
-    };
+      multipleSelection: q.multipleSelection,
+      maxSelectionCount: q.maxSelectionCount,
+    } satisfies OnboardingQuestion;
   });
 
   return { items };

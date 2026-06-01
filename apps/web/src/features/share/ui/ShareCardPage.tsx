@@ -36,7 +36,7 @@ import {
   shareCardAssets,
   type ShareCardBackgroundKey,
 } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./ShareCardPage.css";
 
@@ -244,19 +244,17 @@ export function ShareCardPage() {
   if (statusError || !character || !todayMissions || !todayShareStatus) {
     return (
       <ShareCardFrame>
-        <div className="share-card-page__state">
-          <h2>공유 카드 정보를 불러오지 못했어요.</h2>
-          <p>{getUserFacingErrorMessage(statusError)}</p>
-          <Button
-            onClick={() => {
-              void homeQuery.refetch();
-              void todayMissionsQuery.refetch();
-              void todayShareStatusQuery.refetch();
-            }}
-          >
-            다시 불러오기
-          </Button>
-        </div>
+        <ErrorState
+          className="share-card-page__state"
+          description={getUserFacingErrorMessage(statusError)}
+          imageSrc={emptyStateAssets.share}
+          onAction={() => {
+            void homeQuery.refetch();
+            void todayMissionsQuery.refetch();
+            void todayShareStatusQuery.refetch();
+          }}
+          title="공유 카드 정보를 불러오지 못했어요."
+        />
       </ShareCardFrame>
     );
   }

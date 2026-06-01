@@ -19,13 +19,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   type NotificationFilter,
   markNotificationRead,
-  useMarkNotificationReadMutation,
   useNotificationsQuery,
   notificationQueryKeys,
+  useMarkAllNotificationsReadMutation,
 } from "@/features/notifications/api/notificationApi";
 import {
   type AppNotification,
-  type NotificationTargetType,
   type NotificationType,
 } from "@/features/notifications/model/notificationTypes";
 import { useHomeQuery, homeQueryKeys } from "@/features/home/api/homeApi";
@@ -33,7 +32,7 @@ import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { emptyStateAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, ErrorState, Header, Tag, useToast } from "@/shared/ui";
 
 import "./NotificationsPage.css";
 
@@ -50,7 +49,7 @@ export function NotificationsPage() {
   const unreadCount = homeQuery.data?.notifications.unreadCount ?? 0;
   const [pendingNotificationId, setPendingNotificationId] = useState<number | null>(null);
   const notificationsQuery = useNotificationsQuery(filter);
-  const markReadMutation = useMarkNotificationReadMutation();
+  const markAllReadMutation = useMarkAllNotificationsReadMutation();
   const queryClient = useQueryClient();
 
   const [displayNotifications, setDisplayNotifications] = useState<AppNotification[]>([]);
@@ -60,6 +59,7 @@ export function NotificationsPage() {
     () => notificationsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [notificationsQuery.data?.pages],
   );
+  const canMarkAllRead = unreadCount > 0 || displayNotifications.some((notification) => !notification.read);
 
   // 탭 필터가 바뀌면 화면 표시 목록 및 처리된 ID 초기화
   useEffect(() => {
@@ -136,11 +136,15 @@ export function NotificationsPage() {
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  /** 알림을 누르면 읽음 상태로 갱신합니다. (페이지 이동 없음) */
+  /** 알림을 누르면 읽음 상태로 갱신한 뒤 targetType에 맞는 화면으로 이동합니다. */
   const handleSelectNotification = (notification: AppNotification) => {
     const currentNotification = displayNotifications.find((item) => item.id === notification.id) ?? notification;
+    const targetRoute = resolveNotificationRoute(currentNotification);
 
     if (currentNotification.read) {
+      if (targetRoute) {
+        navigate(targetRoute);
+      }
       return;
     }
 
@@ -148,9 +152,16 @@ export function NotificationsPage() {
     markNotificationRead(currentNotification.id)
       .then(() => {
         setDisplayNotifications((prev) =>
-          prev.map((item) => (item.id === currentNotification.id ? { ...item, read: true } : item))
+          filter === "unread"
+            ? prev.filter((item) => item.id !== currentNotification.id)
+            : prev.map((item) =>
+                item.id === currentNotification.id ? { ...item, read: true } : item,
+              ),
         );
         void queryClient.invalidateQueries({ queryKey: homeQueryKeys.summary() });
+        if (targetRoute) {
+          navigate(targetRoute);
+        }
       })
       .catch((error) => {
         showToast(getUserFacingErrorMessage(error));
@@ -160,6 +171,32 @@ export function NotificationsPage() {
       });
   };
 
+  /** 백엔드 bulk API로 로그인한 사용자의 안 읽은 알림을 모두 읽음 처리합니다. */
+  const handleMarkAllRead = () => {
+    if (!canMarkAllRead) {
+      showToast("읽지 않은 알림이 없어요.");
+      return;
+    }
+
+    markAllReadMutation.mutate(undefined, {
+      onSuccess: (response) => {
+        setDisplayNotifications((prev) =>
+          filter === "unread"
+            ? []
+            : prev.map((notification) => ({ ...notification, read: true })),
+        );
+        showToast(
+          response.updatedCount > 0
+            ? "읽지 않은 알림을 모두 읽음 처리했어요."
+            : "읽지 않은 알림이 없어요.",
+        );
+      },
+      onError: (error) => {
+        showToast(getUserFacingErrorMessage(error));
+      },
+    });
+  };
+
   if (notificationsQuery.isLoading) {
     return <NotificationsLoadingPage />;
   }
@@ -167,11 +204,13 @@ export function NotificationsPage() {
   if (notificationsQuery.isError) {
     return (
       <NotificationsFrame>
-        <div className="notifications-page__state">
-          <h2>알림을 불러오지 못했어요.</h2>
-          <p>{getUserFacingErrorMessage(notificationsQuery.error)}</p>
-          <Button onClick={() => void notificationsQuery.refetch()}>다시 불러오기</Button>
-        </div>
+        <ErrorState
+          className="notifications-page__state"
+          description={getUserFacingErrorMessage(notificationsQuery.error)}
+          imageSrc={emptyStateAssets.notification}
+          onAction={() => void notificationsQuery.refetch()}
+          title="알림을 불러오지 못했어요."
+        />
       </NotificationsFrame>
     );
   }
@@ -179,35 +218,46 @@ export function NotificationsPage() {
   return (
     <NotificationsFrame>
       <div className="notifications-page__body">
-        <div className="notifications-page__filter" aria-label="알림 필터">
-          {(Object.keys(filterLabels) as NotificationFilter[]).map((filterKey) => {
-            const label = filterLabels[filterKey];
-            const displayLabel =
-              filterKey === "unread" && unreadCount > 0
-                ? `${label} ${unreadCount}`
-                : label;
+        <div className="notifications-page__toolbar">
+          <div className="notifications-page__filter" aria-label="알림 필터">
+            {(Object.keys(filterLabels) as NotificationFilter[]).map((filterKey) => {
+              const label = filterLabels[filterKey];
+              const displayLabel =
+                filterKey === "unread" && unreadCount > 0
+                  ? `${label} ${unreadCount}`
+                  : label;
 
-            return (
-              <button
-                aria-pressed={filter === filterKey}
-                className={filter === filterKey ? "notifications-page__filter-button--active" : ""}
-                key={filterKey}
-                onClick={() => setFilter(filterKey)}
-                type="button"
-              >
-                {displayLabel}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  aria-pressed={filter === filterKey}
+                  className={filter === filterKey ? "notifications-page__filter-button--active" : ""}
+                  key={filterKey}
+                  onClick={() => setFilter(filterKey)}
+                  type="button"
+                >
+                  {displayLabel}
+                </button>
+              );
+            })}
+          </div>
+          <Button
+            className="notifications-page__mark-read-button"
+            disabled={!canMarkAllRead || markAllReadMutation.isPending}
+            onClick={handleMarkAllRead}
+            size="compact"
+            variant="secondary"
+          >
+            {markAllReadMutation.isPending ? "처리 중..." : "모두 읽음"}
+          </Button>
         </div>
 
-        {/* 전체 읽음 API가 명세에 없어서 MVP에서는 각 알림을 누를 때 단건 PATCH로 읽음 처리한다. */}
+        {/* 전체 읽음은 notification 서버의 bulk API로 처리하고, 화면 캐시는 성공 후 재조회로 맞춘다. */}
         {displayNotifications.length > 0 ? (
           <>
             <ul className="notifications-page__list" aria-label="알림 목록">
               {displayNotifications.map((notification) => (
                 <NotificationItem
-                  disabled={markReadMutation.isPending}
+                  disabled={Boolean(pendingNotificationId) || markAllReadMutation.isPending}
                   key={notification.id}
                   notification={notification}
                   pending={pendingNotificationId === notification.id}
@@ -380,9 +430,13 @@ function getNotificationMeta(type: NotificationType) {
 }
 
 /** 알림 targetType을 현재 앱에서 이동 가능한 route로 연결합니다. */
-function resolveNotificationRoute(targetType: NotificationTargetType | null) {
-  // API targetType만으로 바로 갈 수 있는 화면에 연결한다. 미션 상세 화면은 아직 없어서 홈으로 보낸다.
-  if (targetType === "MISSION") return routes.home;
+function resolveNotificationRoute(notification: AppNotification) {
+  const targetType = notification.targetType;
+
+  if (targetType === "MISSION") {
+    return notification.targetId ? routes.missionDetailPath(notification.targetId) : routes.missions;
+  }
+
   if (targetType === "CHARACTER") return routes.character;
   if (targetType === "ITEM") return routes.inventory;
   if (targetType === "ACHIEVEMENT") return routes.home;
@@ -390,6 +444,25 @@ function resolveNotificationRoute(targetType: NotificationTargetType | null) {
   if (targetType === "ATTENDANCE") return routes.attendance;
   if (targetType === "WALLET") return routes.wallet;
   if (targetType === "SHOP") return routes.shop;
+
+  if (notification.notificationType === "MISSION" || notification.notificationType === "MISSION_OFFER") {
+    return routes.missions;
+  }
+
+  if (
+    notification.notificationType === "CARE" ||
+    notification.notificationType === "STATE_BAD" ||
+    notification.notificationType === "STATE_CRITICAL" ||
+    notification.notificationType === "CHARACTER_STATE"
+  ) {
+    return routes.character;
+  }
+
+  if (notification.notificationType === "ATTENDANCE" || notification.notificationType === "DAILY_REMINDER") {
+    return routes.attendance;
+  }
+
+  if (notification.notificationType === "SHARE") return routes.share;
 
   return null;
 }

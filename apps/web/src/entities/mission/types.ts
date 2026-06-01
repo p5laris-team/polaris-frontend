@@ -18,7 +18,13 @@ export type MissionStatus =
   | "EXPIRED";
 
 /** 미션 난이도 enum입니다. 화면에서는 쉬움/보통/도전 라벨로 바꿔 표시합니다. */
-export type MissionDifficulty = "EASY" | "NORMAL" | "HARD";
+export type MissionDifficulty = "EASY" | "NORMAL" | "CHALLENGE";
+
+export type MissionFeedbackType = "SATISFACTION" | "REJECTION";
+
+export type MissionFeedbackReaction = "LIKE" | "DISLIKE";
+
+export type MissionRewardStatus = "PAID" | "PENDING" | "PROCESSING" | "FAILED";
 
 /** 홈과 인증 화면에서 쓰는 현재 미션 상세 응답입니다. */
 export type CurrentMissionResponse = {
@@ -47,6 +53,9 @@ export type TodayMissionItem = {
   createdAt: string;
   completedAt: string | null;
   rejectedAt: string | null;
+  completionQuestion: string | null;
+  answerPreview: string | null;
+  hasAnswer: boolean;
 };
 
 /** 오늘 하루의 미션 스택과 진행 수치를 함께 내려주는 응답입니다. */
@@ -57,6 +66,11 @@ export type TodayMissionsResponse = {
   completedCount: number;
   rejectedCount: number;
   remainingOfferCount: number;
+  maxDailyRewardCount: number;
+  completedRewardCount: number;
+  remainingRewardCount: number;
+  maxDailyRejectCount: number;
+  remainingRejectCount: number;
   currentMissionId: number | null;
   missions: TodayMissionItem[];
 };
@@ -97,6 +111,7 @@ export type SubmitMissionCompletionAnswerRequest = {
 export type MissionCompletionResultResponse = {
   missionId: number;
   status: "COMPLETED";
+  rewardStatus?: MissionRewardStatus;
   answer: {
     text: string;
     answeredAt: string;
@@ -109,4 +124,53 @@ export type MissionCompletionResultResponse = {
     starPiece: number;
   };
   characterMessage: string;
+};
+
+export type MissionDetailResponse = {
+  id: number;
+  missionDate: string;
+  stackOrder: number;
+  title: string;
+  description: string;
+  characterMessage: string;
+  category: string;
+  difficulty: MissionDifficulty;
+  rewardStarPiece: number;
+  status: MissionStatus;
+  createdAt: string;
+  completedAt: string | null;
+  rejectedAt: string | null;
+  question: {
+    id: number;
+    text: string;
+    inputType: "TEXT";
+    minLength: number;
+    maxLength: number;
+  } | null;
+  answer: {
+    text: string;
+    answeredAt: string;
+  } | null;
+  completionCharacterResponse: string | null;
+  hasAnswer: boolean;
+  satisfactionFeedback: {
+    reaction: MissionFeedbackReaction;
+    updatedAt: string;
+  } | null;
+};
+
+export type UpsertMissionFeedbackRequest = {
+  feedbackType: MissionFeedbackType;
+  reaction?: MissionFeedbackReaction;
+  reasonCode?: string;
+  reasonText?: string;
+};
+
+export type MissionFeedbackResponse = {
+  missionId: number;
+  feedbackType: MissionFeedbackType;
+  reaction: MissionFeedbackReaction | null;
+  reasonCode: string | null;
+  reasonText: string | null;
+  updatedAt: string;
 };

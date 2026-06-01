@@ -37,6 +37,7 @@ import {
   Button,
   Card,
   CharacterStage,
+  ErrorState,
   Header,
   Tag,
   useToast,
@@ -114,18 +115,16 @@ export function InventoryPage() {
   if (inventoryError || !character) {
     return (
       <InventoryFrame>
-        <div className="inventory-page__state">
-          <h2>보관함을 못 불러왔어요.</h2>
-          <p>{getUserFacingErrorMessage(inventoryError)}</p>
-          <Button
-            onClick={() => {
-              void activeCharacterQuery.refetch();
-              void skinsQuery.refetch();
-            }}
-          >
-            다시 불러오기
-          </Button>
-        </div>
+        <ErrorState
+          className="inventory-page__state"
+          description={getUserFacingErrorMessage(inventoryError)}
+          imageSrc={emptyStateAssets.inventory}
+          onAction={() => {
+            void activeCharacterQuery.refetch();
+            void skinsQuery.refetch();
+          }}
+          title="보관함을 못 불러왔어요."
+        />
       </InventoryFrame>
     );
   }

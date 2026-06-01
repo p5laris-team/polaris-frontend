@@ -3,8 +3,9 @@
  * 하루 동안 제안된 미션 스택을 상태별로 필터링해서 보여주고,
  * 아직 진행 가능한 현재 미션은 인증 화면으로 다시 이어 줍니다.
  */
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 import {
+  CalendarDays,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -21,15 +22,15 @@ import { type CurrentMissionResponse, type MissionStatus, type TodayMissionItem 
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import {
   useCurrentMissionQuery,
+  useMissionHistoryQuery,
   useStartMissionCompletionSessionMutation,
-  useTodayMissionsQuery,
 } from "@/features/mission/api/missionApi";
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import { emptyStateAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
+import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./MissionHistoryPage.css";
 
@@ -46,14 +47,17 @@ const filterLabels: Record<MissionHistoryFilter, string> = {
 export function MissionHistoryPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const dateInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedDate, setSelectedDate] = useState(() => getTodayDateKey());
   const [filter, setFilter] = useState<MissionHistoryFilter>("all");
   const homeQuery = useHomeQuery();
   const currentMissionQuery = useCurrentMissionQuery();
-  const todayMissionsQuery = useTodayMissionsQuery();
+  const missionHistoryQuery = useMissionHistoryQuery(selectedDate);
   const startSessionMutation = useStartMissionCompletionSessionMutation();
   const setActiveMission = useMissionFlowStore((state) => state.setActiveMission);
   const setCompletionQuestion = useMissionFlowStore((state) => state.setCompletionQuestion);
-  const todayMissions = todayMissionsQuery.data;
+  const todayMissions = missionHistoryQuery.data;
+  const isToday = selectedDate === getTodayDateKey();
   const filteredMissions = useMemo(() => {
     const missions = todayMissions?.missions ?? [];
 
@@ -72,18 +76,20 @@ export function MissionHistoryPage() {
     return missions;
   }, [filter, todayMissions?.missions]);
 
-  if (todayMissionsQuery.isLoading) {
+  if (missionHistoryQuery.isLoading) {
     return <MissionHistoryLoadingPage />;
   }
 
-  if (todayMissionsQuery.isError || !todayMissions) {
+  if (missionHistoryQuery.isError || !todayMissions) {
     return (
       <MissionHistoryFrame>
-        <div className="mission-history__state">
-          <h2>미션 기록을 불러오지 못했어요.</h2>
-          <p>{getUserFacingErrorMessage(todayMissionsQuery.error)}</p>
-          <Button onClick={() => void todayMissionsQuery.refetch()}>다시 불러오기</Button>
-        </div>
+        <ErrorState
+          className="mission-history__state"
+          description={getUserFacingErrorMessage(missionHistoryQuery.error)}
+          imageSrc={emptyStateAssets.mission}
+          onAction={() => void missionHistoryQuery.refetch()}
+          title="미션 기록을 불러오지 못했어요."
+        />
       </MissionHistoryFrame>
     );
   }
@@ -125,6 +131,21 @@ export function MissionHistoryPage() {
     });
   };
 
+  const handleOpenDatePicker = () => {
+    const dateInput = dateInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
+
+    if (!dateInput) {
+      return;
+    }
+
+    if (typeof dateInput.showPicker === "function") {
+      dateInput.showPicker();
+      return;
+    }
+
+    dateInput.click();
+  };
+
   return (
     <MissionHistoryFrame>
       <div className="mission-history__body">
@@ -147,13 +168,57 @@ export function MissionHistoryPage() {
           </div>
         </Card>
 
+        <div className="mission-history__date-panel" aria-label="미션 기록 날짜 선택">
+          <div className="mission-history__date-input">
+            <button
+              className="mission-history__date-trigger"
+              onClick={handleOpenDatePicker}
+              type="button"
+            >
+              <CalendarDays size={17} strokeWidth={1.8} />
+              <span>
+                <small>기록 날짜</small>
+                <strong>{formatDatePickerLabel(selectedDate)}</strong>
+              </span>
+            </button>
+            <input
+              aria-label="미션 기록 날짜 선택"
+              className="mission-history__date-native"
+              max={getTodayDateKey()}
+              onChange={(event) => setSelectedDate(event.currentTarget.value)}
+              type="date"
+              value={selectedDate}
+              ref={dateInputRef}
+            />
+          </div>
+          <button
+            className="mission-history__date-quick"
+            disabled={isToday}
+            onClick={() => setSelectedDate(getTodayDateKey())}
+            type="button"
+          >
+            오늘
+          </button>
+        </div>
+
         <div className="mission-history__stat-grid">
           <StatCard icon={<CheckCircle2 size={19} strokeWidth={1.8} />} label="완료" value={`${todayMissions.completedCount}개`} />
           <StatCard icon={<XCircle size={19} strokeWidth={1.8} />} label="거절" value={`${todayMissions.rejectedCount}개`} />
           <StatCard icon={<Sparkles size={19} strokeWidth={1.8} />} label="남은 제안" value={`${todayMissions.remainingOfferCount}개`} />
         </div>
 
-        {currentMission && currentMissionResponse ? (
+        <Card className="mission-history__limit-card">
+          <span>
+            보상 가능 <strong>{todayMissions.remainingRewardCount}</strong>/
+            {todayMissions.maxDailyRewardCount}
+          </span>
+          <span>
+            미션 변경 <strong>{todayMissions.remainingRejectCount}</strong>/
+            {todayMissions.maxDailyRejectCount}
+          </span>
+        </Card>
+
+        {isToday && currentMission && currentMissionResponse ? (
           <button
             className="mission-history__current-card"
             disabled={startSessionMutation.isPending}
@@ -200,10 +265,9 @@ export function MissionHistoryPage() {
             {filteredMissions.map((mission) => (
               <MissionHistoryItem
                 current={mission.id === todayMissions.currentMissionId}
-                disabled={startSessionMutation.isPending}
                 key={mission.id}
                 mission={mission}
-                onClick={() => handleStartMission(mapTodayMissionToCurrentMission(todayMissions.missionDate, mission))}
+                onClick={() => navigate(routes.missionDetailPath(mission.id))}
               />
             ))}
           </ol>
@@ -229,17 +293,14 @@ export function MissionHistoryPage() {
 /** 미션 기록 리스트의 단일 행입니다. 현재 미션만 버튼처럼 동작하고 과거 기록은 읽기 전용으로 둡니다. */
 function MissionHistoryItem({
   current,
-  disabled,
   mission,
   onClick,
 }: {
   current: boolean;
-  disabled: boolean;
   mission: TodayMissionItem;
   onClick: () => void;
 }) {
   const meta = getMissionStatusMeta(mission.status);
-  const interactive = current && (mission.status === "OFFERED" || mission.status === "ANSWERING");
 
   return (
     <li>
@@ -247,11 +308,9 @@ function MissionHistoryItem({
         className={[
           "mission-history__item",
           current ? "mission-history__item--current" : "",
-          !interactive ? "mission-history__item--static" : "",
         ]
           .filter(Boolean)
           .join(" ")}
-        disabled={!interactive || disabled}
         onClick={onClick}
         type="button"
       >
@@ -262,14 +321,18 @@ function MissionHistoryItem({
             <Tag variant={meta.tagVariant}>{meta.label}</Tag>
           </span>
           <span className="mission-history__item-message">{mission.characterMessage}</span>
+          {mission.answerPreview ? (
+            <span className="mission-history__answer-preview">내 답변: {mission.answerPreview}</span>
+          ) : null}
           <span className="mission-history__item-meta">
             <span>{getDifficultyLabel(mission.difficulty)}</span>
             <StarPieceAmount amount={mission.rewardStarPiece} prefix="+" size="xs" tone="accent" />
             <span>{getMissionTimeLabel(mission)}</span>
+            {mission.hasAnswer ? <span>답변 있음</span> : null}
           </span>
         </span>
         <span className={`mission-history__status-icon mission-history__status-icon--${meta.tone}`}>
-          {interactive ? <ChevronRight size={18} strokeWidth={1.8} /> : meta.icon}
+          {current ? <ChevronRight size={18} strokeWidth={1.8} /> : meta.icon}
         </span>
       </button>
     </li>
@@ -410,9 +473,28 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+/** 오늘 날짜를 미션 API의 yyyy-MM-dd key로 변환합니다. */
+function getTodayDateKey() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
 /** yyyy-MM-dd 날짜를 한국어 월/일/요일 라벨로 변환합니다. */
 function formatMissionDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  }).format(new Date(`${value}T00:00:00+09:00`));
+}
+
+/** date input 기본 UI 대신 화면에 노출할 날짜 라벨입니다. */
+function formatDatePickerLabel(value: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
     month: "long",
     day: "numeric",
     weekday: "short",

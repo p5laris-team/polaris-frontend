@@ -73,6 +73,13 @@ export type NotificationReadResponse = {
   updatedAt: string;
 };
 
+/** 모두 읽음 처리 후 갱신된 알림 요약입니다. */
+export type MarkAllNotificationsReadResponse = {
+  updatedCount: number;
+  unreadCount: number;
+  updatedAt: string;
+};
+
 /** FCM registration token을 notification 서버에 저장하는 요청입니다. */
 export type RegisterFcmTokenRequest = {
   token: string;
