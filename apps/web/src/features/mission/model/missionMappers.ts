@@ -47,6 +47,6 @@ export function mapCurrentMissionToHomeMission(
     category: categoryToViewKey[mission.category] ?? "mind",
     difficultyLabel: toDifficultyLabel(mission.difficulty),
     rewardStarPiece: mission.rewardStarPiece,
-    stackLabel: `오늘 ${mission.stackOrder} / 15`,
+    stackLabel: `오늘 ${mission.stackOrder} / 20`,
   };
 }
