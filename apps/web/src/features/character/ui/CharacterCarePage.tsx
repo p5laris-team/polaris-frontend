@@ -252,43 +252,25 @@ export function CharacterCarePage() {
     <CharacterCareFrame>
       <div className="character-care-page__body">
         {/* SCR-012 캐릭터 상세: 활성 캐릭터와 상태 API를 합쳐 돌봄 전 현재 컨디션을 보여준다. */}
-        <CharacterStage
-          bubble={displayedCareMessage}
-          character={characterKey}
-          imageUrl={characterImageUrl}
-          mood={mood}
-          name={character.name}
-        />
-
-        <Card className="character-care-page__status-card">
-          <div className="character-care-page__section-title">
-            <h2>상태 상세</h2>
-            <Tag variant={mood === "happy" ? "primary" : "neutral"}>Lv.1 별친구</Tag>
-          </div>
-          <div className="character-care-page__gauge-list">
+        <div className="character-care-page__stage-wrap">
+          <CharacterStage
+            bubble={displayedCareMessage}
+            character={characterKey}
+            imageUrl={characterImageUrl}
+            mood={mood}
+            name={character.name}
+          />
+          <div className="character-care-page__status-chips" aria-label="캐릭터 상태 요약">
             {gauges.map((gauge) => (
-              <div className="character-care-page__gauge-item" key={gauge.key}>
-                <div className="character-care-page__gauge-heading">
-                  <span className={`character-care-page__gauge-icon character-care-page__gauge-icon--${gauge.key}`}>
-                    {gauge.icon}
-                  </span>
-                  <span className="character-care-page__gauge-copy">
-                    <strong>{gauge.label}</strong>
-                    <small>{gauge.description}</small>
-                  </span>
-                  <strong className="character-care-page__gauge-value">{gauge.value}%</strong>
-                </div>
-                <StatusGauge
-                  label={`${gauge.label} ${gauge.description}`}
-                  showLabel={false}
-                  tone={gauge.tone}
-                  value={gauge.value}
-                />
-                <p>{gauge.guide}</p>
-              </div>
+              <span
+                className={`character-care-page__status-chip character-care-page__status-chip--${gauge.tone}`}
+                key={gauge.key}
+              >
+                {gauge.label} {gauge.value}%
+              </span>
             ))}
           </div>
-        </Card>
+        </div>
 
         <section className="character-care-page__care-section" aria-label="돌봄 활동 선택">
           <div className="character-care-page__section-title">
@@ -327,6 +309,36 @@ export function CharacterCarePage() {
             })}
           </div>
         </section>
+
+        <Card className="character-care-page__status-card">
+          <div className="character-care-page__section-title">
+            <h2>상태 상세</h2>
+            <Tag variant={mood === "happy" ? "primary" : "neutral"}>Lv.1 별친구</Tag>
+          </div>
+          <div className="character-care-page__gauge-list">
+            {gauges.map((gauge) => (
+              <div className="character-care-page__gauge-item" key={gauge.key}>
+                <div className="character-care-page__gauge-heading">
+                  <span className={`character-care-page__gauge-icon character-care-page__gauge-icon--${gauge.key}`}>
+                    {gauge.icon}
+                  </span>
+                  <span className="character-care-page__gauge-copy">
+                    <strong>{gauge.label}</strong>
+                    <small>{gauge.description}</small>
+                  </span>
+                  <strong className="character-care-page__gauge-value">{gauge.value}%</strong>
+                </div>
+                <StatusGauge
+                  label={`${gauge.label} ${gauge.description}`}
+                  showLabel={false}
+                  tone={gauge.tone}
+                  value={gauge.value}
+                />
+                <p>{gauge.guide}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
 
         <Card className="character-care-page__inventory-callout">
           <div>
@@ -372,8 +384,8 @@ function CharacterCareLoadingPage() {
     <CharacterCareFrame>
       <div className="character-care-page__body">
         <div className="character-care-page__skeleton character-care-page__skeleton--stage" />
-        <div className="character-care-page__skeleton" />
         <div className="character-care-page__skeleton character-care-page__skeleton--actions" />
+        <div className="character-care-page__skeleton" />
       </div>
     </CharacterCareFrame>
   );
