@@ -10,12 +10,13 @@ import "./AppShell.css";
 
 type AppShellProps = {
   children: ReactNode;
+  className?: string;
 };
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, className }: AppShellProps) {
   return (
     // 모바일 퍼스트 앱 프레임. UI kit의 420px 중심 shell을 실제 앱에서도 유지한다.
-    <div className="polaris-app app-shell" data-testid="app-shell">
+    <div className={["polaris-app app-shell", className].filter(Boolean).join(" ")} data-testid="app-shell">
       {children}
       <BottomWebAdBanner />
     </div>
