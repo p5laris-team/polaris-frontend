@@ -1,6 +1,9 @@
 const browserOrigin = typeof window === "undefined" ? "" : window.location.origin;
 
 const stringOrEmpty = (value: unknown) => (typeof value === "string" ? value : "");
+const deploymentEnv = stringOrEmpty(
+  import.meta.env.VITE_APP_ENV || import.meta.env.VITE_SENTRY_ENV || import.meta.env.MODE,
+);
 
 /**
  * Vite 환경 변수를 앱에서 쓰기 좋은 형태로 정리한 런타임 설정입니다.
@@ -31,5 +34,11 @@ export const runtimeConfig = {
     environment: stringOrEmpty(import.meta.env.VITE_SENTRY_ENV || "development"),
     enabled: import.meta.env.VITE_SENTRY_ENABLED === "true" || !!import.meta.env.VITE_SENTRY_DSN,
     release: stringOrEmpty(import.meta.env.VITE_RELEASE_VERSION || "polaris-web@1.0.0"),
+  },
+  ads: {
+    enableRealAdRequests:
+      import.meta.env.PROD &&
+      deploymentEnv === "production" &&
+      import.meta.env.VITE_ADSENSE_DISABLE_REAL_REQUESTS !== "true",
   },
 };
