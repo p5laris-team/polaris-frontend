@@ -8,6 +8,19 @@
   border-top: 1px solid var(--border-1);
 }
 
+.bottom-web-ad--pending {
+  height: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border-top: 0;
+  visibility: hidden;
+}
+
+.bottom-web-ad--filled {
+  visibility: visible;
+}
+
 .bottom-web-ad__slot {
   width: 100%;
   min-height: var(--bottom-web-ad-height, 64px);
