@@ -157,6 +157,7 @@ export function BottomWebAdBanner() {
   });
   const config = configQuery.data ?? null;
   const [loadFailed, setLoadFailed] = useState(false);
+  const [slotFilled, setSlotFilled] = useState(false);
   const [renderKey, setRenderKey] = useState(0);
   const containerRef = useRef<HTMLElement | null>(null);
   const adSlotRef = useRef<HTMLModElement | null>(null);
@@ -171,11 +172,12 @@ export function BottomWebAdBanner() {
 
   useEffect(() => {
     setLoadFailed(false);
+    setSlotFilled(false);
     setRenderKey((key) => key + 1);
   }, [config?.clientId, config?.slotId, path]);
 
   useEffect(() => {
-    if (!shouldRender) return;
+    if (!shouldRender || !slotFilled) return;
 
     const appShell = containerRef.current?.closest<HTMLElement>(".app-shell");
     if (!appShell) return;
@@ -187,7 +189,7 @@ export function BottomWebAdBanner() {
       delete appShell.dataset.bottomWebAdVisible;
       appShell.style.removeProperty("--bottom-web-ad-reserved-height");
     };
-  }, [reservedHeight, shouldRender]);
+  }, [reservedHeight, shouldRender, slotFilled]);
 
   useEffect(() => {
     if (!shouldRender || !config?.clientId) return;
@@ -233,7 +235,13 @@ export function BottomWebAdBanner() {
     if (!adSlot) return;
 
     const observer = new MutationObserver(() => {
-      if (adSlot.getAttribute("data-ad-status") === "unfilled") {
+      const adStatus = adSlot.getAttribute("data-ad-status");
+
+      if (adStatus === "filled") {
+        setSlotFilled(true);
+      }
+
+      if (adStatus === "unfilled") {
         setLoadFailed(true);
       }
     });
@@ -244,7 +252,13 @@ export function BottomWebAdBanner() {
     });
 
     const timeoutId = window.setTimeout(() => {
-      if (adSlot.getAttribute("data-ad-status") === "unfilled") {
+      const adStatus = adSlot.getAttribute("data-ad-status");
+
+      if (adStatus === "filled") {
+        setSlotFilled(true);
+      }
+
+      if (adStatus === "unfilled" || !adStatus) {
         setLoadFailed(true);
       }
     }, 8_000);
@@ -262,7 +276,7 @@ export function BottomWebAdBanner() {
   return (
     <aside
       ref={containerRef}
-      className="bottom-web-ad"
+      className={`bottom-web-ad ${slotFilled ? "bottom-web-ad--filled" : "bottom-web-ad--pending"}`}
       aria-label="광고"
       style={{ "--bottom-web-ad-height": `${reservedHeight}px` } as CSSProperties & Record<string, string>}
     >
