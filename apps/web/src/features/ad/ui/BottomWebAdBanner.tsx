@@ -94,6 +94,18 @@ function useKeyboardVisible() {
 function loadAdsenseScript(clientId: string): Promise<void> {
   let currentScript = document.getElementById(ADSENSE_SCRIPT_ID) as HTMLScriptElement | null;
 
+  if (!currentScript) {
+    currentScript = document.querySelector<HTMLScriptElement>(
+      `script[src^="${ADSENSE_SCRIPT_BASE_URL}"][src*="client=${encodeURIComponent(clientId)}"]`,
+    );
+
+    if (currentScript) {
+      currentScript.id = ADSENSE_SCRIPT_ID;
+      currentScript.dataset.clientId = clientId;
+      currentScript.dataset.loaded = "true";
+    }
+  }
+
   if (currentScript?.dataset.clientId && currentScript.dataset.clientId !== clientId) {
     currentScript.remove();
     currentScript = null;
