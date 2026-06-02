@@ -12,8 +12,8 @@ import { useCharacterTypesQuery } from "@/features/onboarding/api/characterSetup
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { characterAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Header, Tag, useToast } from "@/shared/ui";
+import { characterAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, ErrorState, Header, Tag, useToast } from "@/shared/ui";
 
 import "./OnboardingFlow.css";
 
@@ -60,10 +60,12 @@ export function CharacterSelectPage() {
             ) : null}
 
             {characterTypesQuery.isError ? (
-              <OnboardingState
+              <ErrorState
+                className="onboarding-flow__state"
                 title="별친구 목록을 못 불러왔어요"
                 description={getUserFacingErrorMessage(characterTypesQuery.error)}
-                action={<Button onClick={() => void characterTypesQuery.refetch()}>다시 불러오기</Button>}
+                imageSrc={emptyStateAssets.inventory}
+                onAction={() => void characterTypesQuery.refetch()}
               />
             ) : null}
 

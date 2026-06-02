@@ -7,6 +7,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getDemoHomeResponse,
   demoGetTodayMissions,
+  demoGetMissionDetail,
+  demoGetMissionHistory,
+  demoUpsertMissionFeedback,
   demoRejectMission,
   demoRequestNextMission,
   demoStartCompletionSession,
@@ -15,12 +18,15 @@ import {
 import { homeQueryKeys } from "@/features/home/api/homeApi";
 import {
   type CurrentMissionResponse,
+  type MissionDetailResponse,
+  type MissionFeedbackResponse,
   type MissionCompletionQuestionResponse,
   type MissionCompletionResultResponse,
   type MissionRejectionResponse,
   type RequestNextMissionRequest,
   type SubmitMissionCompletionAnswerRequest,
   type TodayMissionsResponse,
+  type UpsertMissionFeedbackRequest,
 } from "@/entities/mission/types";
 import { walletQueryKeys } from "@/features/wallet/api/walletApi";
 import { apiClient, isPolarisApiError, unwrapApiResponse } from "@/shared/api";
@@ -32,6 +38,9 @@ export const missionQueryKeys = {
   todayFocus: (characterId: number | undefined) =>
     [...missionQueryKeys.all, "today-focus", characterId ?? "none"] as const,
   today: () => [...missionQueryKeys.all, "today"] as const,
+  history: (date: string) => [...missionQueryKeys.all, "history", date] as const,
+  detail: (missionId: number | undefined) =>
+    [...missionQueryKeys.all, "detail", missionId ?? "none"] as const,
 };
 
 function normalizeCurrentMission(
@@ -66,6 +75,41 @@ export function getTodayMissions() {
 
   return unwrapApiResponse<TodayMissionsResponse>(
     apiClient.get("/api/mission/v1/missions/today"),
+  );
+}
+
+/** 특정 날짜의 미션 기록을 조회합니다. */
+export function getMissionHistory(date: string) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoGetMissionHistory(date));
+  }
+
+  return unwrapApiResponse<TodayMissionsResponse>(
+    apiClient.get("/api/mission/v1/missions/history", {
+      params: { date },
+    }),
+  );
+}
+
+/** 미션 1개의 설명, 완료 질문, 답변 전문을 조회합니다. */
+export function getMissionDetail(missionId: number) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoGetMissionDetail(missionId));
+  }
+
+  return unwrapApiResponse<MissionDetailResponse>(
+    apiClient.get(`/api/mission/v1/missions/${missionId}`),
+  );
+}
+
+/** 완료 만족도 또는 거절 이유 피드백을 저장합니다. */
+export function upsertMissionFeedback(missionId: number, body: UpsertMissionFeedbackRequest) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoUpsertMissionFeedback(missionId, body));
+  }
+
+  return unwrapApiResponse<MissionFeedbackResponse>(
+    apiClient.post(`/api/mission/v1/missions/${missionId}/feedback`, body),
   );
 }
 
@@ -123,6 +167,10 @@ export async function ensureTodayFocusMission(characterId: number) {
       if (error.apiError.code === "MISSION_DAILY_LIMIT_EXCEEDED") {
         return null;
       }
+
+      if (error.apiError.code === "MISSION_REJECT_LIMIT_EXCEEDED") {
+        return null;
+      }
     }
 
     throw error;
@@ -174,6 +222,29 @@ export function useTodayMissionsQuery() {
   return useQuery({
     queryKey: missionQueryKeys.today(),
     queryFn: getTodayMissions,
+  });
+}
+
+/** 날짜별 미션 기록 화면에서 사용하는 조회 hook입니다. */
+export function useMissionHistoryQuery(date: string) {
+  return useQuery({
+    queryKey: missionQueryKeys.history(date),
+    queryFn: () => getMissionHistory(date),
+  });
+}
+
+/** 미션 상세 화면에서 질문/답변 전문을 조회하는 hook입니다. */
+export function useMissionDetailQuery(missionId: number | undefined) {
+  return useQuery({
+    queryKey: missionQueryKeys.detail(missionId),
+    queryFn: () => {
+      if (!missionId) {
+        throw new Error("미션을 찾지 못했어요.");
+      }
+
+      return getMissionDetail(missionId);
+    },
+    enabled: Boolean(missionId),
   });
 }
 
@@ -236,4 +307,37 @@ export function useSubmitMissionCompletionAnswerMutation() {
       ]);
     },
   });
+}
+
+/** 미션 완료/거절 후 사용자의 가벼운 피드백을 저장합니다. */
+export function useUpsertMissionFeedbackMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      missionId,
+      body,
+    }: {
+      missionId: number;
+      body: UpsertMissionFeedbackRequest;
+    }) => upsertMissionFeedback(missionId, body),
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: missionQueryKeys.detail(variables.missionId) }),
+        queryClient.invalidateQueries({ queryKey: missionQueryKeys.all }),
+      ]);
+    },
+  });
+}
+
+export function getMissionLimitMessage(code: string | undefined) {
+  if (code === "MISSION_DAILY_LIMIT_EXCEEDED") {
+    return "오늘 제안 가능한 미션을 모두 만났어요. 내일 다시 작은 별을 찾아볼게요.";
+  }
+
+  if (code === "MISSION_REJECT_LIMIT_EXCEEDED") {
+    return "오늘은 더 이상 미션을 바꾸기 어려워요. 마음에 드는 미션을 천천히 골라봐요.";
+  }
+
+  return null;
 }

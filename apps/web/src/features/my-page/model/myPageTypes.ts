@@ -20,3 +20,22 @@ export type MyPageUser = {
 export type LogoutResult = {
   loggedOut: boolean;
 };
+
+export type WeatherRegionItem = {
+  regionCode: string;
+  displayName: string;
+};
+
+export type WeatherRegionListResponse = {
+  regions: WeatherRegionItem[];
+};
+
+export type SelectedWeatherRegionResponse = {
+  selected: boolean;
+  regionCode: string | null;
+  displayName: string | null;
+};
+
+export type UpdateWeatherRegionRequest = {
+  regionCode: string;
+};

@@ -41,15 +41,15 @@ export type CreatedCharacterResponse = {
   createdAt: string;
 };
 
-/** 온보딩 7문항의 고정 key입니다. 저장 API 필드명과 직접 연결됩니다. */
+/** 온보딩 문항 key입니다. v2는 개인화 기반으로 쓰는 신호만 남겨 여러 선택을 지원합니다. */
 export type OnboardingQuestionKey =
-  | "livingType"
-  | "wakeUpTime"
-  | "sleepTime"
   | "preferredMissionTime"
   | "routineGoal"
-  | "activityPreference"
-  | "missionIntensity";
+  | "missionPlaceContext"
+  | "missionIntensity"
+  | "avoidedMissionTags";
+
+export type OnboardingAnswerValue = string | string[];
 
 /** 단일 선택 문항의 선택지입니다. sub는 보조 설명입니다. */
 export type OnboardingOption = {
@@ -58,13 +58,15 @@ export type OnboardingOption = {
   sub?: string;
 };
 
-/** 온보딩 질문 한 개입니다. 현재는 SINGLE_CHOICE만 사용합니다. */
+/** 온보딩 질문 한 개입니다. 백엔드의 multipleSelection으로 단일/복수 선택을 구분합니다. */
 export type OnboardingQuestion = {
   key: OnboardingQuestionKey;
   question: string;
-  type: "SINGLE_CHOICE";
+  type: "SINGLE_CHOICE" | "MULTI_CHOICE";
   options: OnboardingOption[];
   characterLine: string;
+  multipleSelection: boolean;
+  maxSelectionCount: number;
 };
 
 /** 온보딩 질문 목록 응답입니다. */
@@ -73,7 +75,7 @@ export type OnboardingQuestionsResponse = {
 };
 
 /** 사용자가 아직 답하지 않은 문항이 있을 수 있으므로 Partial로 보관합니다. */
-export type OnboardingAnswers = Partial<Record<OnboardingQuestionKey, string>>;
+export type OnboardingAnswers = Partial<Record<OnboardingQuestionKey, OnboardingAnswerValue>>;
 
 /** 저장된 온보딩 프로필입니다. completed=false이면 홈 대신 온보딩으로 보냅니다. */
 export type OnboardingProfileResponse = {
@@ -85,11 +87,17 @@ export type OnboardingProfileResponse = {
   routineGoal?: string;
   activityPreference?: string;
   missionIntensity?: string;
+  answersJson?: string;
+  onboardingVersion?: number;
+  routineGoals?: string[];
+  preferredTimeSlots?: string[];
+  missionPlaceContexts?: string[];
+  avoidedMissionTags?: string[];
   completedAt?: string;
 };
 
-/** 온보딩 완료 저장 요청입니다. 개별 필드와 원본 answers record를 함께 보냅니다. */
-export type SaveOnboardingProfileRequest = Required<
+/** 온보딩 완료 저장 요청입니다. v2 리스트 필드와 원본 answers record를 함께 보냅니다. */
+export type SaveOnboardingProfileRequest = Partial<
   Pick<
     OnboardingProfileResponse,
     | "livingType"
@@ -99,15 +107,16 @@ export type SaveOnboardingProfileRequest = Required<
     | "routineGoal"
     | "activityPreference"
     | "missionIntensity"
+    | "onboardingVersion"
+    | "routineGoals"
+    | "preferredTimeSlots"
+    | "missionPlaceContexts"
+    | "avoidedMissionTags"
   >
 > & {
-  answers: Record<string, string>;
+  answers: Record<string, OnboardingAnswerValue>;
   completed: boolean;
 };
 
-/** 온보딩 저장 결과입니다. missionAvailable은 홈에서 미션을 시작할 수 있는지 판단하는 힌트입니다. */
-export type SaveOnboardingProfileResponse = {
-  completed: boolean;
-  missionAvailable: boolean;
-  completedAt: string;
-};
+/** 온보딩 저장 결과입니다. 현재 백엔드는 저장된 프로필 스냅샷을 그대로 반환합니다. */
+export type SaveOnboardingProfileResponse = OnboardingProfileResponse;

@@ -169,6 +169,71 @@
   padding: 8px;
 }
 
+.my-page__weather-card {
+  margin-bottom: 12px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(118px, auto);
+  align-items: center;
+  gap: 12px;
+}
+
+.my-page__weather-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(243, 179, 45, 0.22);
+  border-radius: 15px;
+  color: var(--primary-strong);
+  background: rgba(255, 242, 189, 0.52);
+}
+
+.my-page__weather-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.my-page__weather-copy strong {
+  color: var(--fg-1);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.my-page__weather-copy small {
+  color: var(--fg-3);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.my-page__weather-card select {
+  min-width: 118px;
+  min-height: 38px;
+  padding: 8px 30px 8px 11px;
+  border: 1px solid var(--border-1);
+  border-radius: 12px;
+  color: var(--fg-1);
+  background: var(--bg-1);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.my-page__weather-card select:disabled {
+  color: var(--fg-4);
+  background: var(--bg-3);
+}
+
+.my-page__weather-card select:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.my-page__weather-retry {
+  width: auto;
+}
+
 .my-page__setting-row {
   min-height: 72px;
   display: grid;
@@ -483,6 +548,16 @@
 
   .my-page__account-card {
     grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .my-page__weather-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .my-page__weather-card select,
+  .my-page__weather-retry {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .my-page__push-row {

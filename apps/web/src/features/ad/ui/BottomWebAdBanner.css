@@ -1,0 +1,20 @@
+.bottom-web-ad {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: var(--bottom-web-ad-height, 64px);
+  padding: 0 max(8px, env(safe-area-inset-left, 0px)) env(safe-area-inset-bottom, 0px)
+    max(8px, env(safe-area-inset-right, 0px));
+  background: var(--bg-2);
+  border-top: 1px solid var(--border-1);
+}
+
+.bottom-web-ad__slot {
+  width: 100%;
+  min-height: var(--bottom-web-ad-height, 64px);
+  overflow: hidden;
+}
+
+.app-shell[data-bottom-web-ad-visible="true"] [class$="__body"] {
+  padding-bottom: calc(var(--bottom-web-ad-reserved-height, 64px) + 32px);
+  scroll-padding-bottom: calc(var(--bottom-web-ad-reserved-height, 64px) + 32px);
+}

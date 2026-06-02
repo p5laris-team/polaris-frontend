@@ -6,16 +6,22 @@ import {
 } from "@/entities/character/types";
 import {
   type CurrentMissionResponse,
+  type MissionDetailResponse,
+  type MissionFeedbackResponse,
   type MissionCompletionQuestionResponse,
   type MissionCompletionResultResponse,
+  type MissionFeedbackReaction,
   type MissionRejectionResponse,
   type RequestNextMissionRequest,
   type TodayMissionItem,
   type TodayMissionsResponse,
+  type UpsertMissionFeedbackRequest,
 } from "@/entities/mission/types";
 import { demoRecordWalletTransaction } from "@/features/wallet/model/walletLedger";
 
 const MAX_DAILY_MISSION_OFFERS = 20;
+const MAX_DAILY_MISSION_REWARDS = 10;
+const MAX_DAILY_MISSION_REJECTIONS = 10;
 const todayMissionDate = getTodayDateKey();
 
 const missionTemplates: CurrentMissionResponse[] = [
@@ -107,6 +113,9 @@ const initialTodayMissions: TodayMissionItem[] = [
     createdAt: toTodayIsoTime("09:10"),
     completedAt: toTodayIsoTime("09:15"),
     rejectedAt: null,
+    completionQuestion: "물을 마시고 나니 몸이 어떻게 느껴졌나요?",
+    answerPreview: "잠깐 멈춰서 물을 마시니까 머리가 조금 맑아졌어요.",
+    hasAnswer: true,
   },
   {
     id: 102,
@@ -120,6 +129,9 @@ const initialTodayMissions: TodayMissionItem[] = [
     createdAt: toTodayIsoTime("10:05"),
     completedAt: toTodayIsoTime("10:12"),
     rejectedAt: null,
+    completionQuestion: "햇빛을 보면서 어떤 장면이 기억에 남았나요?",
+    answerPreview: "창가에 서서 빛을 보니까 오늘이 조금 덜 흐릿했어요.",
+    hasAnswer: true,
   },
   {
     id: 103,
@@ -133,12 +145,19 @@ const initialTodayMissions: TodayMissionItem[] = [
     createdAt: toTodayIsoTime("10:40"),
     completedAt: null,
     rejectedAt: toTodayIsoTime("10:42"),
+    completionQuestion: null,
+    answerPreview: null,
+    hasAnswer: false,
   },
   toTodayMissionItem(initialHomeResponse.currentMission!, toTodayIsoTime("11:30")),
 ];
 
 let demoHomeState: DemoHomeResponse = clone(initialHomeResponse);
 let demoTodayMissions = clone(initialTodayMissions);
+const demoMissionSatisfactionFeedbacks = new Map<
+  number,
+  { reaction: MissionFeedbackReaction; updatedAt: string }
+>();
 let lastClosedMissionStackOrder = initialHomeResponse.currentMission?.stackOrder ?? 3;
 
 export function getDemoHomeResponse() {
@@ -165,8 +184,92 @@ export function demoGetTodayMissions(): TodayMissionsResponse {
     completedCount,
     rejectedCount,
     remainingOfferCount: Math.max(0, MAX_DAILY_MISSION_OFFERS - missions.length),
+    maxDailyRewardCount: MAX_DAILY_MISSION_REWARDS,
+    completedRewardCount: Math.min(completedCount, MAX_DAILY_MISSION_REWARDS),
+    remainingRewardCount: Math.max(0, MAX_DAILY_MISSION_REWARDS - completedCount),
+    maxDailyRejectCount: MAX_DAILY_MISSION_REJECTIONS,
+    remainingRejectCount: Math.max(0, MAX_DAILY_MISSION_REJECTIONS - rejectedCount),
     currentMissionId: demoHomeState.currentMission?.id ?? null,
     missions: clone(missions),
+  };
+}
+
+export function demoGetMissionHistory(date: string): TodayMissionsResponse {
+  return {
+    ...demoGetTodayMissions(),
+    missionDate: date,
+  };
+}
+
+export function demoGetMissionDetail(missionId: number): MissionDetailResponse {
+  const mission = demoTodayMissions.find((item) => item.id === missionId);
+  const currentMission = demoHomeState.currentMission?.id === missionId ? demoHomeState.currentMission : null;
+
+  if (!mission && !currentMission) {
+    throw new Error("미션 상세를 찾지 못했어요.");
+  }
+
+  const base = currentMission ?? {
+    id: mission!.id,
+    missionDate: todayMissionDate,
+    stackOrder: mission!.stackOrder,
+    title: mission!.title,
+    description: mission!.characterMessage,
+    characterMessage: mission!.characterMessage,
+    category: mission!.category,
+    difficulty: mission!.difficulty,
+    rewardStarPiece: mission!.rewardStarPiece,
+    status: mission!.status,
+  };
+  const item = mission ?? toTodayMissionItem(base);
+
+  return {
+    ...base,
+    createdAt: item.createdAt,
+    completedAt: item.completedAt,
+    rejectedAt: item.rejectedAt,
+    question: item.completionQuestion
+      ? {
+          id: 501,
+          text: item.completionQuestion,
+          inputType: "TEXT",
+          minLength: 1,
+          maxLength: 300,
+        }
+      : null,
+    answer: item.answerPreview
+      ? {
+          text: item.answerPreview,
+          answeredAt: item.completedAt ?? item.createdAt,
+        }
+      : null,
+    completionCharacterResponse:
+      item.status === "COMPLETED" ? "무! 작은 실천이 오늘의 별조각으로 남았어요." : null,
+    satisfactionFeedback: demoMissionSatisfactionFeedbacks.get(missionId) ?? null,
+    hasAnswer: item.hasAnswer,
+  };
+}
+
+export function demoUpsertMissionFeedback(
+  missionId: number,
+  body: UpsertMissionFeedbackRequest,
+): MissionFeedbackResponse {
+  const updatedAt = new Date().toISOString();
+
+  if (body.feedbackType === "SATISFACTION" && body.reaction) {
+    demoMissionSatisfactionFeedbacks.set(missionId, {
+      reaction: body.reaction,
+      updatedAt,
+    });
+  }
+
+  return {
+    missionId,
+    feedbackType: body.feedbackType,
+    reaction: body.reaction ?? null,
+    reasonCode: body.reasonCode ?? null,
+    reasonText: body.reasonText ?? null,
+    updatedAt,
   };
 }
 
@@ -465,11 +568,15 @@ export function demoSubmitCompletionAnswer(
   patchTodayMission(missionId, {
     status: "COMPLETED",
     completedAt: answeredAt,
+    completionQuestion: "방금 미션을 해내면서 어떤 점이 제일 기억에 남았나요?",
+    answerPreview: trimmedAnswer,
+    hasAnswer: true,
   });
 
   return {
     missionId,
     status: "COMPLETED",
+    rewardStatus: "PAID",
     answer: {
       text: trimmedAnswer,
       answeredAt,
@@ -501,6 +608,9 @@ function toTodayMissionItem(
     createdAt,
     completedAt: null,
     rejectedAt: null,
+    completionQuestion: null,
+    answerPreview: null,
+    hasAnswer: false,
   };
 }
 

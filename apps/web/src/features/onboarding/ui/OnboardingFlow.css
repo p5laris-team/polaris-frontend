@@ -296,6 +296,14 @@
   line-height: 1.3;
 }
 
+.onboarding-survey__hint {
+  margin: -2px 0 2px;
+  color: var(--fg-3);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 .onboarding-survey__options {
   display: grid;
   gap: 8px;

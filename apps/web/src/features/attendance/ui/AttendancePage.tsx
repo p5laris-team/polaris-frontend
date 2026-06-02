@@ -15,8 +15,8 @@ import { type AttendanceRecord } from "@/features/attendance/model/attendanceTyp
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { attendanceAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
+import { attendanceAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 
 import "./AttendancePage.css";
 
@@ -61,11 +61,13 @@ export function AttendancePage() {
   if (attendanceQuery.isError) {
     return (
       <AttendanceFrame>
-        <div className="attendance-page__state">
-          <h2>출석 기록을 못 불러왔어요.</h2>
-          <p>{getUserFacingErrorMessage(attendanceQuery.error)}</p>
-          <Button onClick={() => void attendanceQuery.refetch()}>다시 불러오기</Button>
-        </div>
+        <ErrorState
+          className="attendance-page__state"
+          description={getUserFacingErrorMessage(attendanceQuery.error)}
+          imageSrc={emptyStateAssets.mission}
+          onAction={() => void attendanceQuery.refetch()}
+          title="출석 기록을 못 불러왔어요."
+        />
       </AttendanceFrame>
     );
   }
