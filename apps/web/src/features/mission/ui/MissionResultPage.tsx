@@ -112,6 +112,11 @@ export function MissionResultPage() {
   const characterImageUrl = resolveCharacterImageUrl({
     character: character.key,
     mood: "happy",
+    growth:
+      completionResult.characterExp?.afterGrowth ??
+      activeCharacterQuery.data?.growth ??
+      character.growth ??
+      null,
     equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
     assetUrls: activeCharacterQuery.data?.assetUrls,
     fallbackUrl: activeCharacterQuery.data?.currentAssetUrl,

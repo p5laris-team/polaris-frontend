@@ -52,6 +52,7 @@ export function MissionAnswerPage() {
         id: homeQuery.data.character.id,
         key: toCharacterKey(homeQuery.data.character.characterTypeCode),
         name: homeQuery.data.character.name,
+        growth: homeQuery.data.character.growth ?? null,
       };
     }
 
@@ -61,6 +62,11 @@ export function MissionAnswerPage() {
     ? resolveCharacterImageUrl({
         character: currentCharacter.key,
         mood: "happy",
+        growth:
+          activeCharacterQuery.data?.growth ??
+          currentCharacter.growth ??
+          homeQuery.data?.character?.growth ??
+          null,
         equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
         assetUrls: activeCharacterQuery.data?.assetUrls,
         fallbackUrl:

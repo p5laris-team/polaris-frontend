@@ -66,6 +66,11 @@ export function HomePage() {
       character: home.character.key,
       mood: home.character.mood,
       states: homeQuery.data?.character?.states,
+      growth:
+        activeCharacterQuery.data?.growth ??
+        home.character.growth ??
+        homeQuery.data?.character?.growth ??
+        null,
       equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
       assetUrls: activeCharacterQuery.data?.assetUrls,
       fallbackUrl: homeQuery.data?.character?.currentAssetUrl,
@@ -73,7 +78,9 @@ export function HomePage() {
   }, [
     activeCharacterQuery.data?.assetUrls,
     activeCharacterQuery.data?.equippedSkin,
+    activeCharacterQuery.data?.growth,
     home,
+    homeQuery.data?.character?.growth,
     homeQuery.data?.character?.currentAssetUrl,
     homeQuery.data?.character?.states,
   ]);
@@ -143,6 +150,11 @@ export function HomePage() {
       id: home.character.id,
       key: home.character.key,
       name: home.character.name,
+      growth:
+        activeCharacterQuery.data?.growth ??
+        home.character.growth ??
+        homeQuery.data?.character?.growth ??
+        null,
     });
 
     startCompletionSessionMutation.mutate(mission.id, {

@@ -83,6 +83,7 @@ export function ShareCardPage() {
   const characterImageUrl = resolveCharacterImageUrl({
     character: characterKey,
     mood: "happy",
+    growth: activeCharacter?.growth ?? character?.growth ?? null,
     equippedSkin: activeCharacter?.equippedSkin ?? null,
     // 공유 카드는 축하용 이미지라서 장착 스킨이 있으면 상태 수치보다 happy 스킨을 우선한다.
     // CDN 상태별 URL이 비어 있어도 엑박이 나지 않도록 카드 렌더링은 프론트 로컬 에셋을 기준으로 둔다.
