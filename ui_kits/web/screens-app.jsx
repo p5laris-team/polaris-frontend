@@ -2,6 +2,11 @@
    Polaris — In-App Screens (Home, Q&A, Result, History, Care, Shop, Inventory, Wallet, Share, Notifications)
    ============================================================ */
 
+function getCharacterCoreAsset(character, mood = "idle") {
+  const id = ["nova", "jjori", "mumu"].includes(character) ? character : "nova";
+  return `../../assets/characters/${id}/core/character-${id}-${mood}.png`;
+}
+
 /* ---------- 1. Home Screen (SCR-006) ---------- */
 function HomeScreen({
   character,
@@ -19,7 +24,6 @@ function HomeScreen({
 }) {
   const charId = character.type || "nova";
   const charName = character.name || "별친구";
-  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
   
   // 상태 등급 계산
   const getStatStatus = (val) => {
@@ -84,7 +88,7 @@ function HomeScreen({
 
           <div className="character-img" style={{ width: 140, height: 140, position: "relative" }}>
             <img 
-              src={`../../assets/character-${charId}.${ext}`} 
+              src={getCharacterCoreAsset(charId)}
               alt={charId} 
               style={{ width: "100%", height: "100%", objectFit: "contain" }} 
             />
@@ -224,7 +228,6 @@ function MissionAnsweringScreen({ character, activeMission, onAnswerSubmit, onBa
   const [answer, setAnswer] = React.useState("");
   const charId = character.type || "nova";
   const charName = character.name || "별친구";
-  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
 
   // 캐릭터별 Q&A 문구 결정
   const getAnsweringQuestion = () => {
@@ -243,7 +246,7 @@ function MissionAnsweringScreen({ character, activeMission, onAnswerSubmit, onBa
             <div style={{ width: 120, height: 120, position: "relative" }} className="character-img">
               {/* 해냈으므로 happy 에셋 사용 */}
               <img 
-                src={`../../assets/character-${charId}-happy.${ext}`} 
+                src={getCharacterCoreAsset(charId, "happy")}
                 alt="happy" 
                 style={{ width: "100%", height: "100%", objectFit: "contain" }} 
               />
@@ -306,7 +309,6 @@ function MissionAnsweringScreen({ character, activeMission, onAnswerSubmit, onBa
 function MissionResultScreen({ character, activeMission, earnedStarPieces, totalStarPieces, onGoHome }) {
   const charId = character.type || "nova";
   const charName = character.name || "별친구";
-  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
 
   // 별가루 파티클 랜덤 좌표 생성
   const sparkles = Array.from({ length: 12 }).map((_, i) => ({
@@ -344,7 +346,7 @@ function MissionResultScreen({ character, activeMission, earnedStarPieces, total
 
         <div style={{ width: 140, height: 140, position: "relative" }} className="character-img">
           <img 
-            src={`../../assets/character-${charId}-happy.${ext}`} 
+            src={getCharacterCoreAsset(charId, "happy")}
             alt="happy" 
             style={{ width: "100%", height: "100%", objectFit: "contain" }} 
           />
@@ -457,7 +459,6 @@ function MissionHistoryScreen({ missionHistory }) {
 function CharacterDetailScreen({ character, wallet, inventory, equippedSkin, onUseCareAction, onBack, onShowToast }) {
   const charId = character.type || "nova";
   const charName = character.name || "별친구";
-  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
 
   // 보유 소모품 카운트 구하기
   const foodCount = inventory.filter(i => i.id === "food").length;
@@ -480,7 +481,7 @@ function CharacterDetailScreen({ character, wallet, inventory, equippedSkin, onU
         <div className="stage" style={{ padding: "24px 16px", borderRadius: 28 }}>
           <div className="character-img" style={{ width: 150, height: 150, position: "relative" }}>
             <img 
-              src={`../../assets/character-${charId}.${ext}`} 
+              src={getCharacterCoreAsset(charId)}
               alt={charId} 
               style={{ width: "100%", height: "100%", objectFit: "contain" }} 
             />
@@ -898,7 +899,6 @@ function ShareScreen({ character, equippedSkin, onClaimShareReward, onBack, onSh
   const [slogan, setSlogan] = React.useState("오늘도 조금 반짝였음.");
   const charId = character.type || "nova";
   const charName = character.name || "별친구";
-  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
 
   const handleShareClick = () => {
     onShowToast("🔗 캐릭터 카드가 클립보드에 공유되었습니다!");
@@ -939,7 +939,7 @@ function ShareScreen({ character, equippedSkin, onClaimShareReward, onBack, onSh
             
             <div className="character-img" style={{ width: 140, height: 140, marginTop: 14, position: "relative" }}>
               <img 
-                src={`../../assets/character-${charId}.${ext}`} 
+                src={getCharacterCoreAsset(charId)}
                 alt={charId} 
                 style={{ width: "100%", height: "100%", objectFit: "contain" }} 
               />
