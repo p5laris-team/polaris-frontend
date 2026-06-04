@@ -2,7 +2,11 @@
  * 홈 API 응답을 홈 화면 전용 view model로 바꾸는 mapper입니다.
  * 서버 응답 구조를 그대로 화면에 흘리지 않고, 라벨/톤/캐릭터 key를 한 번 정리해 UI를 단순하게 만듭니다.
  */
-import { toCharacterKey, type CharacterStatusValue } from "@/entities/character/types";
+import {
+  toCharacterKey,
+  type CharacterGrowth,
+  type CharacterStatusValue,
+} from "@/entities/character/types";
 import { type HomeResponse } from "@/entities/home/types";
 import { type CharacterMood } from "@/shared/assets/polarisAssets";
 
@@ -28,6 +32,7 @@ export type HomeScreenViewModel = {
     mood: CharacterMood;
     name: string;
     bubble: string;
+    growth?: CharacterGrowth | null;
     gauges: HomeGauge[];
   };
 };
@@ -66,6 +71,7 @@ export function mapHomeResponseToViewModel(response: HomeResponse): HomeScreenVi
       key: toCharacterKey(character.characterTypeCode),
       mood: toMood(states),
       name: character.name,
+      growth: character.growth ?? null,
       bubble:
         response.currentMission?.characterMessage ??
         "오늘 미션은 여기까지예요. 내일 또 작은 별을 찾아봐요.",

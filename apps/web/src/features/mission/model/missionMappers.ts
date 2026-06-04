@@ -17,12 +17,17 @@ export type HomeMissionViewModel = {
 
 // 백엔드 미션 카테고리를 프론트 카테고리 아이콘 key로 연결합니다.
 const categoryToViewKey: Record<string, CategoryKey> = {
-  BASIC_ROUTINE: "morning",
-  SPACE_RESET: "mind",
-  FITNESS: "fitness",
-  OUTDOOR: "fitness",
-  READING: "reading",
-  MIND: "mind",
+  BASIC_ROUTINE: "basicRoutine",
+  SPACE_RESET: "spaceReset",
+  MINI_EXERCISE: "miniExercise",
+  MOOD_CARE: "moodCare",
+  FOCUS_HELP: "focusHelp",
+  SOCIAL_LIGHT: "socialLight",
+  // 예전 fixture/시드 이름은 새 6개 카테고리 중 가까운 화면 key로 흡수한다.
+  FITNESS: "miniExercise",
+  OUTDOOR: "moodCare",
+  READING: "focusHelp",
+  MIND: "moodCare",
 };
 
 /** 백엔드 난이도 enum을 홈 카드의 한국어 난이도 라벨로 바꿉니다. */
@@ -44,7 +49,7 @@ export function mapCurrentMissionToHomeMission(
     id: mission.id,
     title: mission.title,
     description: mission.description,
-    category: categoryToViewKey[mission.category] ?? "mind",
+    category: categoryToViewKey[mission.category] ?? "moodCare",
     difficultyLabel: toDifficultyLabel(mission.difficulty),
     rewardStarPiece: mission.rewardStarPiece,
     stackLabel: `오늘 ${mission.stackOrder} / 20`,

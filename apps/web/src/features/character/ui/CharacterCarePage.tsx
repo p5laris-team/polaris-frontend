@@ -120,6 +120,7 @@ export function CharacterCarePage() {
 
   const character = activeCharacterQuery.data;
   const states = statusQuery.data?.states ?? character?.states;
+  const growth = statusQuery.data?.growth ?? character?.growth ?? null;
   const gauges = useMemo(() => (states ? toCareGauges(states) : []), [states]);
   const consumableItems = consumablesQuery.data?.items ?? [];
 
@@ -144,6 +145,7 @@ export function CharacterCarePage() {
     const feedbackImageUrl = resolveCharacterImageUrl({
       character: toCharacterKey(character.characterTypeCode),
       mood: preset.mood,
+      growth,
       equippedSkin: character.equippedSkin ?? null,
       assetUrls: character.assetUrls,
       fallbackUrl: character.currentAssetUrl,
@@ -241,6 +243,7 @@ export function CharacterCarePage() {
     character: characterKey,
     mood,
     states,
+    growth,
     equippedSkin: character.equippedSkin ?? null,
     assetUrls: character.assetUrls,
     fallbackUrl: character.currentAssetUrl,
