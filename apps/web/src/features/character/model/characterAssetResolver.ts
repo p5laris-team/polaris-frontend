@@ -4,8 +4,10 @@
  */
 import {
   characterAssets,
+  characterGrowthStateAssets,
   characterStateAssets,
   skinCharacterAssets,
+  type CharacterGrowthAssetLevel,
   type CharacterKey,
   type CharacterMood,
   type CharacterSkinKey,
@@ -14,6 +16,7 @@ import {
 import {
   type CharacterAssetKey,
   type CharacterAssetUrls,
+  type CharacterGrowth,
   type CharacterStates,
 } from "@/entities/character/types";
 
@@ -27,6 +30,7 @@ type ResolveCharacterImageInput = {
   character: CharacterKey;
   mood?: CharacterMood;
   states?: CharacterStates | null;
+  growth?: CharacterGrowth | null;
   equippedSkin?: EquippedSkinInput;
   assetUrls?: CharacterAssetUrls | null;
   fallbackUrl?: string | null;
@@ -56,16 +60,23 @@ export function resolveCharacterImageUrl({
   character,
   mood = "idle",
   states,
+  growth,
   equippedSkin,
   assetUrls,
   fallbackUrl,
 }: ResolveCharacterImageInput) {
   const visualState = resolveCharacterVisualState(states, mood);
   const remoteImageUrl = resolveRemoteAssetUrl(assetUrls, visualState);
+  const growthLevel = resolveCharacterGrowthAssetLevel(growth);
   const skinKey = resolveCharacterSkinKey(equippedSkin);
-  const skinImageUrl = skinKey ? skinCharacterAssets[skinKey]?.[character]?.[visualState] : null;
+  const canUseSkinAsset = !growthLevel || growthLevel === "lv3";
+  const skinImageUrl =
+    canUseSkinAsset && skinKey ? skinCharacterAssets[skinKey]?.[character]?.[visualState] : null;
+  const growthImageUrl = growthLevel
+    ? characterGrowthStateAssets[character]?.[growthLevel]?.[visualState]
+    : null;
   const baseImageUrl =
-    characterStateAssets[character]?.[visualState] ?? characterAssets[character]?.[mood];
+    growthImageUrl ?? characterStateAssets[character]?.[visualState] ?? characterAssets[character]?.[mood];
   const localImageUrl = skinImageUrl ?? baseImageUrl;
 
   // 현재 화면 렌더링은 프론트에 포함된 검수 에셋을 우선 사용하고, 백엔드 URL은 로컬 매핑이 비었을 때만 안전망으로 둔다.
@@ -110,6 +121,27 @@ function resolveCharacterVisualState(
   }
 
   return mood;
+}
+
+/** 성장 단계 응답을 프론트 성장 에셋 레벨로 변환합니다. 응답이 없으면 기존 성체/스킨 정책을 유지합니다. */
+function resolveCharacterGrowthAssetLevel(
+  growth: CharacterGrowth | null | undefined,
+): CharacterGrowthAssetLevel | null {
+  if (!growth) {
+    return null;
+  }
+
+  const stage = `${growth.growthStage ?? ""}`.toUpperCase();
+
+  if (stage === "BABY" || growth.level <= 1) {
+    return "lv1";
+  }
+
+  if (stage === "GROWING" || growth.level === 2) {
+    return "lv2";
+  }
+
+  return "lv3";
 }
 
 /** 백엔드 assetUrls에서 현재 visualState와 맞는 CDN URL을 찾습니다. */

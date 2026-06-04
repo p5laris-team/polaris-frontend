@@ -1,5 +1,6 @@
 import { type HomeResponse } from "@/entities/home/types";
 import {
+  type CharacterGrowth,
   type CharacterStates,
   type CharacterStatusValue,
   type CharacterTypeCode,
@@ -65,6 +66,18 @@ const missionTemplates: CurrentMissionResponse[] = [
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+const initialCharacterGrowth: CharacterGrowth = {
+  level: 1,
+  exp: 0,
+  currentLevelExp: 0,
+  nextLevelExp: 200,
+  expToNextLevel: 200,
+  progressPercent: 0,
+  growthStage: "BABY",
+  growthStageLabel: "처음 만난 별친구",
+  maxLevel: false,
+};
+
 type DemoCareActionType = "FEED" | "SLEEP" | "PLAY";
 type DemoHomeResponse = HomeResponse & {
   character: NonNullable<HomeResponse["character"]> & {
@@ -93,6 +106,7 @@ const initialHomeResponse: DemoHomeResponse = {
       energy: { value: 55, label: "졸림", grade: "NORMAL" },
       affection: { value: 68, label: "가까움", grade: "GOOD" },
     },
+    growth: initialCharacterGrowth,
   },
   currentMission: missionTemplates[0],
   notifications: {
