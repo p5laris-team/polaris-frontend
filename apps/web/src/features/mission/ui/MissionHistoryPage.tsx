@@ -150,7 +150,7 @@ export function MissionHistoryPage() {
   };
 
   return (
-    <MissionHistoryFrame>
+    <MissionHistoryFrame showBottomAd>
       <div className="mission-history__body">
         <Card className="mission-history__summary-card">
           <div className="mission-history__summary-icon" aria-hidden="true">
@@ -371,12 +371,18 @@ function mapTodayMissionToCurrentMission(
 }
 
 /** 미션 기록 화면에서 공통으로 쓰는 헤더, 하단 탭, shell 레이아웃입니다. */
-function MissionHistoryFrame({ children }: { children: ReactNode }) {
+function MissionHistoryFrame({
+  children,
+  showBottomAd = false,
+}: {
+  children: ReactNode;
+  showBottomAd?: boolean;
+}) {
   const navigate = useNavigate();
 
   return (
     <main className="mission-history">
-      <AppShell>
+      <AppShell showBottomAd={showBottomAd}>
         <Header title="미션 기록" onBack={() => navigate(routes.home)} />
         {children}
         <AppBottomNavigation />

@@ -78,7 +78,7 @@ export function PublicSharePage() {
   }
 
   return (
-    <PublicShareFrame>
+    <PublicShareFrame showBottomAd>
       <div className="public-share-page__body">
         <header className="public-share-page__header">
           <img src={brandAssets.logoWordmark} alt="Polaris" />
@@ -134,10 +134,16 @@ export function PublicSharePage() {
   );
 }
 
-function PublicShareFrame({ children }: { children: ReactNode }) {
+function PublicShareFrame({
+  children,
+  showBottomAd = false,
+}: {
+  children: ReactNode;
+  showBottomAd?: boolean;
+}) {
   return (
     <main className="public-share-page">
-      <AppShell className="public-share-page__shell">{children}</AppShell>
+      <AppShell className="public-share-page__shell" showBottomAd={showBottomAd}>{children}</AppShell>
     </main>
   );
 }

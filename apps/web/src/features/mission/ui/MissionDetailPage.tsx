@@ -175,7 +175,7 @@ export function MissionDetailPage() {
   };
 
   return (
-    <MissionDetailFrame>
+    <MissionDetailFrame showBottomAd>
       <div className="mission-detail__body">
         <Card className="mission-detail__hero-card">
           <span className={`mission-detail__status-icon mission-detail__status-icon--${statusMeta.tone}`}>
@@ -294,12 +294,18 @@ export function MissionDetailPage() {
   );
 }
 
-function MissionDetailFrame({ children }: { children: ReactNode }) {
+function MissionDetailFrame({
+  children,
+  showBottomAd = false,
+}: {
+  children: ReactNode;
+  showBottomAd?: boolean;
+}) {
   const navigate = useNavigate();
 
   return (
     <main className="mission-detail">
-      <AppShell>
+      <AppShell showBottomAd={showBottomAd}>
         <Header title="미션 상세" onBack={() => navigate(routes.missions)} />
         {children}
         <AppBottomNavigation />
