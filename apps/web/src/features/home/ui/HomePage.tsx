@@ -4,11 +4,22 @@
  * 미션 거절, 완료 시작, 출석, 공유 같은 핵심 진입점을 연결합니다.
  */
 import { Bell, CalendarDays, Share2 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { type CharacterGrowth } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
-import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import { useCharacterInteractionMutation } from "@/features/character/api/characterTalkApi";
+import {
+  resolveCharacterGrowthAssetLevel,
+  resolveCharacterImageUrl,
+} from "@/features/character/model/characterAssetResolver";
+import {
+  formatCharacterInteractionText,
+  formatCharacterSpeech,
+} from "@/features/character/model/characterToneText";
+import { type CharacterInteractionResponse } from "@/features/character/model/characterTalkTypes";
+import { CharacterTalkLaunchButton } from "@/features/character/ui/CharacterTalkLaunchButton";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import { mapHomeResponseToViewModel } from "@/features/home/model/homeMappers";
 import {
@@ -22,7 +33,15 @@ import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage, isPolarisApiError } from "@/shared/api";
-import { brandAssets, currencyAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
+import {
+  brandAssets,
+  currencyAssets,
+  emptyStateAssets,
+  growthAssets,
+  memoryAssets,
+  type CharacterKey,
+  type GrowthStageKey,
+} from "@/shared/assets/polarisAssets";
 import {
   AppShell,
   Button,
@@ -44,9 +63,17 @@ export function HomePage() {
   const { showToast } = useToast();
   const homeQuery = useHomeQuery();
   const activeCharacterQuery = useActiveCharacterQuery();
+  const interactionMutation = useCharacterInteractionMutation();
   const rejectAndNextMutation = useRejectAndRequestNextMissionMutation();
   const startCompletionSessionMutation = useStartMissionCompletionSessionMutation();
   const { setActiveMission, setCompletionQuestion } = useMissionFlowStore();
+  const [homeCharacterMessage, setHomeCharacterMessage] = useState<string | null>(null);
+  const [homeMemoryInteraction, setHomeMemoryInteraction] = useState<CharacterInteractionResponse | null>(null);
+  const [isHomeCharacterReacting, setIsHomeCharacterReacting] = useState(false);
+  const homeReactionStartTimeoutRef = useRef<number | null>(null);
+  const homeReactionTimeoutRef = useRef<number | null>(null);
+  const homeMemoryTimeoutRef = useRef<number | null>(null);
+  const homeTapCountRef = useRef(0);
   const home = useMemo(
     () => (homeQuery.data ? mapHomeResponseToViewModel(homeQuery.data) : null),
     [homeQuery.data],
@@ -57,6 +84,11 @@ export function HomePage() {
     () => mapCurrentMissionToHomeMission(focusMission),
     [focusMission],
   );
+  const characterGrowth =
+    activeCharacterQuery.data?.growth ??
+    home?.character.growth ??
+    homeQuery.data?.character?.growth ??
+    null;
   const characterImageUrl = useMemo(() => {
     if (!home) {
       return undefined;
@@ -66,6 +98,7 @@ export function HomePage() {
       character: home.character.key,
       mood: home.character.mood,
       states: homeQuery.data?.character?.states,
+      growth: characterGrowth,
       equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
       assetUrls: activeCharacterQuery.data?.assetUrls,
       fallbackUrl: homeQuery.data?.character?.currentAssetUrl,
@@ -73,10 +106,36 @@ export function HomePage() {
   }, [
     activeCharacterQuery.data?.assetUrls,
     activeCharacterQuery.data?.equippedSkin,
+    characterGrowth,
     home,
     homeQuery.data?.character?.currentAssetUrl,
     homeQuery.data?.character?.states,
   ]);
+
+  useEffect(() => {
+    setHomeCharacterMessage(null);
+    setHomeMemoryInteraction(null);
+    homeTapCountRef.current = 0;
+    if (homeMemoryTimeoutRef.current) {
+      window.clearTimeout(homeMemoryTimeoutRef.current);
+      homeMemoryTimeoutRef.current = null;
+    }
+  }, [focusMission?.id, home?.character.id]);
+
+  useEffect(
+    () => () => {
+      if (homeReactionStartTimeoutRef.current) {
+        window.clearTimeout(homeReactionStartTimeoutRef.current);
+      }
+      if (homeReactionTimeoutRef.current) {
+        window.clearTimeout(homeReactionTimeoutRef.current);
+      }
+      if (homeMemoryTimeoutRef.current) {
+        window.clearTimeout(homeMemoryTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   if (homeQuery.isLoading) {
     return <HomeLoadingPage />;
@@ -120,7 +179,7 @@ export function HomePage() {
       },
       {
         onSuccess: ({ rejection }) => {
-          showToast(rejection.characterMessage);
+          showToast(formatCharacterSpeech(home.character.key, rejection.characterMessage, home.character.name));
         },
         onError: (error) => {
           const limitMessage = isPolarisApiError(error)
@@ -133,6 +192,75 @@ export function HomePage() {
     );
   };
 
+  /** 홈 캐릭터 터치는 상세 이동 대신 별친구 즉시 반응으로 처리합니다. */
+  const handleHomeCharacterTap = () => {
+    if (!home) {
+      return;
+    }
+
+    homeTapCountRef.current += 1;
+    setHomeCharacterMessage(pickHomeTapReaction(home.character.key, home.character.name));
+    playHomeCharacterReaction();
+
+    if (interactionMutation.isPending || !shouldRequestHomeMemoryPeek(homeTapCountRef.current)) {
+      return;
+    }
+
+    interactionMutation.mutate(
+      {
+        characterId: home.character.id,
+        body: {
+          interactionType: "TAP",
+        },
+      },
+      {
+        onSuccess: (result) => {
+          const nextMessage = formatCharacterInteractionText(result, home.character.name);
+          if (result.memory) {
+            setHomeCharacterMessage(nextMessage);
+            showHomeMemoryPeek(result);
+            showToast(result.memoryUnlocked ? `새 기억 조각: ${result.memory.title}` : `기억 조각: ${result.memory.title}`);
+          }
+        },
+        onError: (error) => {
+          showToast(getUserFacingErrorMessage(error));
+        },
+      },
+    );
+  };
+
+  const showHomeMemoryPeek = (result: CharacterInteractionResponse) => {
+    setHomeMemoryInteraction(result);
+
+    if (homeMemoryTimeoutRef.current) {
+      window.clearTimeout(homeMemoryTimeoutRef.current);
+    }
+
+    homeMemoryTimeoutRef.current = window.setTimeout(() => {
+      setHomeMemoryInteraction(null);
+      homeMemoryTimeoutRef.current = null;
+    }, 5200);
+  };
+
+  const playHomeCharacterReaction = () => {
+    if (homeReactionStartTimeoutRef.current) {
+      window.clearTimeout(homeReactionStartTimeoutRef.current);
+    }
+    if (homeReactionTimeoutRef.current) {
+      window.clearTimeout(homeReactionTimeoutRef.current);
+    }
+
+    setIsHomeCharacterReacting(false);
+    homeReactionStartTimeoutRef.current = window.setTimeout(() => {
+      setIsHomeCharacterReacting(true);
+      homeReactionStartTimeoutRef.current = null;
+      homeReactionTimeoutRef.current = window.setTimeout(() => {
+        setIsHomeCharacterReacting(false);
+        homeReactionTimeoutRef.current = null;
+      }, 680);
+    }, 20);
+  };
+
   /** 미션 완료 인증을 시작하기 전에 질문 세션을 열고 임시 미션 흐름 상태를 저장합니다. */
   const handleStartCompletion = () => {
     if (!mission || !focusMission) {
@@ -143,6 +271,7 @@ export function HomePage() {
       id: home.character.id,
       key: home.character.key,
       name: home.character.name,
+      growth: characterGrowth,
     });
 
     startCompletionSessionMutation.mutate(mission.id, {
@@ -160,15 +289,39 @@ export function HomePage() {
     <HomeFrame unreadNotificationCount={home.unreadNotificationCount} starPieceCount={home.walletStarPiece}>
       <div className="home-page__body">
         {/* SCR-006 캐릭터 영역: 홈 API의 캐릭터 상태와 현재 미션 대사를 함께 보여준다. */}
-        <div className="home-page__stage-wrap">
+        <div
+          className={[
+            "home-page__stage-wrap",
+            isHomeCharacterReacting ? "home-page__stage-wrap--reacting" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <CharacterStage
             character={home.character.key}
             mood={home.character.mood}
             imageUrl={characterImageUrl}
-            name={home.character.name}
-            bubble={focusMission?.characterMessage ?? home.character.bubble}
-            ariaLabel="별친구 돌봄 화면 열기"
-            onClick={() => navigate(routes.character)}
+            growthLevel={resolveCharacterGrowthAssetLevel(characterGrowth)}
+            name={formatHomeCharacterName(home.character.name, characterGrowth)}
+            nameAccessory={
+              characterGrowth ? (
+                <img
+                  alt={`${characterGrowth.growthStageLabel} 배지`}
+                  src={growthAssets.badges[getGrowthStageKey(characterGrowth.growthStage)]}
+                />
+              ) : null
+            }
+            subLabel={formatShortExpLabel(characterGrowth)}
+            bubble={
+              homeCharacterMessage ??
+              formatCharacterSpeech(
+                home.character.key,
+                focusMission?.characterMessage ?? home.character.bubble,
+                home.character.name,
+              )
+            }
+            ariaLabel="별친구 터치하기"
+            onClick={handleHomeCharacterTap}
           />
           <div className="home-page__status-chips" aria-label="캐릭터 상태 요약">
             {home.character.gauges.map((gauge) => (
@@ -180,6 +333,38 @@ export function HomePage() {
               </span>
             ))}
           </div>
+          <CharacterTalkLaunchButton
+            characterKey={home.character.key}
+            characterName={home.character.name}
+            className="home-page__talk-launch"
+            onClick={() => navigate(routes.characterTalk)}
+          />
+          {homeMemoryInteraction?.memory ? (
+            <div
+              className={[
+                "home-page__memory-peek",
+                homeMemoryInteraction.memoryUnlocked ? "home-page__memory-peek--new" : "home-page__memory-peek--echo",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              aria-live="polite"
+            >
+              <img className="home-page__memory-peek-bg" src={memoryAssets.cardBg} alt="" />
+              <img className="home-page__memory-peek-glow" src={memoryAssets.unlockedGlow} alt="" />
+              <img
+                className="home-page__memory-peek-fragment"
+                src={getHomeMemoryFragmentAsset(homeMemoryInteraction.fragmentType)}
+                alt=""
+              />
+              <span>
+                <small>{homeMemoryInteraction.memoryUnlocked ? "새 기억 조각" : "기억 조각"}</small>
+                <strong>{homeMemoryInteraction.memory.title}</strong>
+              </span>
+              {homeMemoryInteraction.memoryUnlocked ? (
+                <img className="home-page__memory-peek-effect" src={memoryAssets.unlockEffect} alt="" />
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {/* SCR-007 미션 카드: 완료는 질문 세션으로, 거절은 즉시 거절 후 다음 미션 요청으로 이어진다. */}
@@ -216,6 +401,7 @@ export function HomePage() {
                 description={mission.description}
                 category={mission.category}
                 status="active"
+                onClick={() => navigate(routes.missions)}
               />
               <div className="home-page__mission-actions">
                 <Button
@@ -273,6 +459,78 @@ export function HomePage() {
       </div>
     </HomeFrame>
   );
+}
+
+function formatHomeCharacterName(name: string, growth: CharacterGrowth | null | undefined) {
+  return growth ? `Lv.${growth.level} ${name}` : name;
+}
+
+function formatShortExpLabel(growth: CharacterGrowth | null | undefined) {
+  if (!growth) {
+    return null;
+  }
+
+  if (growth.maxLevel) {
+    return "MAX";
+  }
+
+  const required = Math.max(0, growth.nextLevelExp - growth.currentLevelExp);
+  const current = Math.max(0, Math.min(required, growth.exp - growth.currentLevelExp));
+
+  return `${current}/${required} EXP`;
+}
+
+function getGrowthStageKey(stage: string | null | undefined): GrowthStageKey {
+  const normalized = `${stage ?? ""}`.toUpperCase();
+
+  if (normalized === "GROWING") {
+    return "growing";
+  }
+
+  if (normalized === "MATURE") {
+    return "mature";
+  }
+
+  return "baby";
+}
+
+const HOME_TAP_REACTIONS: Record<CharacterKey, string[]> = {
+  mumu: [
+    "무..! 무..!! 무무! (해석: 그만 눌러... 간지러워~)",
+    "무우... 무! (해석: 방금 뿌리 끝이 움찔했어.)",
+    "무? 무무. (해석: 나 불렀어? 조금 놀랐잖아.)",
+    "무무무... (해석: 계속 누르면 숨겨 둔 생각이 새어 나올지도 몰라.)",
+    "무! (해석: 지금은 살살. 마음까지 간질간질해.)",
+    "무... 무우. (해석: 방금 건 기록해 둘게. 이상한 터치였어.)",
+  ],
+  nova: [
+    "앗, 별빛이 살짝 흔들렸어.",
+    "지금 나 부른 거지? 천천히 들을게.",
+    "손끝에 작은 궤도가 생겼어.",
+    "조금 간지럽지만, 나쁘진 않아.",
+  ],
+  jjori: [
+    "흠흠, 터치 횟수 기록 중임!",
+    "방금 건 원정 로그에 남겨야겠는데?",
+    "오, 호출 신호 확인 완료!",
+    "계속 누르면 내가 먼저 말을 걸지도 모름.",
+  ],
+};
+
+function pickHomeTapReaction(characterKey: CharacterKey, characterName: string) {
+  const pool = HOME_TAP_REACTIONS[characterKey] ?? HOME_TAP_REACTIONS.nova;
+  const picked = pool[Math.floor(Math.random() * pool.length)] ?? pool[0];
+  return picked.replace(/\{name\}/g, characterName);
+}
+
+function shouldRequestHomeMemoryPeek(tapCount: number) {
+  return tapCount % 5 === 0 || Math.random() < 0.22;
+}
+
+function getHomeMemoryFragmentAsset(fragmentType?: string) {
+  if (fragmentType === "EASTER_EGG") return memoryAssets.fragmentEasterEgg;
+  if (fragmentType === "LORE") return memoryAssets.fragmentLore;
+  return memoryAssets.fragmentCommon;
 }
 
 /** 홈 상단 로고, 지갑 버튼, 알림 버튼, 하단 탭을 공통으로 감싸는 화면 프레임입니다. */

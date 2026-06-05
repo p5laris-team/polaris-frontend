@@ -18,6 +18,9 @@ export type CharacterAssetKey = "idle" | "happy" | "sleepy" | "hungry" | "lowEne
 /** 백엔드 CDN 이미지 URL 모음입니다. 프론트 로컬 asset이 없을 때 fallback으로 사용합니다. */
 export type CharacterAssetUrls = Partial<Record<CharacterAssetKey, string>> & Record<string, string | undefined>;
 
+/** 캐릭터 성장 단계입니다. 프론트 성장 에셋은 BABY=lv1, GROWING=lv2, MATURE=lv3로 연결합니다. */
+export type CharacterGrowthStage = "BABY" | "GROWING" | "MATURE";
+
 /** hunger/energy/affection 각각의 수치, 라벨, 등급을 담는 공통 구조입니다. */
 export type CharacterStatusValue = {
   value: number;
@@ -30,6 +33,19 @@ export type CharacterStates = {
   hunger: CharacterStatusValue;
   energy: CharacterStatusValue;
   affection: CharacterStatusValue;
+};
+
+/** 별친구의 성장 스냅샷입니다. 홈/별친구/미션 완료 결과에서 같은 구조로 사용합니다. */
+export type CharacterGrowth = {
+  level: number;
+  exp: number;
+  currentLevelExp: number;
+  nextLevelExp: number;
+  expToNextLevel: number;
+  progressPercent: number;
+  growthStage: CharacterGrowthStage | string;
+  growthStageLabel: string;
+  maxLevel: boolean;
 };
 
 const codeToKey: Record<CharacterTypeCode, CharacterKey> = {

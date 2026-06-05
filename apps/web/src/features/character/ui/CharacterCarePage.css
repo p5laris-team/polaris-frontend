@@ -18,6 +18,10 @@
   gap: 14px;
 }
 
+.character-care-page__growth-meter {
+  margin-top: 1px;
+}
+
 .character-care-page__section-title {
   display: flex;
   align-items: center;
@@ -184,6 +188,11 @@
 
 .character-care-page__care-action--empty {
   background: color-mix(in srgb, var(--bg-2) 72%, var(--bg-1));
+  border-color: rgba(201, 160, 104, 0.34);
+}
+
+.character-care-page__care-action--empty .character-care-page__care-action-item {
+  color: var(--fg-3);
 }
 
 .character-care-page__care-action-asset {
@@ -255,6 +264,13 @@
   line-height: 1.2;
 }
 
+.character-care-page__care-action--empty em {
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .character-care-page__inventory-callout {
   margin-top: 16px;
   display: grid;
@@ -272,6 +288,48 @@
   color: var(--fg-3);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.character-care-page__talk-launch {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: auto;
+  min-height: 36px;
+  padding: 6px 9px;
+  grid-template-columns: 24px max-content;
+  gap: 6px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(45, 36, 24, 0.1);
+}
+
+.character-care-page__talk-launch .character-talk-launch__mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+}
+
+.character-care-page__talk-launch .character-talk-launch__mark img {
+  width: 18px;
+  height: 18px;
+}
+
+.character-care-page__talk-launch .character-talk-launch__copy {
+  gap: 0;
+}
+
+.character-care-page__talk-launch .character-talk-launch__copy strong {
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.character-care-page__talk-launch .character-talk-launch__copy small {
+  display: none;
+}
+
+.character-care-page__talk-launch .character-talk-launch__avatar {
+  display: none;
 }
 
 .character-care-page__state {

@@ -2,13 +2,89 @@ type CharacterKey = "nova" | "jjori" | "mumu";
 type CharacterMood = "idle" | "happy" | "sleepy";
 type CharacterVisualState = CharacterMood | "hungry" | "lowEnergy" | "lonely";
 type AttendanceAssetKey = "stamp" | "streak7";
-type CategoryKey = "morning" | "fitness" | "reading" | "mind";
+type CharacterGrowthAssetLevel = "lv1" | "lv2" | "lv3";
+type GrowthStageKey = "baby" | "growing" | "mature";
+type CategoryKey =
+  | "basicRoutine"
+  | "spaceReset"
+  | "miniExercise"
+  | "moodCare"
+  | "focusHelp"
+  | "socialLight"
+  // 예전 fixture/화면 호환용 key입니다. 신규 미션은 위 6개 key로 매핑합니다.
+  | "morning"
+  | "fitness"
+  | "reading"
+  | "mind";
 type SkinThumbnailKey = "starlight" | "dawn" | "nightSky";
 type CharacterSkinKey = SkinThumbnailKey;
 type ConsumableItemAssetKey = "FOOD" | "REST" | "PLAY";
 type CurrencyAssetKey = "starPiece";
-type EmptyStateAssetKey = "mission" | "inventory" | "notification" | "share";
-type EffectAssetKey = "starParticle" | "sparkleBurst" | "rewardStamp";
+type EmptyStateAssetKey =
+  | "mission"
+  | "inventory"
+  | "notification"
+  | "share"
+  | "careItem"
+  | "growth"
+  | "memory"
+  | "missionHistory"
+  | "shop"
+  | "talk"
+  | "wallet"
+  | "weather"
+  | "errorAi"
+  | "errorNetwork"
+  | "errorRewardPending"
+  | "errorServer"
+  | "errorStarry";
+type EffectAssetKey =
+  | "starParticle"
+  | "sparkleBurst"
+  | "rewardStamp"
+  | "expOrb"
+  | "expTrail"
+  | "growthSparkle"
+  | "levelUpBurst";
+type RewardEffectAssetKey =
+  | "paidStar"
+  | "pendingClock"
+  | "failedSoft"
+  | "onceADay"
+  | "retrySpark";
+type TalkAssetKey =
+  | "avatarMumu"
+  | "avatarNova"
+  | "avatarJjori"
+  | "bubbleSparkle"
+  | "loadingStar"
+  | "panelBg"
+  | "sendSparkle"
+  | "typingDots";
+type MemoryAssetKey =
+  | "fragmentCommon"
+  | "fragmentLore"
+  | "fragmentEasterEgg"
+  | "cardBg"
+  | "lockedStar"
+  | "unlockedGlow"
+  | "unlockEffect";
+type WeatherAssetKey =
+  | "sunny"
+  | "cloudy"
+  | "rain"
+  | "snow"
+  | "hot"
+  | "cold"
+  | "night"
+  | "midnight";
+type NotificationAssetKey =
+  | "attendance"
+  | "mission"
+  | "reward"
+  | "share"
+  | "state"
+  | "system";
 type ShareCardBackgroundKey = "default" | "night" | "warm";
 type ShareCardDecorationKey = "stardust" | "friendsFrame";
 type ShareCardStampKey = "complete";
@@ -31,6 +107,20 @@ const characterStatusAsset = (
   assetUrl(
     `characters/${character}/status/character-${character}-${toCharacterAssetFileState(state)}.png`,
   );
+
+const characterGrowthAsset = (
+  character: CharacterKey,
+  level: CharacterGrowthAssetLevel,
+  state: CharacterVisualState,
+) => {
+  if (level === "lv3") {
+    return characterStateAssets[character][state];
+  }
+
+  return assetUrl(
+    `characters/${character}/growth/${level}/character-${character}-${level}-${toCharacterAssetFileState(state)}.png`,
+  );
+};
 
 const skinAssetPath: Record<CharacterSkinKey, string> = {
   starlight: "starlight",
@@ -93,6 +183,27 @@ export const characterAssets: Record<CharacterKey, Record<CharacterMood, string>
     idle: characterStateAssets.mumu.idle,
     happy: characterStateAssets.mumu.happy,
     sleepy: characterStateAssets.mumu.sleepy,
+  },
+};
+
+export const characterGrowthStateAssets: Record<
+  CharacterKey,
+  Record<CharacterGrowthAssetLevel, Record<CharacterVisualState, string>>
+> = {
+  nova: {
+    lv1: buildCharacterGrowthStateAssets("nova", "lv1"),
+    lv2: buildCharacterGrowthStateAssets("nova", "lv2"),
+    lv3: buildCharacterGrowthStateAssets("nova", "lv3"),
+  },
+  jjori: {
+    lv1: buildCharacterGrowthStateAssets("jjori", "lv1"),
+    lv2: buildCharacterGrowthStateAssets("jjori", "lv2"),
+    lv3: buildCharacterGrowthStateAssets("jjori", "lv3"),
+  },
+  mumu: {
+    lv1: buildCharacterGrowthStateAssets("mumu", "lv1"),
+    lv2: buildCharacterGrowthStateAssets("mumu", "lv2"),
+    lv3: buildCharacterGrowthStateAssets("mumu", "lv3"),
   },
 };
 
@@ -181,10 +292,16 @@ export const skinCharacterAssets: Record<
 };
 
 export const categoryAssets: Record<CategoryKey, string> = {
-  morning: assetUrl("cat-morning.svg"),
-  fitness: assetUrl("cat-fitness.svg"),
-  reading: assetUrl("cat-reading.svg"),
-  mind: assetUrl("cat-mind.svg"),
+  basicRoutine: assetUrl("categories/cat-basic-routine.png"),
+  spaceReset: assetUrl("categories/cat-space-reset.png"),
+  miniExercise: assetUrl("categories/cat-mini-exercise.png"),
+  moodCare: assetUrl("categories/cat-mood-care.png"),
+  focusHelp: assetUrl("categories/cat-focus-help.png"),
+  socialLight: assetUrl("categories/cat-social-light.png"),
+  morning: assetUrl("categories/cat-basic-routine.png"),
+  fitness: assetUrl("categories/cat-mini-exercise.png"),
+  reading: assetUrl("categories/cat-focus-help.png"),
+  mind: assetUrl("categories/cat-mood-care.png"),
 };
 
 export const brandAssets = {
@@ -222,12 +339,94 @@ export const emptyStateAssets: Record<EmptyStateAssetKey, string> = {
   inventory: assetUrl("empty-states/empty-inventory.png"),
   notification: assetUrl("empty-states/empty-notification.png"),
   share: assetUrl("empty-states/empty-share.png"),
+  careItem: assetUrl("empty-states/empty-care-item.png"),
+  growth: assetUrl("empty-states/empty-growth.png"),
+  memory: assetUrl("empty-states/empty-memory.png"),
+  missionHistory: assetUrl("empty-states/empty-mission-history.png"),
+  shop: assetUrl("empty-states/empty-shop.png"),
+  talk: assetUrl("empty-states/empty-talk.png"),
+  wallet: assetUrl("empty-states/empty-wallet.png"),
+  weather: assetUrl("empty-states/empty-weather.png"),
+  errorAi: assetUrl("empty-states/error-ai.png"),
+  errorNetwork: assetUrl("empty-states/error-network.png"),
+  errorRewardPending: assetUrl("empty-states/error-reward-pending.png"),
+  errorServer: assetUrl("empty-states/error-server.png"),
+  errorStarry: assetUrl("empty-states/error-starry.png"),
 };
 
 export const effectAssets: Record<EffectAssetKey, string> = {
   starParticle: assetUrl("effects/particles/effect-star-particle.png"),
   sparkleBurst: assetUrl("effects/particles/effect-sparkle-burst.png"),
   rewardStamp: assetUrl("effects/stamps/effect-reward-stamp.png"),
+  expOrb: assetUrl("effects/growth/effect-exp-orb.png"),
+  expTrail: assetUrl("effects/growth/effect-exp-trail.png"),
+  growthSparkle: assetUrl("effects/growth/effect-growth-sparkle.png"),
+  levelUpBurst: assetUrl("effects/growth/effect-level-up-burst.png"),
+};
+
+export const rewardEffectAssets: Record<RewardEffectAssetKey, string> = {
+  paidStar: assetUrl("effects/rewards/reward-paid-star.png"),
+  pendingClock: assetUrl("effects/rewards/reward-pending-clock.png"),
+  failedSoft: assetUrl("effects/rewards/reward-failed-soft.png"),
+  onceADay: assetUrl("effects/rewards/reward-once-a-day.png"),
+  retrySpark: assetUrl("effects/rewards/reward-retry-spark.png"),
+};
+
+export const growthAssets: {
+  badges: Record<GrowthStageKey, string>;
+  auras: Record<GrowthStageKey, string>;
+} = {
+  badges: {
+    baby: assetUrl("growth/badges/growth-badge-baby.png"),
+    growing: assetUrl("growth/badges/growth-badge-growing.png"),
+    mature: assetUrl("growth/badges/growth-badge-mature.png"),
+  },
+  auras: {
+    baby: assetUrl("growth/auras/growth-aura-baby.png"),
+    growing: assetUrl("growth/auras/growth-aura-growing.png"),
+    mature: assetUrl("growth/auras/growth-aura-mature.png"),
+  },
+};
+
+export const talkAssets: Record<TalkAssetKey, string> = {
+  avatarMumu: assetUrl("talk/talk-avatar-mumu.png"),
+  avatarNova: assetUrl("talk/talk-avatar-nova.png"),
+  avatarJjori: assetUrl("talk/talk-avatar-jjori.png"),
+  bubbleSparkle: assetUrl("talk/talk-bubble-sparkle.png"),
+  loadingStar: assetUrl("talk/talk-loading-star.png"),
+  panelBg: assetUrl("talk/talk-panel-bg.png"),
+  sendSparkle: assetUrl("talk/talk-send-sparkle.png"),
+  typingDots: assetUrl("talk/talk-typing-dots.png"),
+};
+
+export const memoryAssets: Record<MemoryAssetKey, string> = {
+  fragmentCommon: assetUrl("memories/fragments/memory-fragment-common.png"),
+  fragmentLore: assetUrl("memories/fragments/memory-fragment-lore.png"),
+  fragmentEasterEgg: assetUrl("memories/fragments/memory-fragment-easter-egg.png"),
+  cardBg: assetUrl("memories/states/memory-card-bg.png"),
+  lockedStar: assetUrl("memories/states/memory-locked-star.png"),
+  unlockedGlow: assetUrl("memories/states/memory-unlocked-glow.png"),
+  unlockEffect: assetUrl("memories/states/effect-memory-unlock.png"),
+};
+
+export const weatherAssets: Record<WeatherAssetKey, string> = {
+  sunny: assetUrl("weather/weather-sunny.png"),
+  cloudy: assetUrl("weather/weather-cloudy.png"),
+  rain: assetUrl("weather/weather-rain.png"),
+  snow: assetUrl("weather/weather-snow.png"),
+  hot: assetUrl("weather/weather-hot.png"),
+  cold: assetUrl("weather/weather-cold.png"),
+  night: assetUrl("weather/time-night.png"),
+  midnight: assetUrl("weather/time-midnight.png"),
+};
+
+export const notificationAssets: Record<NotificationAssetKey, string> = {
+  attendance: assetUrl("notifications/notification-attendance.png"),
+  mission: assetUrl("notifications/notification-mission.png"),
+  reward: assetUrl("notifications/notification-reward.png"),
+  share: assetUrl("notifications/notification-share.png"),
+  state: assetUrl("notifications/notification-state.png"),
+  system: assetUrl("notifications/notification-system.png"),
 };
 
 export const shareCardAssets: {
@@ -258,6 +457,7 @@ export const shareCardAssets: {
 export type {
   AttendanceAssetKey,
   CategoryKey,
+  CharacterGrowthAssetLevel,
   CharacterKey,
   CharacterMood,
   CharacterSkinKey,
@@ -266,14 +466,34 @@ export type {
   CurrencyAssetKey,
   EmptyStateAssetKey,
   EffectAssetKey,
+  GrowthStageKey,
+  MemoryAssetKey,
+  NotificationAssetKey,
+  RewardEffectAssetKey,
   ShareCardBackgroundKey,
   ShareCardDecorationKey,
   ShareCardStampKey,
   SkinThumbnailKey,
+  TalkAssetKey,
+  WeatherAssetKey,
 };
 
 function isCharacterMood(state: CharacterVisualState): state is CharacterMood {
   return state === "idle" || state === "happy" || state === "sleepy";
+}
+
+function buildCharacterGrowthStateAssets(
+  character: CharacterKey,
+  level: CharacterGrowthAssetLevel,
+): Record<CharacterVisualState, string> {
+  return {
+    idle: characterGrowthAsset(character, level, "idle"),
+    happy: characterGrowthAsset(character, level, "happy"),
+    sleepy: characterGrowthAsset(character, level, "sleepy"),
+    hungry: characterGrowthAsset(character, level, "hungry"),
+    lowEnergy: characterGrowthAsset(character, level, "lowEnergy"),
+    lonely: characterGrowthAsset(character, level, "lonely"),
+  };
 }
 
 function toCharacterAssetFileState(state: CharacterVisualState) {

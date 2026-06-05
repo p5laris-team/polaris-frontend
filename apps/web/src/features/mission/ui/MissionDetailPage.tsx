@@ -22,6 +22,7 @@ import {
   type MissionFeedbackReaction,
   type MissionStatus,
 } from "@/entities/mission/types";
+import { formatCharacterSpeech } from "@/features/character/model/characterToneText";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import {
   useMissionDetailQuery,
@@ -91,6 +92,8 @@ export function MissionDetailPage() {
 
   const mission = missionDetailQuery.data;
   const statusMeta = getMissionStatusMeta(mission.status);
+  const characterKey = toCharacterKey(homeQuery.data?.character?.characterTypeCode);
+  const characterName = homeQuery.data?.character?.name;
   const canStartMission = mission.status === "OFFERED" || mission.status === "ANSWERING";
   const hasSubmittedCompletionFeedback = completionFeedbackSubmitted || Boolean(mission.satisfactionFeedback);
 
@@ -196,10 +199,10 @@ export function MissionDetailPage() {
         </Card>
 
         <Card className="mission-detail__message-card">
-          <MessageCircle size={21} strokeWidth={1.8} />
+            <MessageCircle size={21} strokeWidth={1.8} />
           <div>
             <strong>별친구의 한마디</strong>
-            <p>{mission.characterMessage}</p>
+            <p>{formatCharacterSpeech(characterKey, mission.characterMessage, characterName)}</p>
           </div>
         </Card>
 
@@ -227,7 +230,7 @@ export function MissionDetailPage() {
             <Sparkles size={21} strokeWidth={1.8} />
             <div>
               <strong>완료 반응</strong>
-              <p>{mission.completionCharacterResponse}</p>
+              <p>{formatCharacterSpeech(characterKey, mission.completionCharacterResponse, characterName)}</p>
             </div>
           </Card>
         ) : null}

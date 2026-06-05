@@ -4,7 +4,7 @@
  * 장착/해제 mutation을 통해 캐릭터 외형을 바꿉니다.
  */
 import { type ReactNode, useMemo, useState } from "react";
-import { Check, CircleOff, Store } from "lucide-react";
+import { Check, CircleOff, Lock, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -15,7 +15,15 @@ import {
   type CharacterStates,
 } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
-import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  resolveCharacterGrowthAssetLevel,
+  resolveCharacterImageUrl,
+} from "@/features/character/model/characterAssetResolver";
+import {
+  canUseCharacterSkins,
+  getSkinUnlockCompactLabel,
+  getSkinUnlockLabel,
+} from "@/features/character/model/skinUnlockPolicy";
 import { resolveItemImageUrl } from "@/features/item/model/itemAssetResolver";
 import {
   useInventorySkinItemsQuery,
@@ -58,6 +66,10 @@ export function InventoryPage() {
 
   const character = activeCharacterQuery.data;
   const equippedSkin = character?.equippedSkin ?? null;
+  const skinUnlocked = canUseCharacterSkins(character?.growth);
+  const skinUnlockMessage = getSkinUnlockLabel(character?.growth);
+  const skinUnlockCompactMessage = getSkinUnlockCompactLabel(character?.growth);
+  const visibleEquippedSkin = skinUnlocked ? equippedSkin : null;
   const activeCharacterTypeId = toCharacterTypeId(character?.characterTypeCode);
   const skinItems = (skinsQuery.data?.items ?? []).filter((item) =>
     isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
@@ -73,7 +85,8 @@ export function InventoryPage() {
         character: characterKey,
         mood: characterMood,
         states: character.states,
-        equippedSkin,
+        growth: character.growth,
+        equippedSkin: visibleEquippedSkin,
         assetUrls: character.assetUrls,
         fallbackUrl: character.currentAssetUrl,
       })
@@ -87,6 +100,10 @@ export function InventoryPage() {
   /** 스킨 itemId를 넘기면 장착, null을 넘기면 기본 외형으로 되돌립니다. */
   const handleEquipSkin = (itemId: number | null, itemName: string) => {
     if (!character) return;
+    if (itemId !== null && !skinUnlocked) {
+      showToast(skinUnlockMessage);
+      return;
+    }
 
     setPendingTarget(itemId ?? "base");
     equipMutation.mutate(
@@ -134,14 +151,16 @@ export function InventoryPage() {
       <div className="inventory-page__body">
         {/* SCR-014 인벤토리: 현재 별친구용 스킨만 보여주고 equippedSkin.itemId로 장착 여부를 계산한다. */}
         <CharacterStage
-          bubble={getInventoryStageBubble(characterKey, equippedSkin?.name)}
+          bubble={getInventoryStageBubble(characterKey, visibleEquippedSkin?.name)}
           character={characterKey}
+          growthLevel={resolveCharacterGrowthAssetLevel(character.growth)}
           imageUrl={characterImageUrl}
           mood={characterMood}
           name={character.name}
           stats={[
-            { label: "장착", value: equippedSkin?.name ?? "기본 외형" },
+            { label: "장착", value: visibleEquippedSkin?.name ?? "기본 외형" },
             { label: "보유", value: `${skinItems.length}개` },
+            { label: "스킨", value: skinUnlocked ? "장착 가능" : "Lv.3부터" },
           ]}
         />
 
@@ -151,20 +170,25 @@ export function InventoryPage() {
               {/*<span className="inventory-page__eyebrow">스킨 보관함</span>*/}
               <h2 id="inventory-skin-title">보유 스킨</h2>
             </div>
-            {/*<Tag variant="primary">기본 외형 해제 지원</Tag>*/}
+            {!skinUnlocked ? (
+              <span className="inventory-page__unlock-note">
+                <Lock size={14} strokeWidth={2} />
+                {skinUnlockCompactMessage}
+              </span>
+            ) : null}
           </div>
 
           <div className="inventory-page__skin-grid" role="list">
             <BaseSkinCard
               disabled={equipMutation.isPending}
-              equipped={equippedSkin === null}
+              equipped={visibleEquippedSkin === null}
               pending={pendingTarget === "base"}
               characterKey={characterKey}
               onEquip={() => handleEquipSkin(null, "기본 외형")}
             />
 
             {skinItems.map((item, index) => {
-              const equipped = equippedSkin?.itemId === item.itemId;
+              const equipped = visibleEquippedSkin?.itemId === item.itemId;
 
               return (
                 <OwnedSkinCard
@@ -175,6 +199,7 @@ export function InventoryPage() {
                   key={item.userItemId}
                   pending={pendingTarget === item.itemId}
                   characterKey={characterKey}
+                  skinUnlocked={skinUnlocked}
                   onEquip={() => handleEquipSkin(item.itemId, item.name)}
                 />
               );
@@ -249,6 +274,7 @@ function OwnedSkinCard({
   index,
   item,
   pending,
+  skinUnlocked,
   onEquip,
 }: {
   characterKey: CharacterKey;
@@ -257,14 +283,28 @@ function OwnedSkinCard({
   index: number;
   item: UserInventoryItem;
   pending: boolean;
+  skinUnlocked: boolean;
   onEquip: () => void;
 }) {
   const imageUrl = resolveItemImageUrl(item);
+  const locked = !skinUnlocked;
+  const cardClassName = [
+    "inventory-page__skin-card",
+    equipped ? "inventory-page__skin-card--equipped" : "",
+    locked ? "inventory-page__skin-card--locked" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <Card className={`inventory-page__skin-card ${equipped ? "inventory-page__skin-card--equipped" : ""}`} role="listitem">
+    <Card className={cardClassName} role="listitem">
       <div className={`inventory-page__skin-preview inventory-page__skin-preview--${index % 3}`}>
         <img alt="" src={imageUrl} />
+        {locked ? (
+          <span className="inventory-page__skin-lock" aria-hidden="true">
+            <Lock size={17} strokeWidth={2.1} />
+          </span>
+        ) : null}
       </div>
       <div className="inventory-page__skin-info">
         <div className="inventory-page__skin-title-row">
@@ -273,17 +313,17 @@ function OwnedSkinCard({
         </div>
         <span className="inventory-page__skin-meta">
           <Tag variant="neutral">{getSkinScopeLabel(item.characterTypeId)}</Tag>
-          {getInventorySkinMeta(characterKey, equipped)}
+          {locked ? "잠금" : getInventorySkinMeta(characterKey, equipped)}
         </span>
       </div>
       <Button
         className="inventory-page__equip-button"
-        disabled={disabled || equipped}
+        disabled={disabled || equipped || locked}
         onClick={onEquip}
         size="compact"
-        variant={equipped ? "secondary" : "primary"}
+        variant={equipped || locked ? "secondary" : "primary"}
       >
-        {pending ? "장착 중..." : equipped ? "장착 중" : "장착하기"}
+        {pending ? "장착 중..." : equipped ? "장착 중" : locked ? "Lv.3부터" : "장착하기"}
       </Button>
     </Card>
   );

@@ -16,6 +16,7 @@ const demoWeatherRegions: WeatherRegionListResponse = {
     { regionCode: "DAEGU", displayName: "대구" },
     { regionCode: "GWANGJU", displayName: "광주" },
     { regionCode: "DAEJEON", displayName: "대전" },
+    { regionCode: "ULSAN", displayName: "울산" },
     { regionCode: "JEJU", displayName: "제주" },
   ],
 };

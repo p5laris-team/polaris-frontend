@@ -42,6 +42,17 @@ a {
   user-select: none;
 }
 
+.polaris-app img,
+.polaris-app svg,
+.polaris-app canvas,
+.polaris-app [data-asset-protected="true"],
+.polaris-app [data-asset-protected="true"] * {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .polaris-app input,
 .polaris-app textarea,
 .polaris-app [contenteditable="true"],

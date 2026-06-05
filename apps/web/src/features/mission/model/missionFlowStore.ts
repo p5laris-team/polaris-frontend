@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { type CharacterKey } from "@/entities/character/types";
+import { type CharacterGrowth, type CharacterKey } from "@/entities/character/types";
 import {
   type CurrentMissionResponse,
   type MissionCompletionQuestionResponse,
@@ -11,6 +11,7 @@ type MissionFlowCharacter = {
   id: number;
   key: CharacterKey;
   name: string;
+  growth?: CharacterGrowth | null;
 };
 
 type MissionFlowState = {

@@ -8,6 +8,7 @@ export const routes = {
   onboardingCharacter: "/onboarding/character",
   onboardingCharacterName: "/onboarding/character-name",
   onboardingQuestions: "/onboarding/questions",
+  onboardingMissionEdit: "/app/me/onboarding",
   home: "/app/home",
   missions: "/app/missions",
   missionDetail: "/app/missions/:missionId",
@@ -15,14 +16,18 @@ export const routes = {
   missionAnswer: "/app/missions/current/answer",
   missionResult: "/app/missions/current/result",
   character: "/app/character",
+  characterTalk: "/app/character/talk",
   shop: "/app/shop",
+  shopCareItemPath: (effectType: string) =>
+    `/app/shop?category=consumable&effectType=${encodeURIComponent(effectType)}`,
   inventory: "/app/inventory",
   wallet: "/app/wallet",
   share: "/app/share",
+  publicShare: "/share/:shareId",
+  publicSharePath: (shareId: string) => `/share/${shareId}`,
   attendance: "/app/attendance",
   notifications: "/app/notifications",
   myPage: "/app/me",
   designSystem: "/dev/design-system",
   testError: "/dev/test-error",
 };
-

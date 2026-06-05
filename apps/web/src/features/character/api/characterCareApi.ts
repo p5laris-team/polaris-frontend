@@ -64,10 +64,11 @@ export function createCareLog(characterId: number, body: CharacterCareRequest) {
 }
 
 /** 활성 캐릭터를 화면에서 조회할 때 쓰는 hook입니다. */
-export function useActiveCharacterQuery() {
+export function useActiveCharacterQuery(enabled = true) {
   return useQuery({
     queryKey: characterCareQueryKeys.active(),
     queryFn: getActiveCharacter,
+    enabled,
   });
 }
 

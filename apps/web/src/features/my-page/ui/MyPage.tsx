@@ -12,10 +12,10 @@ import {
   HeartPulse,
   LogOut,
   Mail,
-  MapPin,
   Moon,
   Package,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Target,
   UserRound,
@@ -34,7 +34,14 @@ import {
   useWeatherRegionsQuery,
 } from "@/features/my-page/api/myPageApi";
 import { type WeatherRegionItem } from "@/features/my-page/model/myPageTypes";
+import {
+  fetchClientWeatherBadge,
+  resolveFallbackWeatherBadge,
+  type ClientWeatherBadge,
+} from "@/features/my-page/model/weatherBadge";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
+import { useOnboardingProfileQuery } from "@/features/onboarding/api/onboardingApi";
+import { type OnboardingProfileResponse } from "@/features/onboarding/model/onboardingTypes";
 import {
   useNotificationSettingQuery,
   useRegisterFcmTokenMutation,
@@ -55,7 +62,7 @@ import {
 } from "@/features/notifications/model/pushMessaging";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { emptyStateAssets, weatherAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -84,6 +91,7 @@ export function MyPage() {
   const weatherRegionsQuery = useWeatherRegionsQuery();
   const weatherRegionQuery = useMyWeatherRegionQuery();
   const updateWeatherRegionMutation = useUpdateMyWeatherRegionMutation();
+  const onboardingProfileQuery = useOnboardingProfileQuery();
   const [pushAvailability, setPushAvailability] = useState<PushAvailability>("checking");
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
     () => getNotificationPermission(),
@@ -102,6 +110,7 @@ export function MyPage() {
     userQuery.error ?? homeQuery.error ?? attendanceQuery.error ?? notificationSettingQuery.error ?? null;
   const isPushRegistrationPending = isRequestingPushToken || registerFcmTokenMutation.isPending;
   const isNotificationSettingSaving = updateNotificationSettingMutation.isPending;
+  const missionPreferenceSummary = getMissionPreferenceSummary(onboardingProfileQuery.data);
 
   useEffect(() => {
     let mounted = true;
@@ -290,6 +299,26 @@ export function MyPage() {
             eyebrow=""
             title="내 리듬에 맞추기"
           />
+          <Card className="my-page__mission-preference-card">
+            <span className="my-page__mission-preference-icon" aria-hidden="true">
+              <SlidersHorizontal size={20} strokeWidth={1.8} />
+            </span>
+            <div className="my-page__mission-preference-copy">
+              <strong>미션 취향</strong>
+              <p>
+                {onboardingProfileQuery.isLoading
+                  ? "저장된 미션 취향을 불러오는 중이에요."
+                  : missionPreferenceSummary}
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate(routes.onboardingMissionEdit)}
+              size="compact"
+              variant="secondary"
+            >
+              수정
+            </Button>
+          </Card>
           <WeatherRegionSetting
             isLoading={weatherRegionsQuery.isLoading || weatherRegionQuery.isLoading}
             isSaving={updateWeatherRegionMutation.isPending}
@@ -531,17 +560,47 @@ function WeatherRegionSetting({
   onChange: (regionCode: string) => void;
   onRetry: () => void;
 }) {
+  const fallbackWeatherBadge = useMemo(() => resolveFallbackWeatherBadge(), [selectedRegionCode]);
+  const [weatherBadge, setWeatherBadge] = useState<ClientWeatherBadge>(fallbackWeatherBadge);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const fallbackBadge = resolveFallbackWeatherBadge();
+
+    setWeatherBadge(fallbackBadge);
+
+    if (!selectedRegionCode) {
+      return () => controller.abort();
+    }
+
+    void fetchClientWeatherBadge(selectedRegionCode, { signal: controller.signal })
+      .then((badge) => {
+        if (!controller.signal.aborted) {
+          setWeatherBadge(badge);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setWeatherBadge(fallbackBadge);
+        }
+      });
+
+    return () => controller.abort();
+  }, [selectedRegionCode]);
+
+  const weatherAsset = weatherAssets[weatherBadge.assetKey];
+
   return (
     <Card className="my-page__weather-card">
       <span className="my-page__weather-icon" aria-hidden="true">
-        <MapPin size={21} strokeWidth={1.8} />
+        <img src={weatherAsset} alt="" />
       </span>
       <span className="my-page__weather-copy">
         <strong>내 지역 기준</strong>
         <small>
           {selectedRegionName
-            ? `${selectedRegionName} 날씨를 미션 추천에 참고해요.`
-            : "미션 추천에 참고할 날씨 권역을 골라주세요."}
+            ? `${selectedRegionName} 기준 ${weatherBadge.description}`
+            : "지역을 고르면 날씨 배지가 미션 분위기에 맞춰 바뀌어요."}
         </small>
       </span>
       {error ? (
@@ -744,6 +803,70 @@ function formatPushRegisteredAt(value: string) {
     minute: "2-digit",
   }).format(new Date(value));
 }
+
+/** 저장된 온보딩 프로필을 마이페이지용 짧은 미션 취향 요약으로 바꿉니다. */
+function getMissionPreferenceSummary(profile: OnboardingProfileResponse | undefined) {
+  const preferredTimeSlots = toNonEmptyList(
+    profile?.preferredTimeSlots?.length ? profile.preferredTimeSlots : profile?.preferredMissionTime,
+  );
+  const missionPlaceContexts = toNonEmptyList(profile?.missionPlaceContexts);
+  const missionIntensity = profile?.missionIntensity
+    ? missionIntensityLabels[profile.missionIntensity] ?? profile.missionIntensity
+    : null;
+  const summaryParts = [
+    formatCodeList(preferredTimeSlots, preferredTimeSlotLabels, "시간"),
+    formatCodeList(missionPlaceContexts, missionPlaceContextLabels, "장소"),
+    missionIntensity ? `강도 ${missionIntensity}` : null,
+  ].filter(Boolean);
+
+  return summaryParts.length
+    ? summaryParts.join(" · ")
+    : "미션 시간, 장소, 강도를 다시 고를 수 있어요.";
+}
+
+function toNonEmptyList(value: string | string[] | null | undefined) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean);
+  }
+
+  return value ? [value] : [];
+}
+
+function formatCodeList(values: string[], labels: Record<string, string>, prefix: string) {
+  if (!values.length) {
+    return null;
+  }
+
+  const displayedValues = values.slice(0, 2).map((value) => labels[value] ?? value);
+  const suffix = values.length > 2 ? ` 외 ${values.length - 2}개` : "";
+
+  return `${prefix} ${displayedValues.join(", ")}${suffix}`;
+}
+
+const preferredTimeSlotLabels: Record<string, string> = {
+  MORNING: "아침",
+  AFTERNOON: "오후",
+  EVENING: "저녁",
+  NIGHT: "밤",
+  ANYTIME: "아무 때나",
+};
+
+const missionPlaceContextLabels: Record<string, string> = {
+  HOME: "집",
+  WORKPLACE: "회사/학교",
+  WORK_SCHOOL: "회사/학교",
+  COMMUTE: "이동 중",
+  OUTSIDE: "외출 중",
+  ANYWHERE: "어디든",
+  BED_REST: "쉬는 중",
+};
+
+const missionIntensityLabels: Record<string, string> = {
+  VERY_LIGHT: "아주 가볍게",
+  LIGHT: "가벼움",
+  NORMAL: "보통",
+  CHALLENGE: "도전",
+};
 
 /** 마이페이지 하단 바로가기 목록의 한 줄입니다. */
 function LinkRow({
