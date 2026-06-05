@@ -18,20 +18,16 @@ const ADSENSE_SCRIPT_ID = "polaris-adsense-script";
 const ADSENSE_SCRIPT_BASE_URL = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 const DEFAULT_RESERVED_HEIGHT = 64;
 
-const sensitivePathPrefixes = [
-  routes.login,
-  routes.googleCallback,
-  "/signup",
-  "/payment",
-  "/payments",
-  routes.onboardingCharacter,
-  routes.onboardingCharacterName,
-  routes.onboardingQuestions,
-  routes.missionAnswer,
-];
+function isAdEligibleContentPath(pathname: string) {
+  if (pathname === routes.missions) {
+    return true;
+  }
 
-function isSensitivePath(pathname: string) {
-  return sensitivePathPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  if (/^\/share\/[^/]+$/.test(pathname)) {
+    return true;
+  }
+
+  return /^\/app\/missions\/[^/]+$/.test(pathname);
 }
 
 function hasAdsenseFields(config: BannerAdConfig | null | undefined) {
@@ -145,11 +141,14 @@ function loadAdsenseScript(clientId: string): Promise<void> {
   });
 }
 
-export function BottomWebAdBanner() {
+type BottomWebAdBannerProps = {
+  enabled: boolean;
+};
+
+export function BottomWebAdBanner({ enabled }: BottomWebAdBannerProps) {
   const location = useLocation();
   const path = `${location.pathname}${location.search}`;
-  const sensitivePath = isSensitivePath(location.pathname);
-  const shouldQueryConfig = !sensitivePath;
+  const shouldQueryConfig = enabled && isAdEligibleContentPath(location.pathname);
   const configQuery = useBannerAdConfigQuery({
     placement: "BOTTOM_WEB",
     path,
