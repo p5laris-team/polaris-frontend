@@ -2,7 +2,7 @@
  * 온보딩 질문 조회와 사용자 온보딩 프로필 저장을 담당하는 API 계층입니다.
  * 백엔드 enum key와 프론트 camelCase key를 맞추는 변환도 이 파일에서 처리합니다.
  */
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   type OnboardingProfileResponse,
@@ -127,16 +127,22 @@ export function useOnboardingQuestionsQuery() {
 }
 
 /** 앱 초기화나 마이페이지에서 온보딩 프로필을 확인할 때 사용하는 hook입니다. */
-export function useOnboardingProfileQuery() {
+export function useOnboardingProfileQuery(enabled = true) {
   return useQuery({
     queryKey: onboardingQueryKeys.profile(),
     queryFn: getOnboardingProfile,
+    enabled,
   });
 }
 
 /** 설문 완료 시 온보딩 프로필을 저장하는 mutation hook입니다. */
 export function useSaveOnboardingProfileMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: saveOnboardingProfile,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: onboardingQueryKeys.profile() });
+    },
   });
 }

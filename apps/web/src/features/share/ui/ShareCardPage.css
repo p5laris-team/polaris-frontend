@@ -98,6 +98,8 @@
 }
 
 .share-card-page__preview-character-wrap {
+  --share-card-preview-character-scale: 1;
+
   position: relative;
   width: min(184px, 58vw);
   aspect-ratio: 1 / 1;
@@ -106,10 +108,24 @@
   place-items: center;
 }
 
+.share-card-page__preview-character-wrap--lv1 {
+  --share-card-preview-character-scale: 0.66;
+}
+
+.share-card-page__preview-character-wrap--lv2 {
+  --share-card-preview-character-scale: 0.82;
+}
+
+.share-card-page__preview-character-wrap--lv3 {
+  --share-card-preview-character-scale: 1;
+}
+
 .share-card-page__preview-character {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  transform: scale(var(--share-card-preview-character-scale));
+  transform-origin: center bottom;
   filter: drop-shadow(0 16px 20px rgba(65, 42, 24, 0.18));
 }
 

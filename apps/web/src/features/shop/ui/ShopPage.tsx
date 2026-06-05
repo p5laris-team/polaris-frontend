@@ -3,11 +3,12 @@
  * 별조각 잔액, 스킨 상품, 돌봄 소모품을 함께 보여주고
  * 구매 성공 후 지갑/보관함/홈 관련 query가 새로고침되도록 API hook과 연결합니다.
  */
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import {
   Archive,
   Check,
   Gamepad2,
+  Lock,
   Minus,
   Moon,
   PackagePlus,
@@ -17,7 +18,7 @@ import {
   Utensils,
   type LucideIcon,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   getCharacterTypeLabelById,
@@ -25,6 +26,11 @@ import {
   type CharacterStates,
 } from "@/entities/character/types";
 import { resolveItemImageUrl } from "@/features/item/model/itemAssetResolver";
+import {
+  canUseCharacterSkins,
+  getSkinUnlockCompactLabel,
+  getSkinUnlockLabel,
+} from "@/features/character/model/skinUnlockPolicy";
 import {
   usePurchaseShopItemMutation,
   useShopConsumableItemsQuery,
@@ -66,15 +72,25 @@ const shopCategories: Array<{
 
 export function ShopPage() {
   const { showToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedCategory = parseShopCategory(searchParams.get("category"));
+  const requestedEffectType = parseShopEffectType(searchParams.get("effectType"));
   const homeQuery = useHomeQuery();
   const skinsQuery = useShopSkinItemsQuery();
   const consumablesQuery = useShopConsumableItemsQuery();
   const purchaseMutation = usePurchaseShopItemMutation();
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const [activeCategory, setActiveCategory] = useState<ShopItemType>("CONSUMABLE");
+  const [activeCategory, setActiveCategory] = useState<ShopItemType>(
+    requestedCategory ?? "CONSUMABLE",
+  );
 
   const walletStarPiece = homeQuery.data?.wallet.starPiece ?? 0;
+  const characterGrowth = homeQuery.data?.character?.growth ?? null;
+  const skinUnlocked = canUseCharacterSkins(characterGrowth);
+  const skinUnlockMessage = getSkinUnlockLabel(characterGrowth);
+  const skinUnlockCompactMessage = getSkinUnlockCompactLabel(characterGrowth);
+  const consumableItems = consumablesQuery.data?.items ?? [];
   const shopError = homeQuery.isError
     ? homeQuery.error
     : skinsQuery.isError
@@ -89,8 +105,50 @@ export function ShopPage() {
   const canPurchaseSelected = Boolean(
     selectedItem &&
       (selectedItem.itemType === "CONSUMABLE" || !selectedItem.owned) &&
+      (selectedItem.itemType !== "SKIN" || skinUnlocked) &&
       purchaseAfterBalance >= 0,
   );
+  const activeCharacterTypeId = toCharacterTypeId(homeQuery.data?.character?.characterTypeCode);
+  const characterStates = homeQuery.data?.character?.states ?? null;
+  const skinItems = (skinsQuery.data?.items ?? []).filter((item) =>
+    isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
+  );
+
+  useEffect(() => {
+    if (requestedCategory) {
+      setActiveCategory(requestedCategory);
+    }
+  }, [requestedCategory]);
+
+  useEffect(() => {
+    if (!requestedEffectType || consumablesQuery.isLoading || selectedItem) {
+      return;
+    }
+
+    const targetItem = consumableItems.find(
+      (item) => resolveShopEffectType(item) === requestedEffectType,
+    );
+
+    if (!targetItem) {
+      return;
+    }
+
+    setActiveCategory("CONSUMABLE");
+    setSelectedItem(targetItem);
+    setSelectedQuantity(1);
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("category", "consumable");
+    nextParams.delete("effectType");
+    setSearchParams(nextParams, { replace: true });
+  }, [
+    consumableItems,
+    consumablesQuery.isLoading,
+    requestedEffectType,
+    searchParams,
+    selectedItem,
+    setSearchParams,
+  ]);
 
   /** 상점에 필요한 홈/스킨/소모품 데이터를 한 번에 다시 불러옵니다. */
   const handleRetry = () => {
@@ -101,6 +159,11 @@ export function ShopPage() {
 
   /** 구매 모달을 열 때 선택 상품과 기본 수량을 초기화합니다. */
   const handleSelectItem = (item: ShopItem) => {
+    if (item.itemType === "SKIN" && !skinUnlocked) {
+      showToast(skinUnlockMessage);
+      return;
+    }
+
     setSelectedItem(item);
     setSelectedQuantity(1);
   };
@@ -116,6 +179,10 @@ export function ShopPage() {
   /** 잔액과 보유 여부를 통과한 상품만 구매 API로 보냅니다. */
   const handleConfirmPurchase = () => {
     if (!selectedItem || !canPurchaseSelected) return;
+    if (selectedItem.itemType === "SKIN" && !skinUnlocked) {
+      showToast(skinUnlockMessage);
+      return;
+    }
 
     purchaseMutation.mutate(
       {
@@ -156,13 +223,6 @@ export function ShopPage() {
       </ShopFrame>
     );
   }
-
-  const activeCharacterTypeId = toCharacterTypeId(homeQuery.data?.character?.characterTypeCode);
-  const characterStates = homeQuery.data?.character?.states ?? null;
-  const skinItems = (skinsQuery.data?.items ?? []).filter((item) =>
-    isVisibleForCharacter(item.characterTypeId, activeCharacterTypeId),
-  );
-  const consumableItems = consumablesQuery.data?.items ?? [];
 
   return (
     <ShopFrame>
@@ -214,18 +274,35 @@ export function ShopPage() {
                 {/*<span className="shop-page__eyebrow">스킨 꾸미기</span>*/}
                 <h2 id="skin-shop-title">별친구 스킨</h2>
               </div>
-              {/*<Tag variant="primary">스킨 상점</Tag>*/}
+              {!skinUnlocked ? (
+                <span className="shop-page__unlock-note">
+                  <Lock size={14} strokeWidth={2} />
+                  {skinUnlockCompactMessage}
+                </span>
+              ) : null}
             </div>
 
             <div className="shop-page__skin-grid" role="list">
               {skinItems.map((item, index) => {
                 const cantAfford = walletStarPiece < item.price;
+                const locked = !skinUnlocked;
                 const imageUrl = resolveItemImageUrl(item);
+                const cardClassName = [
+                  "shop-page__skin-card",
+                  locked ? "shop-page__skin-card--locked" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ");
 
                 return (
-                  <Card className="shop-page__skin-card" key={item.id} role="listitem">
+                  <Card className={cardClassName} key={item.id} role="listitem">
                     <div className={`shop-page__skin-preview shop-page__skin-preview--${index % 3}`}>
                       <img alt="" src={imageUrl} />
+                      {locked ? (
+                        <span className="shop-page__skin-lock" aria-hidden="true">
+                          <Lock size={17} strokeWidth={2.1} />
+                        </span>
+                      ) : null}
                     </div>
 
                     <div className="shop-page__skin-info">
@@ -243,15 +320,15 @@ export function ShopPage() {
                         amount={item.price}
                         className="shop-page__price"
                         size="sm"
-                        tone={cantAfford && !item.owned ? "danger" : "accent"}
+                        tone={locked ? "muted" : cantAfford && !item.owned ? "danger" : "accent"}
                       />
                       <Button
-                        disabled={item.owned}
+                        disabled={item.owned || locked}
                         onClick={() => handleSelectItem(item)}
                         size="compact"
-                        variant={item.owned ? "secondary" : cantAfford ? "secondary" : "primary"}
+                        variant={item.owned || locked ? "secondary" : cantAfford ? "secondary" : "primary"}
                       >
-                        {item.owned ? "보유 중" : cantAfford ? "별조각 부족" : "구매"}
+                        {item.owned ? "보유 중" : locked ? "Lv.3부터" : cantAfford ? "별조각 부족" : "구매"}
                       </Button>
                     </div>
                   </Card>
@@ -574,6 +651,27 @@ function getSkinScopeLabel(characterTypeId: number | null | undefined) {
   return characterTypeId ? `${getCharacterTypeLabelById(characterTypeId)} 전용` : "공용";
 }
 
+/** 돌봄 화면에서 넘어온 상점 카테고리 query를 화면 탭 타입으로 보정합니다. */
+function parseShopCategory(value: string | null): ShopItemType | null {
+  const normalized = `${value ?? ""}`.toUpperCase();
+
+  if (normalized === "SKIN") return "SKIN";
+  if (normalized === "CONSUMABLE" || normalized === "CARE") return "CONSUMABLE";
+
+  return null;
+}
+
+/** 돌봄 화면에서 넘어온 구매 대상 effectType query를 상점 타입으로 보정합니다. */
+function parseShopEffectType(value: string | null): ShopItemEffectType | null {
+  const normalized = `${value ?? ""}`.toUpperCase();
+
+  if (normalized === "FOOD" || normalized === "REST" || normalized === "PLAY") {
+    return normalized;
+  }
+
+  return null;
+}
+
 /** 캐릭터 상태 등급을 상점 요약 카드의 강조 톤으로 바꿉니다. */
 function getStatusTone(grade: CharacterStates[keyof CharacterStates]["grade"]) {
   if (grade === "GOOD") return "good";
@@ -605,6 +703,11 @@ function getConsumableEffectClassName(
   name: string,
 ) {
   return (effectType ?? inferEffectTypeFromName(name)).toLowerCase();
+}
+
+/** 실제 effectType이 비어 있는 fixture/임시 데이터도 구매 진입점과 매칭되도록 보정합니다. */
+function resolveShopEffectType(item: ShopItem): ShopItemEffectType {
+  return item.effectType ?? inferEffectTypeFromName(item.name);
 }
 
 /** 백엔드 fixture나 임시 데이터에 effectType이 없을 때 이름으로 소모품 효과를 보정합니다. */

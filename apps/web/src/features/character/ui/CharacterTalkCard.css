@@ -1,0 +1,521 @@
+.character-talk-card-section {
+  margin-top: 20px;
+}
+
+.character-talk-card-section--compact {
+  margin-top: 12px;
+}
+
+.character-talk-card-section__title {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.character-talk-card-section__title h2 {
+  margin: 0;
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.character-talk-card-section__title span {
+  color: var(--fg-3);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.character-talk-card {
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.character-talk-card-section--compact .character-talk-card {
+  padding: 13px;
+  gap: 11px;
+}
+
+.character-talk-card > *:not(.character-talk-card__bg) {
+  position: relative;
+  z-index: 1;
+}
+
+.character-talk-card__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.character-talk-card__head {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.character-talk-card-section--chat-only .character-talk-card__head {
+  grid-template-columns: 54px minmax(0, 1fr);
+}
+
+.character-talk-card-section--compact .character-talk-card__head {
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.character-talk-card__avatar {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.88), rgba(255, 243, 220, 0.48) 64%, rgba(255, 243, 220, 0) 78%),
+    var(--bg-3);
+  box-shadow: inset 0 0 0 1px rgba(122, 83, 40, 0.08);
+}
+
+.character-talk-card-section--compact .character-talk-card__avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+}
+
+.character-talk-card__avatar img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 8px rgba(65, 42, 24, 0.12));
+}
+
+.character-talk-card-section--compact .character-talk-card__avatar img {
+  width: 38px;
+  height: 38px;
+}
+
+.character-talk-card__copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.character-talk-card__copy strong {
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.character-talk-card__copy p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--fg-3);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.character-talk-card__tap {
+  min-width: 54px;
+  height: 42px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid rgba(201, 160, 104, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+
+.character-talk-card__tap:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--accent-soft) 82%, white);
+  box-shadow: var(--shadow-xs);
+}
+
+.character-talk-card__tap:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.character-talk-card__tap:disabled {
+  color: var(--fg-4);
+  cursor: wait;
+  background: var(--bg-3);
+}
+
+.character-talk-card__memory-unlock {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(201, 160, 104, 0.22);
+  border-radius: 18px;
+  background: rgba(255, 250, 239, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.character-talk-card__memory-unlock > *:not(.character-talk-card__memory-bg):not(.character-talk-card__memory-glow) {
+  position: relative;
+  z-index: 1;
+}
+
+.character-talk-card__memory-bg,
+.character-talk-card__memory-glow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.character-talk-card__memory-bg {
+  opacity: 0.32;
+}
+
+.character-talk-card__memory-glow {
+  opacity: 0.24;
+  mix-blend-mode: screen;
+}
+
+.character-talk-card__memory-unlock > img:not(.character-talk-card__memory-bg):not(.character-talk-card__memory-glow):not(.character-talk-card__memory-effect) {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 7px rgba(65, 42, 24, 0.12));
+}
+
+.character-talk-card__memory-effect {
+  position: absolute;
+  right: 6px;
+  top: 4px;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  opacity: 0.82;
+  filter: drop-shadow(0 5px 7px rgba(65, 42, 24, 0.12));
+  pointer-events: none;
+}
+
+.character-talk-card__memory-unlock span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.character-talk-card__memory-unlock strong {
+  overflow: hidden;
+  color: var(--fg-1);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.character-talk-card__memory-unlock small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--fg-3);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.character-talk-card__log {
+  max-height: 268px;
+  min-height: 116px;
+  overflow-y: auto;
+  display: grid;
+  gap: 10px;
+  padding: 4px 2px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(122, 83, 40, 0.24) transparent;
+}
+
+.character-talk-card-section--compact .character-talk-card__log {
+  max-height: 118px;
+  min-height: 72px;
+  gap: 8px;
+}
+
+.character-talk-card__empty {
+  min-height: 108px;
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  padding: 14px;
+  border: 1px dashed rgba(201, 160, 104, 0.32);
+  border-radius: 18px;
+  background: rgba(255, 250, 239, 0.54);
+  color: var(--fg-3);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.character-talk-card-section--compact .character-talk-card__empty {
+  min-height: 68px;
+  padding: 10px;
+}
+
+.character-talk-card__empty img {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+}
+
+.character-talk-card-section--compact .character-talk-card__empty img {
+  width: 38px;
+  height: 38px;
+}
+
+.character-talk-card__message {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
+}
+
+.character-talk-card__message--user {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.character-talk-card__message-avatar {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 6px rgba(65, 42, 24, 0.1));
+}
+
+.character-talk-card__bubble {
+  max-width: 100%;
+  width: fit-content;
+  padding: 9px 11px;
+  display: inline-grid;
+  gap: 5px;
+  color: var(--fg-1);
+  background: rgba(255, 250, 239, 0.94);
+  border: 1px solid rgba(201, 160, 104, 0.24);
+  border-radius: 16px 16px 16px 6px;
+  box-shadow: 0 6px 14px rgba(65, 42, 24, 0.07);
+  font-family: var(--font-dialogue);
+}
+
+.character-talk-card__message--user .character-talk-card__bubble {
+  max-width: 82%;
+  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--accent-soft) 86%, white);
+  border-color: rgba(201, 160, 104, 0.18);
+  border-radius: 16px 16px 6px 16px;
+}
+
+.character-talk-card__message--fallback .character-talk-card__bubble {
+  border-color: rgba(196, 95, 86, 0.24);
+  background: color-mix(in srgb, var(--danger) 6%, rgba(255, 250, 239, 0.94));
+}
+
+.character-talk-card__bubble p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.52;
+}
+
+.character-talk-card__bubble img {
+  width: 46px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.character-talk-card__form {
+  min-height: 58px;
+  padding: 7px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: end;
+  gap: 8px;
+  border: 1px solid rgba(201, 160, 104, 0.22);
+  border-radius: 20px;
+  background: rgba(255, 250, 239, 0.88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.character-talk-card-section--compact .character-talk-card__form {
+  min-height: 52px;
+}
+
+.character-talk-card__form textarea {
+  min-width: 0;
+  min-height: 44px;
+  max-height: 92px;
+  padding: 8px 6px 6px 8px;
+  resize: none;
+  color: var(--fg-1);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.character-talk-card__form textarea::placeholder {
+  color: var(--fg-4);
+}
+
+.character-talk-card__form textarea:focus {
+  outline: none;
+}
+
+.character-talk-card__form:focus-within {
+  box-shadow:
+    var(--glow-primary),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.character-talk-card__send {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--bg-1);
+  background: var(--accent);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(122, 83, 40, 0.18);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.character-talk-card__send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(122, 83, 40, 0.22);
+}
+
+.character-talk-card__send:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.character-talk-card__send:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  box-shadow: none;
+}
+
+.character-talk-card__send img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  animation: character-talk-loading 1s ease-in-out infinite;
+}
+
+.character-talk-card__send .character-talk-card__send-sparkle {
+  position: absolute;
+  right: -4px;
+  top: -5px;
+  width: 17px;
+  height: 17px;
+  animation: none;
+  filter: drop-shadow(0 4px 5px rgba(65, 42, 24, 0.12));
+}
+
+@keyframes character-talk-loading {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  50% {
+    transform: scale(1.08) rotate(10deg);
+  }
+}
+
+@media (max-width: 480px) {
+  .character-talk-card {
+    padding: 14px;
+  }
+
+  .character-talk-card__head {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .character-talk-card-section--compact .character-talk-card__head {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+  }
+
+  .character-talk-card__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .character-talk-card__avatar img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .character-talk-card-section--compact .character-talk-card__avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .character-talk-card-section--compact .character-talk-card__avatar img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .character-talk-card__tap {
+    min-width: 46px;
+    padding-inline: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character-talk-card__send img {
+    animation: none;
+  }
+}

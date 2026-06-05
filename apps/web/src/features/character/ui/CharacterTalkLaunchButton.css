@@ -1,0 +1,111 @@
+.character-talk-launch {
+  position: relative;
+  min-height: 74px;
+  width: 100%;
+  overflow: hidden;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 46px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(201, 160, 104, 0.28);
+  border-radius: 22px;
+  background: rgba(255, 250, 239, 0.88);
+  box-shadow: var(--shadow-sm);
+  color: var(--fg-1);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.character-talk-launch:hover {
+  transform: translateY(-1px);
+  border-color: rgba(201, 160, 104, 0.44);
+  box-shadow: var(--shadow-md);
+}
+
+.character-talk-launch:active {
+  transform: scale(0.98);
+}
+
+.character-talk-launch:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-primary);
+}
+
+.character-talk-launch > *:not(.character-talk-launch__bg) {
+  position: relative;
+  z-index: 1;
+}
+
+.character-talk-launch__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.34;
+  pointer-events: none;
+}
+
+.character-talk-launch__mark,
+.character-talk-launch__avatar {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: inset 0 0 0 1px rgba(122, 83, 40, 0.08);
+}
+
+.character-talk-launch__mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+}
+
+.character-talk-launch__mark img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(65, 42, 24, 0.12));
+}
+
+.character-talk-launch__copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.character-talk-launch__copy strong {
+  color: var(--fg-1);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.character-talk-launch__copy small {
+  overflow: hidden;
+  color: var(--fg-3);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.character-talk-launch__avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+}
+
+.character-talk-launch__avatar img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(65, 42, 24, 0.12));
+}

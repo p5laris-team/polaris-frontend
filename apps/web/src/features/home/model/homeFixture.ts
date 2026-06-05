@@ -577,6 +577,10 @@ export function demoSubmitCompletionAnswer(
     label: "가까움",
     grade: "GOOD",
   };
+  const beforeGrowth = clone(demoHomeState.character.growth ?? initialCharacterGrowth);
+  const afterGrowth = applyDemoCharacterExp(beforeGrowth, 80);
+  const levelUp = afterGrowth.level > beforeGrowth.level;
+  demoHomeState.character.growth = afterGrowth;
   demoHomeState.currentMission = null;
   lastClosedMissionStackOrder = mission.stackOrder;
   patchTodayMission(missionId, {
@@ -591,6 +595,14 @@ export function demoSubmitCompletionAnswer(
     missionId,
     status: "COMPLETED",
     rewardStatus: "PAID",
+    characterExp: {
+      expAmount: 80,
+      expGained: 80,
+      levelUp,
+      status: "APPLIED",
+      beforeGrowth,
+      afterGrowth,
+    },
     answer: {
       text: trimmedAnswer,
       answeredAt,
@@ -603,6 +615,40 @@ export function demoSubmitCompletionAnswer(
       starPiece: demoHomeState.wallet.starPiece,
     },
     characterMessage: "무! 오늘의 작은 행동을 별조각으로 남겨둘게요.",
+  };
+}
+
+function applyDemoCharacterExp(growth: CharacterGrowth, expGained: number): CharacterGrowth {
+  let nextExp = growth.exp + expGained;
+  let nextLevel = growth.level;
+  let currentLevelExp = growth.currentLevelExp;
+  let nextLevelExp = growth.nextLevelExp;
+
+  while (nextExp >= nextLevelExp && nextLevel < 3) {
+    nextLevel += 1;
+    currentLevelExp = nextLevelExp;
+    nextLevelExp += nextLevel === 2 ? 300 : 500;
+  }
+
+  const maxLevel = nextLevel >= 3;
+  if (maxLevel) {
+    nextExp = Math.min(nextExp, nextLevelExp);
+  }
+
+  const required = Math.max(1, nextLevelExp - currentLevelExp);
+  const current = Math.max(0, Math.min(required, nextExp - currentLevelExp));
+
+  return {
+    ...growth,
+    level: nextLevel,
+    exp: nextExp,
+    currentLevelExp,
+    nextLevelExp,
+    expToNextLevel: maxLevel ? 0 : Math.max(0, nextLevelExp - nextExp),
+    progressPercent: maxLevel ? 100 : Math.round((current / required) * 100),
+    growthStage: nextLevel >= 3 ? "MATURE" : nextLevel >= 2 ? "GROWING" : "BABY",
+    growthStageLabel: nextLevel >= 3 ? "완전히 자란 별친구" : nextLevel >= 2 ? "조금 자란 별친구" : "처음 만난 별친구",
+    maxLevel,
   };
 }
 

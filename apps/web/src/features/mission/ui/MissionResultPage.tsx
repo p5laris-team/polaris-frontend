@@ -7,16 +7,26 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { type MissionFeedbackReaction } from "@/entities/mission/types";
+import {
+  type MissionCompletionResultResponse,
+  type MissionFeedbackReaction,
+} from "@/entities/mission/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
+import { CharacterGrowthMeter } from "@/features/character/ui/CharacterGrowthMeter";
 import { useUpsertMissionFeedbackMutation } from "@/features/mission/api/missionApi";
-import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  resolveCharacterGrowthAssetLevel,
+  resolveCharacterImageUrl,
+} from "@/features/character/model/characterAssetResolver";
+import { formatCharacterSpeech } from "@/features/character/model/characterToneText";
 import { useMissionFlowStore } from "@/features/mission/model/missionFlowStore";
 import { routes } from "@/routes/paths";
-import { effectAssets, emptyStateAssets } from "@/shared/assets/polarisAssets";
-import { AppShell, Button, Card, StarPieceAmount } from "@/shared/ui";
+import { currencyAssets, effectAssets, emptyStateAssets, rewardEffectAssets } from "@/shared/assets/polarisAssets";
+import { AppShell, Button, Card } from "@/shared/ui";
 
 import "./MissionResultPage.css";
+
+type CharacterExpReward = NonNullable<MissionCompletionResultResponse["characterExp"]>;
 
 export function MissionResultPage() {
   const navigate = useNavigate();
@@ -109,14 +119,28 @@ export function MissionResultPage() {
     );
   }
 
+  const resultGrowth =
+    completionResult.characterExp?.afterGrowth ??
+    activeCharacterQuery.data?.growth ??
+    character.growth ??
+    null;
+  const resultGrowthLevel = resolveCharacterGrowthAssetLevel(resultGrowth);
+  const resultCharacterClassName = [
+    "mission-result__character",
+    resultGrowthLevel ? `mission-result__character--${resultGrowthLevel}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const messageAvatarClassName = [
+    "mission-result__message-avatar",
+    resultGrowthLevel ? `mission-result__message-avatar--${resultGrowthLevel}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const characterImageUrl = resolveCharacterImageUrl({
     character: character.key,
     mood: "happy",
-    growth:
-      completionResult.characterExp?.afterGrowth ??
-      activeCharacterQuery.data?.growth ??
-      character.growth ??
-      null,
+    growth: resultGrowth,
     equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
     assetUrls: activeCharacterQuery.data?.assetUrls,
     fallbackUrl: activeCharacterQuery.data?.currentAssetUrl,
@@ -125,6 +149,11 @@ export function MissionResultPage() {
   const rewardStatus = completionResult.rewardStatus ?? "PAID";
   const isRewardPending = rewardStatus === "PENDING" || rewardStatus === "PROCESSING";
   const isRewardFailed = rewardStatus === "FAILED";
+  const rewardStatusAsset = isRewardPending
+    ? rewardEffectAssets.pendingClock
+    : isRewardFailed
+      ? rewardEffectAssets.failedSoft
+      : effectAssets.rewardStamp;
   const rewardCardClassName = [
     "mission-result__reward",
     isRewardPending ? "mission-result__reward--pending" : "",
@@ -132,6 +161,7 @@ export function MissionResultPage() {
   ]
     .filter(Boolean)
     .join(" ");
+  const characterExp = completionResult.characterExp ?? null;
 
   return (
     <main className="app-page mission-result">
@@ -160,7 +190,7 @@ export function MissionResultPage() {
                 } as CSSProperties}
               />
             ))}
-            <img className="mission-result__character" src={characterImageUrl} alt="" />
+            <img className={resultCharacterClassName} src={characterImageUrl} alt="" />
           </div>
 
           <div className="mission-result__headline">
@@ -176,32 +206,27 @@ export function MissionResultPage() {
 
           <Card className={rewardCardClassName}>
             <div className="mission-result__reward-copy">
-              <span className="mission-result__eyebrow">
-                {isRewardPending
-                  ? "별조각 지급 확인 중"
-                  : isRewardFailed
-                    ? "별조각 지급 확인 필요"
-                    : "보상 획득"}
-              </span>
-              <StarPieceAmount
-                amount={completionResult.reward.starPiece}
-                className="mission-result__reward-amount"
-                prefix="+"
-                showLabel
-                size="lg"
-              />
+              <div className="mission-result__reward-top">
+                <span className="mission-result__eyebrow">
+                  {isRewardPending
+                    ? "지급 확인 중"
+                    : isRewardFailed
+                      ? "지급 확인 필요"
+                      : "보상 획득"}
+                </span>
+              </div>
+              <strong className="mission-result__reward-earned">
+                <img src={currencyAssets.starPiece} alt="" />
+                +{completionResult.reward.starPiece}
+                <span>별조각</span>
+              </strong>
               {isRewardPending || isRewardFailed ? (
                 <span className="mission-result__wallet-chip mission-result__wallet-chip--notice">
                   지급이 완료되면 알림으로 알려드릴게요.
                 </span>
               ) : (
                 <span className="mission-result__wallet-chip">
-                  현재 보유
-                  <StarPieceAmount
-                    amount={completionResult.wallet.starPiece}
-                    className="mission-result__wallet-amount"
-                    size="xs"
-                  />
+                  현재 보유 별조각 {completionResult.wallet.starPiece.toLocaleString("ko-KR")}개
                 </span>
               )}
               {isRewardPending ? (
@@ -216,12 +241,28 @@ export function MissionResultPage() {
                 <small>{character.name}의 애정 +{rewardAffection}</small>
               ) : null}
             </div>
-            <img
-              alt=""
-              className="mission-result__reward-stamp"
-              src={effectAssets.rewardStamp}
-            />
+            {rewardStatusAsset ? (
+              <img
+                alt=""
+                className="mission-result__reward-stamp"
+                src={rewardStatusAsset}
+              />
+            ) : null}
+            {isRewardFailed ? (
+              <img
+                alt=""
+                className="mission-result__reward-retry"
+                src={rewardEffectAssets.retrySpark}
+              />
+            ) : null}
           </Card>
+
+          {characterExp ? (
+            <GrowthRewardCard
+              characterExp={characterExp}
+              characterName={character.name}
+            />
+          ) : null}
 
           <Card className="mission-result__summary">
             <span className="mission-result__eyebrow">완료한 미션</span>
@@ -230,10 +271,10 @@ export function MissionResultPage() {
           </Card>
 
           <Card className="mission-result__message-card">
-            <img alt="" className="mission-result__message-avatar" src={characterImageUrl} />
+            <img alt="" className={messageAvatarClassName} src={characterImageUrl} />
             <div className="mission-result__message-copy">
               <span className="mission-result__eyebrow">{character.name}의 한마디</span>
-              <p>{completionResult.characterMessage}</p>
+              <p>{formatCharacterSpeech(character.key, completionResult.characterMessage, character.name)}</p>
             </div>
           </Card>
 
@@ -288,5 +329,104 @@ export function MissionResultPage() {
         </section>
       </AppShell>
     </main>
+  );
+}
+
+function GrowthRewardCard({
+  characterExp,
+  characterName,
+}: {
+  characterExp: CharacterExpReward;
+  characterName: string;
+}) {
+  const afterGrowth = characterExp.afterGrowth;
+  const beforeLevel = characterExp.beforeGrowth?.level ?? null;
+  const afterLevel = afterGrowth?.level ?? null;
+  const levelUp = characterExp.levelUp && afterLevel !== null;
+  const isPending = characterExp.status === "PENDING" || characterExp.status === "PROCESSING";
+  const isFailed = characterExp.status === "FAILED";
+  const expGained = Math.max(0, characterExp.expGained || characterExp.expAmount);
+
+  if (!levelUp) {
+    const stripClassName = [
+      "mission-result__exp-strip",
+      isPending ? "mission-result__exp-strip--pending" : "",
+      isFailed ? "mission-result__exp-strip--failed" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const meta = isPending
+      ? "반영 확인 중"
+      : isFailed
+        ? "확인 필요"
+        : afterGrowth?.maxLevel
+          ? "최대 성장"
+          : afterGrowth?.expToNextLevel != null
+            ? `다음 Lv까지 ${afterGrowth.expToNextLevel}`
+            : "성장 중";
+
+    return (
+      <Card className={stripClassName}>
+        <img className="mission-result__exp-strip-icon" src={effectAssets.expOrb} alt="" />
+        <div className="mission-result__exp-strip-copy">
+          <span>{isPending ? "경험치 확인 중" : isFailed ? "경험치 확인 필요" : "경험치"}</span>
+          <strong>+{expGained} EXP</strong>
+        </div>
+        <em>{meta}</em>
+      </Card>
+    );
+  }
+
+  const rootClassName = [
+    "mission-result__growth-reward",
+    "mission-result__growth-reward--level-up",
+    isPending ? "mission-result__growth-reward--pending" : "",
+    isFailed ? "mission-result__growth-reward--failed" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <Card className={rootClassName}>
+      <div className="mission-result__growth-visual" aria-hidden="true">
+        <img
+          alt=""
+          className="mission-result__growth-burst"
+          src={effectAssets.levelUpBurst}
+        />
+        <img className="mission-result__growth-trail" src={effectAssets.expTrail} alt="" />
+        <img
+          alt=""
+          className="mission-result__growth-orb mission-result__growth-orb--one"
+          src={effectAssets.expOrb}
+        />
+        <img
+          alt=""
+          className="mission-result__growth-orb mission-result__growth-orb--two"
+          src={effectAssets.expOrb}
+        />
+      </div>
+      <div className="mission-result__growth-copy">
+        <span className="mission-result__eyebrow">
+          {isPending ? "성장 반영 중" : isFailed ? "성장 확인 필요" : "레벨업"}
+        </span>
+        <strong>
+          {beforeLevel !== null
+            ? `Lv.${beforeLevel} → Lv.${afterLevel}`
+            : `Lv.${afterLevel}`}
+        </strong>
+        <p>
+          {isPending
+            ? "성장 반영을 확인하고 있어요."
+            : isFailed
+              ? "성장 반영 확인이 필요해요."
+              : `${characterName}의 모습이 한 단계 자랐어요.`}
+        </p>
+      </div>
+      <CharacterGrowthMeter
+        className="mission-result__growth-meter"
+        growth={afterGrowth}
+      />
+    </Card>
   );
 }

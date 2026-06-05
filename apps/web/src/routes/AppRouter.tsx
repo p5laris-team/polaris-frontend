@@ -4,6 +4,7 @@ import { AttendancePage } from "@/features/attendance/ui/AttendancePage";
 import { LoginPage } from "@/features/auth/ui/LoginPage";
 import { GoogleCallbackPage } from "@/features/auth/ui/GoogleCallbackPage";
 import { CharacterCarePage } from "@/features/character/ui/CharacterCarePage";
+import { CharacterTalkPage } from "@/features/character/ui/CharacterTalkPage";
 import { HomePage } from "@/features/home/ui/HomePage";
 import { InventoryPage } from "@/features/inventory/ui/InventoryPage";
 import { MissionAnswerPage } from "@/features/mission/ui/MissionAnswerPage";
@@ -16,6 +17,7 @@ import { CharacterNamePage } from "@/features/onboarding/ui/CharacterNamePage";
 import { CharacterSelectPage } from "@/features/onboarding/ui/CharacterSelectPage";
 import { OnboardingSurveyPage } from "@/features/onboarding/ui/OnboardingSurveyPage";
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
+import { PublicSharePage } from "@/features/share/ui/PublicSharePage";
 import { ShareCardPage } from "@/features/share/ui/ShareCardPage";
 import { ShopPage } from "@/features/shop/ui/ShopPage";
 import { WalletPage } from "@/features/wallet/ui/WalletPage";
@@ -37,16 +39,19 @@ export function AppRouter() {
       <Route path={routes.googleCallback} element={<GoogleCallbackPage />} />
       <Route path={routes.designSystem} element={<DesignSystemPreviewPage />} />
       <Route path={routes.testError} element={<TestErrorPage />} />
+      <Route path={routes.publicShare} element={<PublicSharePage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path={routes.onboardingCharacter} element={<CharacterSelectPage />} />
         <Route path={routes.onboardingCharacterName} element={<CharacterNamePage />} />
         <Route path={routes.onboardingQuestions} element={<OnboardingSurveyPage />} />
+        <Route path={routes.onboardingMissionEdit} element={<OnboardingSurveyPage mode="edit" />} />
         <Route path={routes.home} element={<HomePage />} />
         <Route path={routes.missions} element={<MissionHistoryPage />} />
         <Route path={routes.missionDetail} element={<MissionDetailPage />} />
         <Route path={routes.missionAnswer} element={<MissionAnswerPage />} />
         <Route path={routes.missionResult} element={<MissionResultPage />} />
+        <Route path={routes.characterTalk} element={<CharacterTalkPage />} />
         <Route path={routes.character} element={<CharacterCarePage />} />
         <Route path={routes.shop} element={<ShopPage />} />
         <Route path={routes.inventory} element={<InventoryPage />} />

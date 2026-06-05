@@ -124,7 +124,7 @@ function resolveCharacterVisualState(
 }
 
 /** 성장 단계 응답을 프론트 성장 에셋 레벨로 변환합니다. 응답이 없으면 기존 성체/스킨 정책을 유지합니다. */
-function resolveCharacterGrowthAssetLevel(
+export function resolveCharacterGrowthAssetLevel(
   growth: CharacterGrowth | null | undefined,
 ): CharacterGrowthAssetLevel | null {
   if (!growth) {
