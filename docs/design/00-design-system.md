@@ -49,7 +49,7 @@
 
 각 캐릭터는 기본/행복/졸림/슬픔 등 표정 상태(mood)를 가지며, 루틴 완료에 따라 표정·크기·악세서리가 변화합니다.
 
-> ⚠️ 현재 캐릭터 SVG는 **임시 플레이스홀더**입니다. 정식 일러스트레이터의 작업으로 교체하는 것을 권장합니다. `assets/character-*.svg`를 동일한 viewBox(200×200)로 교체하면 모든 화면에 자동 반영됩니다.
+> 캐릭터 PNG는 `assets/characters/{character}/core`와 `assets/characters/{character}/status` 폴더에 상태별로 보관합니다. 앱 화면에서는 직접 경로를 만들지 않고 `polarisAssets.ts`의 asset registry를 통해 참조합니다.
 
 ---
 
@@ -251,7 +251,7 @@ Polaris에서 **하지 않는** 것들:
 답변에 따라 **커스텀 일러스트 + 아이콘 혼용** 방식을 채택:
 
 1. **기능 아이콘**: [**Lucide**](https://lucide.dev) — 24×24, 1.5px stroke, 둥근 캡. 모던하고 군더더기 없음.
-2. **카테고리 / 감정 일러스트**: 커스텀 SVG (`assets/cat-*.svg`, `assets/character-*.svg`). 동그란 컨테이너 + 1~2색 + 단순 형태.
+2. **카테고리 / 감정 일러스트**: 커스텀 PNG (`assets/categories/*.png`, `assets/characters/**/*.png`). 동그란 컨테이너 + 1~2색 + 단순 형태.
 
 ### 사용 규칙
 
@@ -280,26 +280,21 @@ import { Heart, Sparkles, ChevronRight } from 'lucide-react';
 
 | 파일 | 용도 |
 |---|---|
-| `assets/logo-wordmark.svg` | 캐릭터 + "Polaris" 워드마크 (헤더, 마케팅) |
-| `assets/logomark.svg` | 64×64 앱 아이콘 / 파비콘 |
-| `assets/star-mark.svg` | 4포인트 별 단독 (currentColor, 작은 액센트) |
-| `assets/character-nova.png` | 노바 — 기본 표정 |
-| `assets/character-nova-happy.png` | 노바 — 행복 |
-| `assets/character-nova-sleepy.png` | 노바 — 졸림 |
-| `assets/character-jjori.png` | 쪼리 — 기본 |
-| `assets/character-mumu.png` | 무무 — 기본 |
-| `assets/character-byeori.svg` | 별이 — 기본 표정 (레거시) |
-| `assets/character-byeori-happy.svg` | 별이 — 행복 (레거시) |
-| `assets/character-byeori-sleepy.svg` | 별이 — 졸림 (레거시) |
-| `assets/character-gureumi.svg` | 구름이 — 기본 (레거시) |
-| `assets/character-kongi.svg` | 콩이 — 기본 (레거시) |
+| `assets/brand/logo/logo-wordmark.png` | 캐릭터 + "Polaris" 워드마크 (헤더, 마케팅) |
+| `assets/brand/logo/logomark.png` | 앱 아이콘 / 파비콘 |
+| `assets/currency/star-piece-icon.png` | 별조각 화폐 아이콘 |
+| `assets/characters/nova/core/character-nova-idle.png` | 노바 — 기본 표정 |
+| `assets/characters/nova/core/character-nova-happy.png` | 노바 — 행복 |
+| `assets/characters/nova/core/character-nova-sleepy.png` | 노바 — 졸림 |
+| `assets/characters/jjori/core/character-jjori-idle.png` | 쪼리 — 기본 |
+| `assets/characters/mumu/core/character-mumu-idle.png` | 무무 — 기본 |
 | `assets/pattern-stardust.svg` | 별가루 배경 패턴 (타일 반복) |
-| `assets/illustration-empty.svg` | 빈 상태 일러스트 |
-| `assets/cat-morning.svg` | 카테고리 — 모닝 |
-| `assets/cat-fitness.svg` | 카테고리 — 운동 |
-| `assets/cat-reading.svg` | 카테고리 — 독서 |
-| `assets/cat-mind.svg` | 카테고리 — 마음 |
-| `assets/item-*.svg` | 상점 아이템 (모자, 리본, 풍선, 트로피) |
+| `assets/empty-states/empty-mission.png` | 기본 빈 상태 일러스트 |
+| `assets/categories/cat-basic-routine.png` | 카테고리 — 기본 루틴 |
+| `assets/categories/cat-mini-exercise.png` | 카테고리 — 작은 움직임 |
+| `assets/categories/cat-focus-help.png` | 카테고리 — 집중 도움 |
+| `assets/categories/cat-mood-care.png` | 카테고리 — 기분 돌봄 |
+| `assets/items/consumables/*.png` | 상점 소모품 아이템 |
 
 ### 이모지
 

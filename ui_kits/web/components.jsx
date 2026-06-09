@@ -4,6 +4,22 @@
 
 const { useState, useEffect, useRef } = React;
 
+const POLARIS_CHARACTER_IDS = ["nova", "jjori", "mumu"];
+
+function getCharacterCoreAsset(character, mood = "idle") {
+  const id = POLARIS_CHARACTER_IDS.includes(character) ? character : "nova";
+  return `../../assets/characters/${id}/core/character-${id}-${mood}.png`;
+}
+
+function getMissionCategoryAsset(category) {
+  return {
+    morning: "../../assets/categories/cat-basic-routine.png",
+    fitness: "../../assets/categories/cat-mini-exercise.png",
+    reading: "../../assets/categories/cat-focus-help.png",
+    mind: "../../assets/categories/cat-mood-care.png",
+  }[category] || "../../assets/categories/cat-basic-routine.png";
+}
+
 /* ----------- Layout: App Shell ----------- */
 function AppShell({ children }) {
   return (
@@ -61,12 +77,7 @@ function Chip({ selected, children, onClick }) {
 /* ----------- Mission Card ----------- */
 function MissionCard({ mission, onToggle }) {
   const { title, sub, category, done, inProgress, locked } = mission;
-  const catImg = {
-    morning: "../../assets/cat-morning.svg",
-    fitness: "../../assets/cat-fitness.svg",
-    reading: "../../assets/cat-reading.svg",
-    mind: "../../assets/cat-mind.svg",
-  }[category] || "../../assets/cat-morning.svg";
+  const catImg = getMissionCategoryAsset(category);
 
   return (
     <button
@@ -86,8 +97,7 @@ function MissionCard({ mission, onToggle }) {
 /* ----------- Character Stage ----------- */
 function CharacterStage({ character, name, level, bubble, hearts = 78, coins = 240, streak = 7 }) {
   const charId = character || "nova";
-  const ext = ["nova", "jjori", "mumu"].includes(charId) ? "png" : "svg";
-  const moodImg = `../../assets/character-${charId}.${ext}`;
+  const moodImg = getCharacterCoreAsset(charId);
   return (
     <div className="stage">
       <div className="character-img">
@@ -214,10 +224,9 @@ function Dots({ total, current }) {
 
 /* ----------- Character Select Card ----------- */
 function CharCard({ id, name, desc, selected, onClick }) {
-  const ext = ["nova", "jjori", "mumu"].includes(id) ? "png" : "svg";
   return (
     <button className={`char-card ${selected ? "selected" : ""}`} onClick={onClick}>
-      <img src={`../../assets/character-${id}.${ext}`} alt="" />
+      <img src={getCharacterCoreAsset(id)} alt="" />
       <div className="name">{name}</div>
       <div className="desc">{desc}</div>
     </button>

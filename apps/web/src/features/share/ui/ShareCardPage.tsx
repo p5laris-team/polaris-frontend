@@ -17,7 +17,10 @@ import * as Sentry from "@sentry/react";
 
 import { toCharacterKey } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
-import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  resolveCharacterGrowthAssetLevel,
+  resolveCharacterImageUrl,
+} from "@/features/character/model/characterAssetResolver";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import { useTodayMissionsQuery } from "@/features/mission/api/missionApi";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
@@ -34,6 +37,7 @@ import {
   brandAssets,
   emptyStateAssets,
   shareCardAssets,
+  type CharacterGrowthAssetLevel,
   type ShareCardBackgroundKey,
 } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, ErrorState, Header, StarPieceAmount, Tag, useToast } from "@/shared/ui";
@@ -80,9 +84,12 @@ export function ShareCardPage() {
   const characterKey = toCharacterKey(character?.characterTypeCode);
   const backgroundImageUrl = shareCardAssets.backgrounds[backgroundKey];
   const activeCharacter = activeCharacterQuery.data;
+  const characterGrowth = activeCharacter?.growth ?? character?.growth ?? null;
+  const characterGrowthLevel = resolveCharacterGrowthAssetLevel(characterGrowth);
   const characterImageUrl = resolveCharacterImageUrl({
     character: characterKey,
     mood: "happy",
+    growth: characterGrowth,
     equippedSkin: activeCharacter?.equippedSkin ?? null,
     // 공유 카드는 축하용 이미지라서 장착 스킨이 있으면 상태 수치보다 happy 스킨을 우선한다.
     // CDN 상태별 URL이 비어 있어도 엑박이 나지 않도록 카드 렌더링은 프론트 로컬 에셋을 기준으로 둔다.
@@ -123,6 +130,7 @@ export function ShareCardPage() {
         brandLogoImageUrl: brandAssets.logoWordmark,
         characterName: character.name,
         characterImageUrl,
+        characterGrowthLevel,
         completedCount,
         earnedStarPiece,
         friendsFrameImageUrl: shareCardAssets.decorations.friendsFrame,
@@ -296,7 +304,14 @@ export function ShareCardPage() {
               />
             ) : null}
             <div className="share-card-page__preview-content">
-              <div className="share-card-page__preview-character-wrap">
+              <div
+                className={[
+                  "share-card-page__preview-character-wrap",
+                  characterGrowthLevel ? `share-card-page__preview-character-wrap--${characterGrowthLevel}` : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
                 <img
                   alt=""
                   className="share-card-page__preview-character"
@@ -476,6 +491,7 @@ async function createShareCardImageBlob({
   brandLogoImageUrl,
   characterName,
   characterImageUrl,
+  characterGrowthLevel,
   completedCount,
   earnedStarPiece,
   friendsFrameImageUrl,
@@ -488,6 +504,7 @@ async function createShareCardImageBlob({
   brandLogoImageUrl: string;
   characterName: string;
   characterImageUrl: string;
+  characterGrowthLevel: CharacterGrowthAssetLevel | null;
   completedCount: number;
   earnedStarPiece: number;
   friendsFrameImageUrl: string;
@@ -551,7 +568,19 @@ async function createShareCardImageBlob({
   drawImageContain(context, brandLogoImage, 435, 110, 210, 52);
   context.restore();
 
-  drawImageContain(context, characterImage, 312, 252, 456, 420);
+  const characterScale = getShareCardCharacterScale(characterGrowthLevel);
+  const characterBox = {
+    width: 456 * characterScale,
+    height: 420 * characterScale,
+  };
+  drawImageContain(
+    context,
+    characterImage,
+    540 - characterBox.width / 2,
+    252 + (420 - characterBox.height),
+    characterBox.width,
+    characterBox.height,
+  );
 
   if (completedCount > 0) {
     context.save();
@@ -632,6 +661,18 @@ async function createShareCardImageBlob({
       reject(new Error("공유 카드 이미지 변환에 실패했어요."));
     }, "image/png");
   });
+}
+
+function getShareCardCharacterScale(growthLevel: CharacterGrowthAssetLevel | null) {
+  if (growthLevel === "lv1") {
+    return 0.66;
+  }
+
+  if (growthLevel === "lv2") {
+    return 0.82;
+  }
+
+  return 1;
 }
 
 /** 브라우저가 Web Share API를 지원하면 공유창을 열고, 아니면 링크 복사 흐름으로 대체합니다. */

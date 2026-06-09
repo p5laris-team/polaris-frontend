@@ -5,13 +5,9 @@
  */
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
-  CalendarCheck,
   Check,
   ChevronRight,
-  HeartPulse,
   Settings,
-  ShoppingBag,
-  Target,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -31,7 +27,7 @@ import { useHomeQuery, homeQueryKeys } from "@/features/home/api/homeApi";
 import { AppBottomNavigation } from "@/features/navigation/AppBottomNavigation";
 import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
-import { emptyStateAssets } from "@/shared/assets/polarisAssets";
+import { emptyStateAssets, notificationAssets } from "@/shared/assets/polarisAssets";
 import { AppShell, Button, Card, ErrorState, Header, Tag, useToast } from "@/shared/ui";
 
 import "./NotificationsPage.css";
@@ -315,7 +311,7 @@ function NotificationItem({
         type="button"
       >
         <span className={`notifications-page__item-icon notifications-page__item-icon--${meta.tone}`}>
-          {meta.icon}
+          <img src={meta.iconSrc} alt="" />
         </span>
         <span className="notifications-page__item-copy">
           <span className="notifications-page__item-head">
@@ -384,7 +380,7 @@ function NotificationsLoadingPage() {
 function getNotificationMeta(type: NotificationType) {
   if (type === "MISSION" || type === "MISSION_OFFER") {
     return {
-      icon: <Target size={20} strokeWidth={1.8} />,
+      iconSrc: notificationAssets.mission,
       label: "미션",
       tone: "mission",
     };
@@ -392,7 +388,7 @@ function getNotificationMeta(type: NotificationType) {
 
   if (type === "CARE" || type === "STATE_BAD" || type === "STATE_CRITICAL" || type === "CHARACTER_STATE") {
     return {
-      icon: <HeartPulse size={20} strokeWidth={1.8} />,
+      iconSrc: notificationAssets.state,
       label: "상태",
       tone: "state",
     };
@@ -400,7 +396,7 @@ function getNotificationMeta(type: NotificationType) {
 
   if (type === "ATTENDANCE" || type === "DAILY_REMINDER") {
     return {
-      icon: <CalendarCheck size={20} strokeWidth={1.8} />,
+      iconSrc: notificationAssets.attendance,
       label: "리마인더",
       tone: "daily",
     };
@@ -408,7 +404,7 @@ function getNotificationMeta(type: NotificationType) {
 
   if (type === "ACHIEVEMENT") {
     return {
-      icon: <CalendarCheck size={20} strokeWidth={1.8} />,
+      iconSrc: notificationAssets.reward,
       label: "달성",
       tone: "daily",
     };
@@ -416,14 +412,14 @@ function getNotificationMeta(type: NotificationType) {
 
   if (type === "SHARE") {
     return {
-      icon: <ShoppingBag size={20} strokeWidth={1.8} />,
+      iconSrc: notificationAssets.share,
       label: "공유",
       tone: "system",
     };
   }
 
   return {
-    icon: <ShoppingBag size={20} strokeWidth={1.8} />,
+    iconSrc: notificationAssets.system,
     label: "소식",
     tone: "system",
   };

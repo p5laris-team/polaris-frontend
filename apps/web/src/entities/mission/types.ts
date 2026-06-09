@@ -2,6 +2,7 @@
  * 미션 도메인에서 여러 화면이 공유하는 백엔드 응답 타입입니다.
  * 상태값은 화면 이동과 버튼 활성화 조건을 결정하므로 여기서 의미를 주석으로 정리합니다.
  */
+import { type CharacterGrowth } from "@/entities/character/types";
 
 export type MissionStatus =
   // 아직 사용자에게 제안되기 전, 시스템이 생성만 해 둔 미션입니다.
@@ -25,6 +26,8 @@ export type MissionFeedbackType = "SATISFACTION" | "REJECTION";
 export type MissionFeedbackReaction = "LIKE" | "DISLIKE";
 
 export type MissionRewardStatus = "PAID" | "PENDING" | "PROCESSING" | "FAILED";
+
+export type MissionCharacterExpStatus = "APPLIED" | "PENDING" | "PROCESSING" | "FAILED";
 
 /** 홈과 인증 화면에서 쓰는 현재 미션 상세 응답입니다. */
 export type CurrentMissionResponse = {
@@ -112,6 +115,14 @@ export type MissionCompletionResultResponse = {
   missionId: number;
   status: "COMPLETED";
   rewardStatus?: MissionRewardStatus;
+  characterExp?: {
+    expAmount: number;
+    expGained: number;
+    levelUp: boolean;
+    status: MissionCharacterExpStatus;
+    beforeGrowth: CharacterGrowth | null;
+    afterGrowth: CharacterGrowth | null;
+  } | null;
   answer: {
     text: string;
     answeredAt: string;

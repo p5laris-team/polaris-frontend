@@ -7,14 +7,18 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { toCharacterKey } from "@/entities/character/types";
+import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
 import {
   useOnboardingQuestionsQuery,
+  useOnboardingProfileQuery,
   useSaveOnboardingProfileMutation,
 } from "@/features/onboarding/api/onboardingApi";
 import { useOnboardingSetupStore } from "@/features/onboarding/model/onboardingStore";
 import {
   type OnboardingAnswers,
+  type OnboardingProfileResponse,
   type OnboardingQuestion,
+  type OnboardingQuestionKey,
   type SaveOnboardingProfileRequest,
 } from "@/features/onboarding/model/onboardingTypes";
 import { routes } from "@/routes/paths";
@@ -24,19 +28,33 @@ import { AppShell, Button, CharacterStage, ErrorState, Header, useToast } from "
 
 import "./OnboardingFlow.css";
 
-export function OnboardingSurveyPage() {
+type OnboardingSurveyPageProps = {
+  mode?: "setup" | "edit";
+};
+
+export function OnboardingSurveyPage({ mode = "setup" }: OnboardingSurveyPageProps) {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const isEditMode = mode === "edit";
   const questionsQuery = useOnboardingQuestionsQuery();
+  const profileQuery = useOnboardingProfileQuery(isEditMode);
+  const activeCharacterQuery = useActiveCharacterQuery(isEditMode);
   const saveProfileMutation = useSaveOnboardingProfileMutation();
   const selectedCharacter = useOnboardingSetupStore((state) => state.selectedCharacter);
   const createdCharacter = useOnboardingSetupStore((state) => state.createdCharacter);
-  const answers = useOnboardingSetupStore((state) => state.answers);
+  const setupAnswers = useOnboardingSetupStore((state) => state.answers);
   const setAnswer = useOnboardingSetupStore((state) => state.setAnswer);
   const markCompleted = useOnboardingSetupStore((state) => state.markCompleted);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [editAnswers, setEditAnswers] = useState<OnboardingAnswers>({});
+  const [profileAnswersLoaded, setProfileAnswersLoaded] = useState(false);
+  const answers = isEditMode ? editAnswers : setupAnswers;
 
   useEffect(() => {
+    if (isEditMode) {
+      return;
+    }
+
     if (!selectedCharacter) {
       navigate(routes.onboardingCharacter, { replace: true });
       return;
@@ -45,12 +63,31 @@ export function OnboardingSurveyPage() {
     if (!createdCharacter) {
       navigate(routes.onboardingCharacterName, { replace: true });
     }
-  }, [createdCharacter, navigate, selectedCharacter]);
+  }, [createdCharacter, isEditMode, navigate, selectedCharacter]);
+
+  useEffect(() => {
+    if (!isEditMode || profileAnswersLoaded || !profileQuery.data) {
+      return;
+    }
+
+    setEditAnswers(mapProfileToAnswers(profileQuery.data));
+    setProfileAnswersLoaded(true);
+  }, [isEditMode, profileAnswersLoaded, profileQuery.data]);
 
   const questions = questionsQuery.data?.items ?? [];
   const currentQuestion = questions[currentIndex];
   const selectedValue = currentQuestion ? answers[currentQuestion.key] : undefined;
   const total = questions.length;
+  const activeCharacter = activeCharacterQuery.data;
+  const screenCharacterName = isEditMode
+    ? activeCharacter?.name ?? createdCharacter?.name ?? "별친구"
+    : createdCharacter?.name ?? "별친구";
+  const screenCharacterTypeCode = isEditMode
+    ? activeCharacter?.characterTypeCode ?? createdCharacter?.characterTypeCode ?? "NOVA"
+    : createdCharacter?.characterTypeCode ?? "NOVA";
+  const characterKey = toCharacterKey(screenCharacterTypeCode);
+  const isInitialLoading = questionsQuery.isLoading || (isEditMode && profileQuery.isLoading);
+  const pageError = questionsQuery.error ?? (isEditMode ? profileQuery.error : null);
   const answeredCount = useMemo(
     () => questions.filter((question) => hasAnswered(answers[question.key])).length,
     [answers, questions],
@@ -83,45 +120,74 @@ export function OnboardingSurveyPage() {
     try {
       await saveProfileMutation.mutateAsync(request);
       markCompleted();
-      showToast("온보딩이 완료됐어요. 오늘의 별조각을 모아볼까요?");
-      navigate(routes.home, { replace: true });
+      if (isEditMode) {
+        showToast("미션 취향을 저장했어요.");
+        navigate(routes.myPage, { replace: true });
+      } else {
+        showToast("온보딩이 완료됐어요. 오늘의 별조각을 모아볼까요?");
+        navigate(routes.home, { replace: true });
+      }
     } catch (error) {
       showToast(getUserFacingErrorMessage(error));
     }
   };
 
-  if (!selectedCharacter || !createdCharacter) {
+  const handleSelectOption = (question: OnboardingQuestion, optionValue: string) => {
+    const nextAnswerValue = getNextAnswerValue(question, answers[question.key], optionValue);
+
+    if (isEditMode) {
+      setEditAnswers((current) => ({
+        ...current,
+        [question.key]: nextAnswerValue,
+      }));
+      return;
+    }
+
+    setAnswer(question.key, nextAnswerValue);
+  };
+
+  if (!isEditMode && (!selectedCharacter || !createdCharacter)) {
     return null;
   }
-
-  const characterKey = toCharacterKey(createdCharacter.characterTypeCode);
 
   return (
     <main className="onboarding-page">
       <AppShell>
         <div className="onboarding-flow">
           <Header
-            title="온보딩 질문"
+            title={isEditMode ? "미션 취향 수정" : "온보딩 질문"}
             onBack={() =>
               currentIndex > 0
                 ? setCurrentIndex((index) => index - 1)
-                : navigate(routes.onboardingCharacterName)
+                : navigate(isEditMode ? routes.myPage : routes.onboardingCharacterName)
             }
           />
 
           <section className="onboarding-flow__body">
             {/* SCR-005 온보딩 v2: API 문항 순서와 multipleSelection 정책을 그대로 따라 답변을 저장한다. */}
-            {questionsQuery.isLoading ? (
-              <OnboardingState title="질문을 준비하는 중" description="별친구가 루틴 질문을 정리하고 있어요." />
+            {isInitialLoading ? (
+              <OnboardingState
+                title={isEditMode ? "저장된 취향을 불러오는 중" : "질문을 준비하는 중"}
+                description={
+                  isEditMode
+                    ? "지금 미션 개인화 설정을 정리하고 있어요."
+                    : "별친구가 루틴 질문을 정리하고 있어요."
+                }
+              />
             ) : null}
 
-            {questionsQuery.isError ? (
+            {pageError ? (
               <ErrorState
                 className="onboarding-flow__state"
-                title="질문을 못 불러왔어요"
-                description={getUserFacingErrorMessage(questionsQuery.error)}
+                title={isEditMode ? "미션 취향을 못 불러왔어요" : "질문을 못 불러왔어요"}
+                description={getUserFacingErrorMessage(pageError)}
                 imageSrc={emptyStateAssets.mission}
-                onAction={() => void questionsQuery.refetch()}
+                onAction={() => {
+                  void questionsQuery.refetch();
+                  if (isEditMode) {
+                    void profileQuery.refetch();
+                  }
+                }}
               />
             ) : null}
 
@@ -141,7 +207,7 @@ export function OnboardingSurveyPage() {
                     bubble={currentQuestion.characterLine}
                     character={characterKey}
                     mood={hasAnswered(selectedValue) ? "happy" : "idle"}
-                    name={createdCharacter.name}
+                    name={screenCharacterName}
                   />
                 </div>
 
@@ -163,12 +229,7 @@ export function OnboardingSurveyPage() {
                             selected ? "onboarding-survey__option--selected" : ""
                           }`.trim()}
                           key={option.value}
-                          onClick={() => {
-                            setAnswer(
-                              currentQuestion.key,
-                              getNextAnswerValue(currentQuestion, selectedValue, option.value),
-                            );
-                          }}
+                          onClick={() => handleSelectOption(currentQuestion, option.value)}
                           type="button"
                         >
                           <span className="onboarding-survey__option-text">
@@ -200,7 +261,9 @@ export function OnboardingSurveyPage() {
                 {saveProfileMutation.isPending
                   ? "저장 중..."
                   : currentIndex === total - 1
-                    ? "완료하고 홈으로"
+                    ? isEditMode
+                      ? "저장하고 돌아가기"
+                      : "완료하고 홈으로"
                     : "다음"}
               </Button>
             </div>
@@ -245,6 +308,85 @@ function buildSaveRequest(
     completed: true,
   };
 }
+
+/** 저장된 온보딩 프로필을 질문 화면의 선택 상태로 복원합니다. */
+function mapProfileToAnswers(profile: OnboardingProfileResponse): OnboardingAnswers {
+  const savedAnswers = parseAnswersJson(profile.answersJson);
+
+  return {
+    ...savedAnswers,
+    preferredMissionTime:
+      savedAnswers.preferredMissionTime ??
+      toProfileAnswerValue(profile.preferredTimeSlots, profile.preferredMissionTime),
+    routineGoal:
+      savedAnswers.routineGoal ??
+      toProfileAnswerValue(profile.routineGoals, profile.routineGoal ?? profile.activityPreference),
+    missionPlaceContext:
+      savedAnswers.missionPlaceContext ??
+      toProfileAnswerValue(profile.missionPlaceContexts, undefined),
+    missionIntensity:
+      savedAnswers.missionIntensity ??
+      toProfileAnswerValue(undefined, profile.missionIntensity),
+    avoidedMissionTags:
+      savedAnswers.avoidedMissionTags ??
+      toProfileAnswerValue(profile.avoidedMissionTags, undefined),
+  };
+}
+
+function parseAnswersJson(value: string | undefined) {
+  if (!value) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([key, answerValue]) => isOnboardingQuestionKey(key) && isOnboardingAnswerValue(answerValue),
+      ),
+    ) as OnboardingAnswers;
+  } catch {
+    return {};
+  }
+}
+
+function toProfileAnswerValue(
+  values: string[] | undefined,
+  fallback: string | undefined,
+) {
+  const normalizedValues = values?.filter(Boolean) ?? [];
+
+  if (normalizedValues.length) {
+    return normalizedValues;
+  }
+
+  return fallback || undefined;
+}
+
+function isOnboardingQuestionKey(value: string): value is OnboardingQuestionKey {
+  return onboardingQuestionKeys.includes(value as OnboardingQuestionKey);
+}
+
+function isOnboardingAnswerValue(value: unknown): value is OnboardingAnswers[keyof OnboardingAnswers] {
+  if (typeof value === "string") {
+    return true;
+  }
+
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+const onboardingQuestionKeys: OnboardingQuestionKey[] = [
+  "preferredMissionTime",
+  "routineGoal",
+  "missionPlaceContext",
+  "missionIntensity",
+  "avoidedMissionTags",
+];
 
 function hasAnswered(value: OnboardingAnswers[keyof OnboardingAnswers] | undefined) {
   if (Array.isArray(value)) {

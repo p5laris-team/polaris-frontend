@@ -9,15 +9,20 @@ import { walletQueryKeys } from "@/features/wallet/api/walletApi";
 import {
   demoCreateShareCard,
   demoCreateShareEvent,
+  demoGetShareLink,
   demoGetPresignedUrl,
   demoGetTodayShareStatus,
+  demoRecordShareClick,
 } from "@/features/share/model/shareFixtures";
 import {
   type CreateShareCardRequest,
   type CreateShareEventRequest,
   type PresignedUrlResponse,
+  type RecordShareClickRequest,
   type ShareCardResponse,
+  type ShareClickResponse,
   type ShareEventResponse,
+  type ShareLinkResponse,
   type TodayShareStatusResponse,
 } from "@/features/share/model/shareTypes";
 import { apiClient, unwrapApiResponse } from "@/shared/api";
@@ -26,6 +31,7 @@ import { runtimeConfig } from "@/shared/config/env";
 export const shareQueryKeys = {
   all: ["share"] as const,
   todayStatus: () => [...shareQueryKeys.all, "today-status"] as const,
+  link: (shareId: string) => [...shareQueryKeys.all, "link", shareId] as const,
 };
 
 /** 공유 카드 이미지를 직접 업로드할 presigned URL을 백엔드에서 받아옵니다. */
@@ -93,11 +99,42 @@ export function getTodayShareStatus() {
   );
 }
 
+/** 공개 공유 링크 정보를 조회합니다. 로그인하지 않은 사용자가 보는 화면에서 사용합니다. */
+export function getShareLink(shareId: string) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoGetShareLink(shareId));
+  }
+
+  return unwrapApiResponse<ShareLinkResponse>(
+    apiClient.get(`/api/share/v1/share-links/${shareId}`),
+  );
+}
+
+/** 공개 공유 링크 방문/CTA 클릭을 기록합니다. 실패해도 화면 흐름은 막지 않습니다. */
+export function recordShareClick(body: RecordShareClickRequest) {
+  if (runtimeConfig.useApiFixtures) {
+    return Promise.resolve(demoRecordShareClick(body));
+  }
+
+  return unwrapApiResponse<ShareClickResponse>(
+    apiClient.post("/api/share/v1/share-clicks", body),
+  );
+}
+
 /** 공유 카드 화면에서 오늘 공유 상태를 조회하는 hook입니다. */
 export function useTodayShareStatusQuery() {
   return useQuery({
     queryKey: shareQueryKeys.todayStatus(),
     queryFn: getTodayShareStatus,
+  });
+}
+
+/** 공개 공유 링크 화면에서 shareId가 있을 때만 카드 정보를 조회합니다. */
+export function useShareLinkQuery(shareId: string | null) {
+  return useQuery({
+    queryKey: shareQueryKeys.link(shareId ?? ""),
+    queryFn: () => getShareLink(shareId ?? ""),
+    enabled: Boolean(shareId),
   });
 }
 

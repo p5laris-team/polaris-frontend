@@ -143,21 +143,21 @@ React Native에서는 `ThemeProvider`와 `useTheme` 훅을 만들어 현재 테�
 
 ## 7. 자산 사용
 
-캐릭터와 브랜드 자산은 `assets/`에 있는 파일을 사용한다.
+캐릭터와 브랜드 자산은 `assets/` 하위 도메인 폴더에 있는 파일을 사용한다.
 
 주요 자산:
 
-- `assets/character-nova.png`
-- `assets/character-nova-happy.png`
-- `assets/character-nova-sleepy.png`
-- `assets/character-mumu.png`
-- `assets/character-mumu-happy.png`
-- `assets/character-mumu-sleepy.png`
-- `assets/character-jjori.png`
-- `assets/character-jjori-happy.png`
-- `assets/character-jjori-sleepy.png`
-- `assets/logo-wordmark.svg`
-- `assets/logomark.svg`
+- `assets/characters/nova/core/character-nova-idle.png`
+- `assets/characters/nova/core/character-nova-happy.png`
+- `assets/characters/nova/core/character-nova-sleepy.png`
+- `assets/characters/mumu/core/character-mumu-idle.png`
+- `assets/characters/mumu/core/character-mumu-happy.png`
+- `assets/characters/mumu/core/character-mumu-sleepy.png`
+- `assets/characters/jjori/core/character-jjori-idle.png`
+- `assets/characters/jjori/core/character-jjori-happy.png`
+- `assets/characters/jjori/core/character-jjori-sleepy.png`
+- `assets/brand/logo/logo-wordmark.png`
+- `assets/brand/logo/logomark.png`
 - `assets/pattern-stardust.svg`
 
 임의의 새 캐릭터 이미지나 대체 일러스트를 만들지 않는다. 필요한 상태 이미지가 없으면 기존 에셋 중 가장 가까운 것을 사용하고, 누락 여부를 작업 결과에 명시한다.

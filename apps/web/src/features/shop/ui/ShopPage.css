@@ -145,6 +145,7 @@
   display: flex;
   align-items: end;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 12px;
 }
@@ -156,6 +157,25 @@
   font-size: 20px;
   font-weight: 800;
   line-height: 1.25;
+}
+
+.shop-page__unlock-note {
+  flex: 0 0 auto;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  color: var(--fg-3);
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.shop-page__unlock-note svg {
+  flex: 0 0 auto;
 }
 
 .shop-page__care-status-card {
@@ -250,6 +270,15 @@
   gap: 12px;
 }
 
+.shop-page__skin-card--locked {
+  border-color: rgba(45, 36, 24, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.shop-page__skin-card--locked .shop-page__skin-preview img {
+  filter: saturate(0.72) opacity(0.72);
+}
+
 .shop-page__skin-preview {
   aspect-ratio: 1 / 0.82;
   position: relative;
@@ -278,6 +307,21 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.shop-page__skin-lock {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 999px;
+  color: var(--fg-2);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 8px 14px rgba(45, 36, 24, 0.1);
 }
 
 .shop-page__skin-info {
@@ -601,6 +645,17 @@
 
   .shop-page__body {
     padding-inline: 18px;
+  }
+
+  .shop-page__section-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shop-page__unlock-note {
+    max-width: none;
+    justify-content: flex-start;
+    text-align: left;
   }
 
   .shop-page__skin-grid {

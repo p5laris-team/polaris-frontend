@@ -24,6 +24,30 @@ export type ShareCardResponse = {
   shareUrl: string;
 };
 
+/** 인증 없이 공개 공유 링크에서 조회하는 카드 정보입니다. */
+export type ShareLinkResponse = {
+  shareId: string;
+  characterName: string;
+  imageUrl: string;
+  headline: string;
+  signupUrl: string;
+};
+
+/** 공개 공유 링크 방문/CTA 클릭 로그 요청입니다. */
+export type RecordShareClickRequest = {
+  shareId: string;
+  referrer?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+};
+
+/** 공개 공유 링크 클릭 로그 응답입니다. */
+export type ShareClickResponse = {
+  shareId: string;
+  recorded: boolean;
+};
+
 /** 공유를 시도한 플랫폼입니다. Web Share API와 클립보드 fallback을 구분합니다. */
 export type SharePlatform = "WEB_SHARE" | "CLIPBOARD";
 

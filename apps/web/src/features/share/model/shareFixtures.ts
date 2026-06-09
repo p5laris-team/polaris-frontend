@@ -3,10 +3,14 @@ import {
   type CreateShareCardRequest,
   type CreateShareEventRequest,
   type PresignedUrlResponse,
+  type RecordShareClickRequest,
   type ShareCardResponse,
+  type ShareClickResponse,
   type ShareEventResponse,
+  type ShareLinkResponse,
   type TodayShareStatusResponse,
 } from "@/features/share/model/shareTypes";
+import { shareCardAssets } from "@/shared/assets/polarisAssets";
 
 const SHARE_REWARD_STAR_PIECE = 10;
 
@@ -60,4 +64,21 @@ export function demoCreateShareEvent(_body: CreateShareEventRequest): ShareEvent
 
 export function demoGetTodayShareStatus(): TodayShareStatusResponse {
   return { ...demoTodayShareStatus };
+}
+
+export function demoGetShareLink(shareId: string): ShareLinkResponse {
+  return {
+    shareId,
+    characterName: "노바",
+    imageUrl: shareCardAssets.backgrounds.default,
+    headline: "오늘도 조금 반짝였어요.",
+    signupUrl: "/login",
+  };
+}
+
+export function demoRecordShareClick(body: RecordShareClickRequest): ShareClickResponse {
+  return {
+    shareId: body.shareId,
+    recorded: true,
+  };
 }

@@ -13,13 +13,17 @@ import {
   useCharacterStatusQuery,
   useCreateCareLogMutation,
 } from "@/features/character/api/characterCareApi";
-import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  resolveCharacterGrowthAssetLevel,
+  resolveCharacterImageUrl,
+} from "@/features/character/model/characterAssetResolver";
 import {
   getCharacterCareIntro,
-  getCharacterCareItemShortageMessage,
   getCharacterCareReactionMessage,
 } from "@/features/character/model/characterCareMessages";
 import { type CareActionType } from "@/features/character/model/characterCareTypes";
+import { CharacterGrowthMeter } from "@/features/character/ui/CharacterGrowthMeter";
+import { CharacterTalkLaunchButton } from "@/features/character/ui/CharacterTalkLaunchButton";
 import { useInventoryConsumableItemsQuery } from "@/features/inventory/api/inventoryApi";
 import {
   type InventoryItemEffectType,
@@ -40,7 +44,11 @@ import {
   Tag,
   useToast,
 } from "@/shared/ui";
-import { consumableItemAssets, emptyStateAssets, type CharacterMood } from "@/shared/assets/polarisAssets";
+import {
+  consumableItemAssets,
+  emptyStateAssets,
+  type CharacterMood,
+} from "@/shared/assets/polarisAssets";
 
 import "./CharacterCarePage.css";
 
@@ -120,6 +128,7 @@ export function CharacterCarePage() {
 
   const character = activeCharacterQuery.data;
   const states = statusQuery.data?.states ?? character?.states;
+  const growth = statusQuery.data?.growth ?? character?.growth ?? null;
   const gauges = useMemo(() => (states ? toCareGauges(states) : []), [states]);
   const consumableItems = consumablesQuery.data?.items ?? [];
 
@@ -144,6 +153,7 @@ export function CharacterCarePage() {
     const feedbackImageUrl = resolveCharacterImageUrl({
       character: toCharacterKey(character.characterTypeCode),
       mood: preset.mood,
+      growth,
       equippedSkin: character.equippedSkin ?? null,
       assetUrls: character.assetUrls,
       fallbackUrl: character.currentAssetUrl,
@@ -170,12 +180,7 @@ export function CharacterCarePage() {
     if (!character) return;
 
     if (!item || item.quantity <= 0) {
-      showToast(
-        getCharacterCareItemShortageMessage(
-          toCharacterKey(character.characterTypeCode),
-          action.itemLabel,
-        ),
-      );
+      navigate(routes.shopCareItemPath(action.effectType));
       return;
     }
 
@@ -241,6 +246,7 @@ export function CharacterCarePage() {
     character: characterKey,
     mood,
     states,
+    growth,
     equippedSkin: character.equippedSkin ?? null,
     assetUrls: character.assetUrls,
     fallbackUrl: character.currentAssetUrl,
@@ -256,6 +262,7 @@ export function CharacterCarePage() {
             bubble={displayedCareMessage}
             character={characterKey}
             imageUrl={characterImageUrl}
+            growthLevel={resolveCharacterGrowthAssetLevel(growth)}
             mood={mood}
             name={character.name}
           />
@@ -269,6 +276,12 @@ export function CharacterCarePage() {
               </span>
             ))}
           </div>
+          <CharacterTalkLaunchButton
+            characterKey={characterKey}
+            characterName={character.name}
+            className="character-care-page__talk-launch"
+            onClick={() => navigate(routes.characterTalk)}
+          />
         </div>
 
         <section className="character-care-page__care-section" aria-label="돌봄 활동 선택">
@@ -287,7 +300,7 @@ export function CharacterCarePage() {
                   className={`character-care-page__care-action${
                     isUnavailable ? " character-care-page__care-action--empty" : ""
                   }`}
-                  disabled={careMutation.isPending || isUnavailable}
+                  disabled={careMutation.isPending}
                   key={action.type}
                   onClick={() => handleCare(action, item)}
                   type="button"
@@ -302,7 +315,7 @@ export function CharacterCarePage() {
                   <span className="character-care-page__care-action-item">
                     {item ? item.name : action.itemLabel}
                   </span>
-                  <em>{item ? `보유 ${item.quantity}개` : "보유 0개"}</em>
+                  <em>{isUnavailable ? "구매하기" : `보유 ${item.quantity}개`}</em>
                 </button>
               );
             })}
@@ -312,8 +325,14 @@ export function CharacterCarePage() {
         <Card className="character-care-page__status-card">
           <div className="character-care-page__section-title">
             <h2>상태 상세</h2>
-            <Tag variant={mood === "happy" ? "primary" : "neutral"}>Lv.1 별친구</Tag>
+            <Tag variant={mood === "happy" ? "primary" : "neutral"}>
+              {growth ? `Lv.${growth.level} ${growth.growthStageLabel}` : "성장 정보"}
+            </Tag>
           </div>
+          <CharacterGrowthMeter
+            className="character-care-page__growth-meter"
+            growth={growth}
+          />
           <div className="character-care-page__gauge-list">
             {gauges.map((gauge) => (
               <div className="character-care-page__gauge-item" key={gauge.key}>

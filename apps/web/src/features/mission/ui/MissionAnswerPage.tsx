@@ -10,7 +10,11 @@ import { useNavigate } from "react-router-dom";
 import { type MissionCompletionResultResponse } from "@/entities/mission/types";
 import { toCharacterKey } from "@/entities/character/types";
 import { useActiveCharacterQuery } from "@/features/character/api/characterCareApi";
-import { resolveCharacterImageUrl } from "@/features/character/model/characterAssetResolver";
+import {
+  resolveCharacterGrowthAssetLevel,
+  resolveCharacterImageUrl,
+} from "@/features/character/model/characterAssetResolver";
+import { formatCharacterSpeech } from "@/features/character/model/characterToneText";
 import { homeQueryKeys, useHomeQuery } from "@/features/home/api/homeApi";
 import {
   missionQueryKeys,
@@ -52,15 +56,22 @@ export function MissionAnswerPage() {
         id: homeQuery.data.character.id,
         key: toCharacterKey(homeQuery.data.character.characterTypeCode),
         name: homeQuery.data.character.name,
+        growth: homeQuery.data.character.growth ?? null,
       };
     }
 
     return character;
   }, [character, homeQuery.data?.character]);
+  const currentCharacterGrowth =
+    activeCharacterQuery.data?.growth ??
+    currentCharacter?.growth ??
+    homeQuery.data?.character?.growth ??
+    null;
   const characterImageUrl = currentCharacter
     ? resolveCharacterImageUrl({
         character: currentCharacter.key,
         mood: "happy",
+        growth: currentCharacterGrowth,
         equippedSkin: activeCharacterQuery.data?.equippedSkin ?? null,
         assetUrls: activeCharacterQuery.data?.assetUrls,
         fallbackUrl:
@@ -166,10 +177,15 @@ export function MissionAnswerPage() {
         {/* SCR-009 완료 질문: 완료 버튼 직후 보상 지급 전, 질문 1개와 1~300자 답변만 받는다. */}
         <CharacterStage
           character={currentCharacter.key}
+          growthLevel={resolveCharacterGrowthAssetLevel(currentCharacterGrowth)}
           imageUrl={characterImageUrl}
           mood="happy"
           name={currentCharacter.name}
-          bubble={completionQuestion?.question.text ?? "방금 한 일을 짧게 남겨볼까요?"}
+          bubble={formatCharacterSpeech(
+            currentCharacter.key,
+            completionQuestion?.question.text ?? "방금 한 일을 짧게 남겨볼까요?",
+            currentCharacter.name,
+          )}
         />
 
         <Card className="mission-answer__mission">

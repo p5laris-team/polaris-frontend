@@ -117,6 +117,13 @@
   border-radius: 15px;
 }
 
+.notifications-page__item-icon img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 7px rgba(65, 42, 24, 0.12));
+}
+
 .notifications-page__item-icon--mission {
   color: var(--primary-strong);
   background: var(--primary-soft);

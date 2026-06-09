@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 
 import { toCharacterKey } from "@/entities/character/types";
 import { type CurrentMissionResponse, type MissionStatus, type TodayMissionItem } from "@/entities/mission/types";
+import { formatCharacterSpeech } from "@/features/character/model/characterToneText";
 import { useHomeQuery } from "@/features/home/api/homeApi";
 import {
   useCurrentMissionQuery,
@@ -108,6 +109,8 @@ export function MissionHistoryPage() {
     100,
     Math.round((todayMissions.offeredCount / todayMissions.maxDailyOffers) * 100),
   );
+  const characterKey = toCharacterKey(homeQuery.data?.character?.characterTypeCode);
+  const characterName = homeQuery.data?.character?.name;
 
   const handleStartMission = (mission: CurrentMissionResponse) => {
     const character = homeQuery.data?.character;
@@ -147,7 +150,7 @@ export function MissionHistoryPage() {
   };
 
   return (
-    <MissionHistoryFrame>
+    <MissionHistoryFrame showBottomAd>
       <div className="mission-history__body">
         <Card className="mission-history__summary-card">
           <div className="mission-history__summary-icon" aria-hidden="true">
@@ -264,6 +267,8 @@ export function MissionHistoryPage() {
           <ol className="mission-history__list" aria-label="오늘 미션 스택">
             {filteredMissions.map((mission) => (
               <MissionHistoryItem
+                characterKey={characterKey}
+                characterName={characterName}
                 current={mission.id === todayMissions.currentMissionId}
                 key={mission.id}
                 mission={mission}
@@ -292,10 +297,14 @@ export function MissionHistoryPage() {
 
 /** 미션 기록 리스트의 단일 행입니다. 현재 미션만 버튼처럼 동작하고 과거 기록은 읽기 전용으로 둡니다. */
 function MissionHistoryItem({
+  characterKey,
+  characterName,
   current,
   mission,
   onClick,
 }: {
+  characterKey: ReturnType<typeof toCharacterKey>;
+  characterName?: string | null;
   current: boolean;
   mission: TodayMissionItem;
   onClick: () => void;
@@ -320,7 +329,9 @@ function MissionHistoryItem({
             <strong>{mission.title}</strong>
             <Tag variant={meta.tagVariant}>{meta.label}</Tag>
           </span>
-          <span className="mission-history__item-message">{mission.characterMessage}</span>
+          <span className="mission-history__item-message">
+            {formatCharacterSpeech(characterKey, mission.characterMessage, characterName)}
+          </span>
           {mission.answerPreview ? (
             <span className="mission-history__answer-preview">내 답변: {mission.answerPreview}</span>
           ) : null}
@@ -360,12 +371,18 @@ function mapTodayMissionToCurrentMission(
 }
 
 /** 미션 기록 화면에서 공통으로 쓰는 헤더, 하단 탭, shell 레이아웃입니다. */
-function MissionHistoryFrame({ children }: { children: ReactNode }) {
+function MissionHistoryFrame({
+  children,
+  showBottomAd = false,
+}: {
+  children: ReactNode;
+  showBottomAd?: boolean;
+}) {
   const navigate = useNavigate();
 
   return (
     <main className="mission-history">
-      <AppShell>
+      <AppShell showBottomAd={showBottomAd}>
         <Header title="미션 기록" onBack={() => navigate(routes.home)} />
         {children}
         <AppBottomNavigation />

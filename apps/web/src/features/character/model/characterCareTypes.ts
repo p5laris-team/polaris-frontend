@@ -4,6 +4,7 @@
  */
 import {
   type CharacterAssetUrls,
+  type CharacterGrowth,
   type CharacterStates,
   type CharacterTypeCode,
 } from "@/entities/character/types";
@@ -19,6 +20,7 @@ export type ActiveCharacterResponse = {
   currentAssetUrl: string;
   assetUrls?: CharacterAssetUrls;
   states: CharacterStates;
+  growth?: CharacterGrowth | null;
   equippedSkin?: {
     itemId: number;
     name: string;
@@ -29,6 +31,7 @@ export type ActiveCharacterResponse = {
 export type CharacterStatusResponse = {
   characterId: number;
   states: CharacterStates;
+  growth?: CharacterGrowth | null;
 };
 
 /** 돌봄 로그 생성 요청입니다. itemId는 소모품을 사용했을 때 함께 보냅니다. */
@@ -48,5 +51,9 @@ export type CharacterCareResultResponse = {
   } | null;
   beforeStates: Record<keyof CharacterStates, number>;
   afterStates: Record<keyof CharacterStates, number>;
+  beforeGrowth?: CharacterGrowth | null;
+  afterGrowth?: CharacterGrowth | null;
+  expGained?: number;
+  levelUp?: boolean;
   characterMessage: string;
 };

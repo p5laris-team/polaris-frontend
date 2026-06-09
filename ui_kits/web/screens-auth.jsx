@@ -2,13 +2,18 @@
    Polaris — Auth / Onboarding Screens
    ============================================================ */
 
+function getCharacterCoreAsset(character) {
+  const id = ["nova", "jjori", "mumu"].includes(character) ? character : "nova";
+  return `../../assets/characters/${id}/core/character-${id}-idle.png`;
+}
+
 /* ---------- 1. Google Login (SCR-002) ---------- */
 function LoginScreen({ onLogin }) {
   return (
     <div className="screen-enter" style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", padding: "40px 24px 32px" }}>
       <div className="login-hero" style={{ marginTop: "40px" }}>
         <div className="logo" style={{ width: 110, height: 110, margin: "0 auto 20px" }}>
-          <img src="../../assets/logomark.svg" alt="Polaris" style={{ width: "100%", height: "100%" }} />
+          <img src="../../assets/brand/logo/logomark.png" alt="Polaris" style={{ width: "100%", height: "100%" }} />
         </div>
         <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 26, color: "var(--fg-1)", letterSpacing: "-0.5px" }}>
           오늘 한 게 없다고?
@@ -132,9 +137,7 @@ function CharacterSelectScreen({ onNext, onBack }) {
 /* ---------- 3. Character Name Setting (SCR-004) ---------- */
 function CharacterNameScreen({ character, onNext, onBack }) {
   const [name, setName] = React.useState("");
-
-  const ext = ["nova", "jjori", "mumu"].includes(character) ? "png" : "svg";
-  const charImage = `../../assets/character-${character}.${ext}`;
+  const charImage = getCharacterCoreAsset(character);
 
   // 실시간 캐릭터 말풍선 멘트 구하기
   const getBubbleMessage = () => {
@@ -210,8 +213,7 @@ function OnboardingScreen({ character, name, onDone, onBack }) {
     missionIntensity: ""
   });
 
-  const ext = ["nova", "jjori", "mumu"].includes(character) ? "png" : "svg";
-  const charImage = `../../assets/character-${character}.${ext}`;
+  const charImage = getCharacterCoreAsset(character);
 
   // 7개 질문 구성
   const questions = [

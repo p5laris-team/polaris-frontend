@@ -64,11 +64,11 @@ npm install react-native-svg
 npm install -D react-native-svg-transformer
 ```
 
-캐릭터·일러스트 SVG는 `react-native-svg-transformer`로 그대로 import 가능:
+캐릭터·일러스트는 현재 PNG 에셋을 기준으로 사용합니다:
 
 ```jsx
-import Byeori from '../../assets/character-byeori.svg';
-<Byeori width={150} height={150} />
+import NovaIdle from '../../assets/characters/nova/core/character-nova-idle.png';
+<Image source={NovaIdle} style={{ width: 150, height: 150 }} />
 ```
 
 ### 6. 컴포넌트 골격 예시

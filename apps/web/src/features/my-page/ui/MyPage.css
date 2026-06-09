@@ -169,6 +169,55 @@
   padding: 8px;
 }
 
+.my-page__mission-preference-card {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.my-page__mission-preference-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(243, 179, 45, 0.22);
+  border-radius: 13px;
+  color: var(--primary-strong);
+  background: rgba(255, 242, 189, 0.52);
+}
+
+.my-page__mission-preference-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.my-page__mission-preference-copy strong {
+  color: var(--fg-1);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.my-page__mission-preference-copy p {
+  margin: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--fg-3);
+  font-size: 10.5px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.my-page__mission-preference-card .polaris-button {
+  width: auto;
+  min-width: 46px;
+}
+
 .my-page__weather-card {
   margin-bottom: 12px;
   padding: 14px;
@@ -189,10 +238,17 @@
   background: rgba(255, 242, 189, 0.52);
 }
 
+.my-page__weather-icon img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 7px rgba(65, 42, 24, 0.12));
+}
+
 .my-page__weather-copy {
   min-width: 0;
   display: grid;
-  gap: 4px;
+  gap: 5px;
 }
 
 .my-page__weather-copy strong {
@@ -552,6 +608,15 @@
 
   .my-page__weather-card {
     grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .my-page__mission-preference-card {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+  }
+
+  .my-page__mission-preference-card .polaris-button {
+    grid-column: auto;
+    width: auto;
   }
 
   .my-page__weather-card select,
