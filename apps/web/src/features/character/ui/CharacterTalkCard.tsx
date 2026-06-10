@@ -2,7 +2,7 @@
  * 별친구 대화/터치 반응 카드입니다.
  * 홈과 별친구 상세에서 같은 SSE 스트리밍, 멀티턴 sessionId, 터치 반응 흐름을 재사용합니다.
  */
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Hand, SendHorizontal } from "lucide-react";
 
 import {
@@ -12,6 +12,7 @@ import {
 import { formatCharacterInteractionText } from "@/features/character/model/characterToneText";
 import {
   type CharacterInteractionResponse,
+  type CharacterTalkDisplayMessage,
   type CharacterTalkMeta,
 } from "@/features/character/model/characterTalkTypes";
 import { getUserFacingErrorMessage } from "@/shared/api";
@@ -25,14 +26,6 @@ import { Card, useToast } from "@/shared/ui";
 
 import "./CharacterTalkCard.css";
 
-type TalkMessage = {
-  id: string;
-  role: "user" | "character";
-  text: string;
-  pending?: boolean;
-  fallbackUsed?: boolean;
-};
-
 type RevealState = {
   fullText: string;
   timer: number | null;
@@ -44,18 +37,28 @@ type CharacterTalkCardProps = {
   characterKey: CharacterKey;
   characterName: string;
   className?: string;
+  historyLoading?: boolean;
+  initialMessages?: CharacterTalkDisplayMessage[];
+  initialSessionId?: string | null;
   onInteractionMessage?: (message: string, result: CharacterInteractionResponse) => void;
+  onConversationUpdated?: () => void;
   showInteractionButton?: boolean;
   title?: string;
   variant?: "compact" | "full";
 };
+
+const EMPTY_TALK_MESSAGES: CharacterTalkDisplayMessage[] = [];
 
 export function CharacterTalkCard({
   characterId,
   characterKey,
   characterName,
   className,
+  historyLoading = false,
+  initialMessages = EMPTY_TALK_MESSAGES,
+  initialSessionId = null,
   onInteractionMessage,
+  onConversationUpdated,
   showInteractionButton = true,
   title = "별친구에게 말 걸기",
   variant = "full",
@@ -64,13 +67,16 @@ export function CharacterTalkCard({
   const interactionMutation = useCharacterInteractionMutation();
   const [interaction, setInteraction] = useState<CharacterInteractionResponse | null>(null);
   const [talkInput, setTalkInput] = useState("");
-  const [talkMessages, setTalkMessages] = useState<TalkMessage[]>([]);
+  const [talkMessages, setTalkMessages] = useState<CharacterTalkDisplayMessage[]>(initialMessages);
   const [talkMeta, setTalkMeta] = useState<CharacterTalkMeta | null>(null);
-  const [talkSessionId, setTalkSessionId] = useState<string | null>(null);
+  const [talkSessionId, setTalkSessionId] = useState<string | null>(initialSessionId);
   const [isTalkStreaming, setIsTalkStreaming] = useState(false);
   const talkAbortRef = useRef<AbortController | null>(null);
   const talkLogRef = useRef<HTMLDivElement | null>(null);
   const revealRef = useRef<Record<string, RevealState>>({});
+  const historySyncKeyRef = useRef("");
+  const localConversationDirtyRef = useRef(false);
+  const lastSubmittedTextRef = useRef<string | null>(null);
 
   useEffect(() => {
     setInteraction(null);
@@ -78,10 +84,35 @@ export function CharacterTalkCard({
     setTalkMessages([]);
     setTalkMeta(null);
     setTalkSessionId(null);
+    historySyncKeyRef.current = "";
+    localConversationDirtyRef.current = false;
+    lastSubmittedTextRef.current = null;
     talkAbortRef.current?.abort();
     clearRevealTimers(revealRef.current);
     revealRef.current = {};
   }, [characterId]);
+
+  useEffect(() => {
+    if (isTalkStreaming) {
+      return;
+    }
+
+    const historySyncKey = buildHistorySyncKey(initialMessages, initialSessionId);
+
+    if (historySyncKeyRef.current === historySyncKey) {
+      return;
+    }
+
+    if (localConversationDirtyRef.current && !hasSubmittedMessage(initialMessages, lastSubmittedTextRef.current)) {
+      return;
+    }
+
+    historySyncKeyRef.current = historySyncKey;
+    localConversationDirtyRef.current = false;
+    lastSubmittedTextRef.current = null;
+    setTalkMessages(limitTalkMessages(initialMessages));
+    setTalkSessionId(initialSessionId);
+  }, [initialMessages, initialSessionId, isTalkStreaming]);
 
   useEffect(
     () => () => {
@@ -144,7 +175,7 @@ export function CharacterTalkCard({
     if (!message) return;
 
     const now = Date.now();
-    const userMessage: TalkMessage = {
+    const userMessage: CharacterTalkDisplayMessage = {
       id: `user-${now}`,
       role: "user",
       text: message,
@@ -155,6 +186,8 @@ export function CharacterTalkCard({
     let fallbackUsed = false;
     const controller = new AbortController();
 
+    localConversationDirtyRef.current = true;
+    lastSubmittedTextRef.current = message;
     setTalkInput("");
     setIsTalkStreaming(true);
     setTalkMessages((messages) =>
@@ -220,6 +253,7 @@ export function CharacterTalkCard({
         receivedText.trim() ? receivedText : "지금은 별빛 연결이 조금 느려요. 잠시 뒤에 다시 말해줘요.",
         fallbackUsed,
       );
+      onConversationUpdated?.();
     } catch (error) {
       if (controller.signal.aborted) return;
 
@@ -238,6 +272,15 @@ export function CharacterTalkCard({
       }
       setIsTalkStreaming(false);
     }
+  };
+
+  const handleTalkKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
   };
 
   const queueTalkReveal = (messageId: string, fullText: string) => {
@@ -392,7 +435,13 @@ export function CharacterTalkCard({
           ) : (
             <div className="character-talk-card__empty">
               <img src={emptyStateAssets.talk} alt="" />
-              <span>{variant === "compact" ? "톡 누르거나 한마디 남겨보세요." : "아직 나눈 이야기가 없어요."}</span>
+              <span>
+                {historyLoading
+                  ? "오늘의 이야기를 불러오는 중이에요."
+                  : variant === "compact"
+                    ? "톡 누르거나 한마디 남겨보세요."
+                    : "아직 나눈 이야기가 없어요."}
+              </span>
             </div>
           )}
         </div>
@@ -402,6 +451,7 @@ export function CharacterTalkCard({
             aria-label="별친구에게 보낼 말"
             disabled={isTalkStreaming}
             maxLength={160}
+            onKeyDown={handleTalkKeyDown}
             onChange={(event) => setTalkInput(event.target.value)}
             placeholder={`${characterName}에게 오늘 기분을 말해보세요`}
             rows={variant === "compact" ? 1 : 2}
@@ -436,12 +486,33 @@ function clearRevealTimers(states: Record<string, RevealState>) {
   });
 }
 
-function updateTalkMessage(messages: TalkMessage[], messageId: string, patch: Partial<TalkMessage>) {
+function updateTalkMessage(
+  messages: CharacterTalkDisplayMessage[],
+  messageId: string,
+  patch: Partial<CharacterTalkDisplayMessage>,
+) {
   return messages.map((message) => (message.id === messageId ? { ...message, ...patch } : message));
 }
 
-function limitTalkMessages(messages: TalkMessage[]) {
-  return messages.slice(-12);
+function limitTalkMessages(messages: CharacterTalkDisplayMessage[]) {
+  // 하루 20턴 대화 원문을 복원할 수 있도록 넉넉히 유지한다.
+  return messages.slice(-80);
+}
+
+function buildHistorySyncKey(messages: CharacterTalkDisplayMessage[], sessionId: string | null) {
+  return [
+    sessionId ?? "",
+    messages.length,
+    messages.map((message) => `${message.id}:${message.role}:${message.text}`).join("|"),
+  ].join("::");
+}
+
+function hasSubmittedMessage(messages: CharacterTalkDisplayMessage[], submittedText: string | null) {
+  if (!submittedText) {
+    return false;
+  }
+
+  return messages.some((message) => message.role === "user" && message.text.trim() === submittedText);
 }
 
 function getTalkAvatarAsset(characterKey: CharacterKey) {
