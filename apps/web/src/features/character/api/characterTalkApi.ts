@@ -315,13 +315,13 @@ function demoGetCharacterTalkDiaries(
     items: [
       {
         date: today,
-        summary: "회사에서 지쳤던 마음을 말했고, 별친구는 잠깐 기대어 쉬어도 괜찮다고 다정하게 받아줬어요.",
+        summary: "오늘 나는 별친구와 회사에서 지쳤던 마음을 이야기했다. 별친구는 잠깐 기대어 쉬어도 괜찮다고 다정하게 받아줬다.",
         sourceSessionId: 1,
         createdAt: `${today}T23:59:00+09:00`,
       },
       {
         date: formatLocalDateKey(addDays(new Date(), -1)),
-        summary: "작은 루틴을 해낸 뒤 스스로를 조금 더 믿어보기로 했어요.",
+        summary: "오늘 나는 작은 루틴을 해낸 이야기를 별친구와 나눴다. 나는 스스로를 조금 더 믿어 보기로 했다.",
         sourceSessionId: 2,
         createdAt: `${formatLocalDateKey(addDays(new Date(), -1))}T23:59:00+09:00`,
       },

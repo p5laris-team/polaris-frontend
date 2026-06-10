@@ -1,8 +1,8 @@
 /**
  * 별친구와 SSE 멀티턴 대화를 나누는 전용 화면입니다.
  */
-import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useState } from "react";
-import { BookOpenText, MessageCircle } from "lucide-react";
+import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { BookOpenText, ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
@@ -31,7 +31,6 @@ import { routes } from "@/routes/paths";
 import { getUserFacingErrorMessage } from "@/shared/api";
 import {
   AppShell,
-  Card,
   ErrorState,
   Header,
 } from "@/shared/ui";
@@ -61,14 +60,15 @@ export function CharacterTalkPage() {
   const characterId = activeCharacterQuery.data?.id ?? null;
   const statusQuery = useCharacterStatusQuery(characterId);
   const todayKey = useMemo(() => formatLocalDateKey(new Date()), []);
+  const [diaryWindowEndDate, setDiaryWindowEndDate] = useState(todayKey);
   const diaryRange = useMemo(() => {
-    const today = new Date();
+    const endDate = parseLocalDate(diaryWindowEndDate);
 
     return {
-      fromDate: formatLocalDateKey(addDays(today, -29)),
-      toDate: formatLocalDateKey(today),
+      fromDate: formatLocalDateKey(addDays(endDate, -29)),
+      toDate: diaryWindowEndDate,
     };
-  }, []);
+  }, [diaryWindowEndDate]);
   const [selectedDiaryDate, setSelectedDiaryDate] = useState(todayKey);
   const messagesQuery = useCharacterTalkMessagesQuery(characterId, todayKey);
   const diariesQuery = useCharacterTalkDiariesQuery(characterId, diaryRange.fromDate, diaryRange.toDate);
@@ -198,10 +198,24 @@ export function CharacterTalkPage() {
             days={diaryDays}
             isError={diariesQuery.isError}
             isLoading={diariesQuery.isLoading}
+            canMoveToNewerRange={diaryWindowEndDate < todayKey}
             onRetry={() => {
               void diariesQuery.refetch();
             }}
+            onMoveRange={(direction) => {
+              const currentEndDate = parseLocalDate(diaryWindowEndDate);
+              const nextEndDate = formatLocalDateKey(addDays(currentEndDate, direction * 30));
+              const boundedEndDate = nextEndDate > todayKey ? todayKey : nextEndDate;
+
+              setDiaryWindowEndDate(boundedEndDate);
+              setSelectedDiaryDate(boundedEndDate);
+            }}
             onSelectDate={setSelectedDiaryDate}
+            rangeLabel={formatDiaryRangeLabel(
+              diaryRange.fromDate,
+              diaryRange.toDate,
+              diaryWindowEndDate === todayKey,
+            )}
             selectedDay={selectedDiaryDay}
             selectedDate={selectedDiaryDate}
           />
@@ -248,8 +262,11 @@ function CharacterTalkDiarySection({
   days,
   isError,
   isLoading,
+  canMoveToNewerRange,
+  onMoveRange,
   onRetry,
   onSelectDate,
+  rangeLabel,
   selectedDay,
   selectedDate,
 }: {
@@ -257,17 +274,43 @@ function CharacterTalkDiarySection({
   days: CharacterTalkDiaryDay[];
   isError: boolean;
   isLoading: boolean;
+  canMoveToNewerRange: boolean;
+  onMoveRange: (direction: -1 | 1) => void;
   onRetry: () => void;
   onSelectDate: (date: string) => void;
+  rangeLabel: string;
   selectedDay: CharacterTalkDiaryDay | null;
   selectedDate: string;
 }) {
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const dateStripRef = useRef<HTMLDivElement | null>(null);
   const expanded = Boolean(selectedDay?.date && expandedDate === selectedDay.date);
 
   useEffect(() => {
     setExpandedDate(null);
   }, [selectedDate]);
+
+  useEffect(() => {
+    const selectedButton = dateStripRef.current?.querySelector<HTMLButtonElement>(
+      `[data-diary-date="${selectedDate}"]`,
+    );
+    const dateStrip = dateStripRef.current;
+
+    if (!dateStrip || !selectedButton) return;
+
+    const nextLeft = selectedButton.offsetLeft - dateStrip.clientWidth / 2 + selectedButton.clientWidth / 2;
+    dateStrip.scrollTo({
+      left: Math.max(0, nextLeft),
+      behavior: "smooth",
+    });
+  }, [days, selectedDate]);
+
+  const scrollDateStrip = (direction: -1 | 1) => {
+    dateStripRef.current?.scrollBy({
+      left: direction * 220,
+      behavior: "smooth",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -296,46 +339,92 @@ function CharacterTalkDiarySection({
   if (!days.length) {
     return (
       <section className="character-talk-page__diary" aria-label="기억 일기">
-        <Card className="character-talk-page__diary-empty">
+        <div className="character-talk-page__diary-empty">
           <img src={emptyStateAssets.memory} alt="" />
           <strong>아직 남겨진 기억 일기가 없어요.</strong>
           <p>{characterName}와 하루를 더 나누면, 작은 마음 조각들이 여기에 차곡차곡 남아요.</p>
-        </Card>
+        </div>
       </section>
     );
   }
 
   return (
     <section className="character-talk-page__diary" aria-label="기억 일기">
-      <div className="character-talk-page__diary-date-strip" aria-label="기억 일기 날짜 선택">
-        <span className="character-talk-page__diary-date-strip-label">최근 30일</span>
-        {days.map((day) => (
+      <div className="character-talk-page__diary-date-controls">
+        <div className="character-talk-page__diary-range">
           <button
-            className={day.date === selectedDate ? "is-active" : ""}
-            key={day.date}
-            onClick={() => onSelectDate(day.date)}
+            aria-label="이전 30일 보기"
+            className="character-talk-page__diary-range-button"
+            onClick={() => onMoveRange(-1)}
             type="button"
           >
-            <strong>{formatDiaryDayNumber(day.date)}</strong>
-            <span>{formatDiaryWeekday(day.date)}</span>
-            {day.items.length ? <small>{day.items.length}</small> : null}
+            <ChevronLeft size={14} strokeWidth={2.4} />
+            <span>이전</span>
           </button>
-        ))}
+          <strong>{rangeLabel}</strong>
+          <button
+            aria-label="다음 30일 보기"
+            className="character-talk-page__diary-range-button"
+            disabled={!canMoveToNewerRange}
+            onClick={() => onMoveRange(1)}
+            type="button"
+          >
+            <span>다음</span>
+            <ChevronRight size={14} strokeWidth={2.4} />
+          </button>
+        </div>
+
+        <div className="character-talk-page__diary-date-row">
+          <button
+            aria-label="이전 날짜 보기"
+            className="character-talk-page__diary-date-nav"
+            onClick={() => scrollDateStrip(-1)}
+            type="button"
+          >
+            <ChevronLeft size={16} strokeWidth={2.4} />
+          </button>
+          <div className="character-talk-page__diary-date-strip" ref={dateStripRef} aria-label="기억 일기 날짜 선택">
+            {days.map((day) => (
+              <button
+                aria-label={`${formatDiaryDate(day.date)} ${
+                  day.items.length ? `${day.items.length}개의 기억 일기` : "기억 일기 없음"
+                }`}
+                className={day.date === selectedDate ? "is-active" : ""}
+                data-diary-date={day.date}
+                key={day.date}
+                onClick={() => onSelectDate(day.date)}
+                type="button"
+              >
+                <strong>{formatDiaryDayNumber(day.date)}</strong>
+                <span className="character-talk-page__diary-date-weekday">{formatDiaryWeekday(day.date)}</span>
+                {day.items.length ? <span className="character-talk-page__diary-date-dot" aria-hidden="true" /> : null}
+              </button>
+            ))}
+          </div>
+          <button
+            aria-label="더 최근 날짜 보기"
+            className="character-talk-page__diary-date-nav"
+            onClick={() => scrollDateStrip(1)}
+            type="button"
+          >
+            <ChevronRight size={16} strokeWidth={2.4} />
+          </button>
+        </div>
       </div>
 
       {selectedDay?.items.length ? (
-        <article className="character-talk-page__diary-card" key={selectedDay.date}>
+        <article
+          className={[
+            "character-talk-page__diary-card",
+            expanded ? "character-talk-page__diary-card--expanded" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          key={selectedDay.date}
+        >
           <img className="character-talk-page__diary-bg" src={memoryAssets.cardBg} alt="" />
           <img className="character-talk-page__diary-glow" src={memoryAssets.unlockedGlow} alt="" />
-          <button
-            aria-expanded={expanded}
-            className="character-talk-page__diary-card-main"
-            onClick={() => setExpandedDate(expanded ? null : selectedDay.date)}
-            onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
-              if (event.key === "Escape") setExpandedDate(null);
-            }}
-            type="button"
-          >
+          <div className="character-talk-page__diary-paper">
             <div className="character-talk-page__diary-icon">
               <img src={memoryAssets.fragmentLore} alt="" />
             </div>
@@ -343,20 +432,31 @@ function CharacterTalkDiarySection({
               <span>{formatDiaryDate(selectedDay.date)}</span>
               <strong>{formatDiaryTitle(selectedDay.date)}</strong>
               <p>{formatDiaryPreview(selectedDay.summary, characterName)}</p>
-              <small>
-                {expanded
-                  ? "접기"
-                  : selectedDay.items.length > 1
-                    ? `${selectedDay.items.length}개의 대화 조각 자세히 보기`
-                    : "대화 조각 자세히 보기"}
-              </small>
             </div>
+          </div>
+
+          <button
+            aria-expanded={expanded}
+            className="character-talk-page__diary-toggle"
+            onClick={() => setExpandedDate(expanded ? null : selectedDay.date)}
+            onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+              if (event.key === "Escape") setExpandedDate(null);
+            }}
+            type="button"
+          >
+            <span>
+              {expanded
+                ? "일기 조각 접기"
+                : selectedDay.items.length > 1
+                  ? `${selectedDay.items.length}개의 일기 조각 보기`
+                  : "일기 조각 보기"}
+            </span>
           </button>
 
           {expanded ? (
             <div className="character-talk-page__diary-detail">
               <div className="character-talk-page__diary-detail-head">
-                <strong>그날의 대화 조각</strong>
+                <strong>그날의 일기 조각</strong>
                 <span>{selectedDay.items.length}개</span>
               </div>
               {selectedDay.items.map((item) => (
@@ -369,11 +469,11 @@ function CharacterTalkDiarySection({
           ) : null}
         </article>
       ) : (
-        <Card className="character-talk-page__diary-empty character-talk-page__diary-empty--selected">
+        <div className="character-talk-page__diary-empty character-talk-page__diary-empty--selected">
           <img src={emptyStateAssets.memory} alt="" />
           <strong>{formatDiaryDate(selectedDay?.date ?? selectedDate)}에는 아직 일기가 없어요.</strong>
           <p>그날 {characterName}와 조금 더 이야기하면, 하루의 마음 조각이 여기에 남아요.</p>
-        </Card>
+        </div>
       )}
     </section>
   );
@@ -396,6 +496,10 @@ function addDays(date: Date, amount: number) {
   return next;
 }
 
+function parseLocalDate(value: string) {
+  return new Date(`${value}T00:00:00+09:00`);
+}
+
 function formatLocalDateKey(date: Date) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 10);
@@ -407,7 +511,7 @@ function groupDiaryItemsByDate(items: CharacterTalkDiaryItem[], fromDate: string
     grouped.set(item.date, [...(grouped.get(item.date) ?? []), item]);
   });
 
-  return enumerateDatesDesc(fromDate, toDate).map((date) => {
+  return enumerateDatesAsc(fromDate, toDate).map((date) => {
     const dayItems = [...(grouped.get(date) ?? [])].sort((left, right) =>
       right.createdAt.localeCompare(left.createdAt),
     );
@@ -421,14 +525,14 @@ function groupDiaryItemsByDate(items: CharacterTalkDiaryItem[], fromDate: string
   });
 }
 
-function enumerateDatesDesc(fromDate: string, toDate: string) {
+function enumerateDatesAsc(fromDate: string, toDate: string) {
   const dates: string[] = [];
-  const cursor = new Date(`${toDate}T00:00:00+09:00`);
-  const end = new Date(`${fromDate}T00:00:00+09:00`);
+  const cursor = new Date(`${fromDate}T00:00:00+09:00`);
+  const end = new Date(`${toDate}T00:00:00+09:00`);
 
-  while (cursor >= end) {
+  while (cursor <= end) {
     dates.push(formatLocalDateKey(cursor));
-    cursor.setDate(cursor.getDate() - 1);
+    cursor.setDate(cursor.getDate() + 1);
   }
 
   return dates;
@@ -462,6 +566,18 @@ function formatDiaryWeekday(value: string) {
   }).format(new Date(`${value}T00:00:00+09:00`));
 }
 
+function formatDiaryRangeLabel(fromDate: string, toDate: string, isCurrentRange: boolean) {
+  if (isCurrentRange) return "최근 30일";
+  return `${formatDiaryShortDate(fromDate)} - ${formatDiaryShortDate(toDate)}`;
+}
+
+function formatDiaryShortDate(value: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "numeric",
+    day: "numeric",
+  }).format(new Date(`${value}T00:00:00+09:00`));
+}
+
 function formatDiaryTime(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     hour: "2-digit",
@@ -476,22 +592,75 @@ function formatDiaryTitle(value: string) {
 }
 
 function formatDiaryPreview(summary: string, characterName: string) {
-  return toDiaryLines(summary, characterName)
-    .slice(0, 6)
+  return toDiaryParagraphs(summary, characterName)
+    .slice(0, 3)
     .join("\n");
 }
 
 function formatDiaryDetail(summary: string, characterName: string) {
-  return toDiaryLines(summary, characterName).join("\n");
+  return toDiaryParagraphs(summary, characterName).join("\n");
 }
 
-function toDiaryLines(summary: string, characterName: string) {
+function toDiaryParagraphs(summary: string, characterName: string) {
+  if (!isLegacyDiarySummary(summary)) {
+    return splitDiaryParagraphs(summary);
+  }
+
+  const turns = parseDiaryTurns(summary);
+  if (!turns.length) {
+    return splitDiaryParagraphs(normalizeDiarySummary(summary));
+  }
+
+  return turns
+    .map((turn) => {
+      const text = cleanDiaryText(turn.content);
+      if (!text) return "";
+      return turn.role === "user" ? `나는 ${text}` : `${characterName}는 ${text}`;
+    })
+    .filter(Boolean);
+}
+
+function isLegacyDiarySummary(summary: string) {
+  const value = normalizeDiarySummary(summary);
+  return /^\s*이전 대화 요약:\s*/.test(summary) || /(사용자|별친구):\s*/.test(value);
+}
+
+function splitDiaryParagraphs(summary: string) {
   return normalizeDiarySummary(summary)
-    .replace(/\s*사용자:\s*/g, "\n나: ")
-    .replace(/\s*별친구:\s*/g, `\n${characterName}: `)
-    .split("\n")
+    .split(/\n+/)
     .map((line) => line.replace(/\s+/g, " ").trim())
     .filter(Boolean);
+}
+
+function parseDiaryTurns(summary: string) {
+  const value = normalizeDiarySummary(summary);
+  const markers = [...value.matchAll(/(사용자|별친구):\s*/g)];
+  if (!markers.length) return [];
+
+  return markers
+    .map((marker, index) => {
+      const nextMarker = markers[index + 1];
+      const start = (marker.index ?? 0) + marker[0].length;
+      const end = nextMarker?.index ?? value.length;
+
+      return {
+        role: marker[1] === "사용자" ? "user" : "character",
+        content: value.slice(start, end).trim(),
+      };
+    })
+    .filter((turn) => turn.content);
+}
+
+function cleanDiaryText(value: string) {
+  const unquoted = value
+    .replace(/^["“”]+|["“”]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const interpretation = unquoted.match(/\(해석:\s*([\s\S]*?)\)\s*$/);
+
+  return (interpretation?.[1] ?? unquoted)
+    .replace(/^["“”]+|["“”]+$/g, "")
+    .trim();
 }
 
 function normalizeDiarySummary(summary: string) {
