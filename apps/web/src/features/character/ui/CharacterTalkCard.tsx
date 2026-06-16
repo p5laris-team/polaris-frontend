@@ -26,12 +26,6 @@ import { Card, useToast } from "@/shared/ui";
 
 import "./CharacterTalkCard.css";
 
-type RevealState = {
-  fullText: string;
-  timer: number | null;
-  visibleLength: number;
-};
-
 type CharacterTalkCardProps = {
   characterId: number;
   characterKey: CharacterKey;
@@ -73,7 +67,6 @@ export function CharacterTalkCard({
   const [isTalkStreaming, setIsTalkStreaming] = useState(false);
   const talkAbortRef = useRef<AbortController | null>(null);
   const talkLogRef = useRef<HTMLDivElement | null>(null);
-  const revealRef = useRef<Record<string, RevealState>>({});
   const historySyncKeyRef = useRef("");
   const localConversationDirtyRef = useRef(false);
   const lastSubmittedTextRef = useRef<string | null>(null);
@@ -88,8 +81,6 @@ export function CharacterTalkCard({
     localConversationDirtyRef.current = false;
     lastSubmittedTextRef.current = null;
     talkAbortRef.current?.abort();
-    clearRevealTimers(revealRef.current);
-    revealRef.current = {};
   }, [characterId]);
 
   useEffect(() => {
@@ -117,7 +108,6 @@ export function CharacterTalkCard({
   useEffect(
     () => () => {
       talkAbortRef.current?.abort();
-      clearRevealTimers(revealRef.current);
     },
     [],
   );
@@ -221,7 +211,12 @@ export function CharacterTalkCard({
         },
         onDelta: (text) => {
           receivedText += text;
-          queueTalkReveal(characterMessageId, receivedText);
+          setTalkMessages((messages) =>
+            updateTalkMessage(messages, characterMessageId, {
+              pending: true,
+              text: receivedText,
+            }),
+          );
         },
         onDone: (done) => {
           fallbackUsed = done.fallbackUsed;
@@ -248,10 +243,12 @@ export function CharacterTalkCard({
         setTalkSessionId(nextSessionId);
       }
 
-      await finishTalkReveal(
-        characterMessageId,
-        receivedText.trim() ? receivedText : "지금은 별빛 연결이 조금 느려요. 잠시 뒤에 다시 말해줘요.",
-        fallbackUsed,
+      setTalkMessages((messages) =>
+        updateTalkMessage(messages, characterMessageId, {
+          fallbackUsed,
+          pending: false,
+          text: receivedText.trim() ? receivedText : "지금은 별빛 연결이 조금 느려요. 잠시 뒤에 다시 말해줘요.",
+        }),
       );
       onConversationUpdated?.();
     } catch (error) {
@@ -281,73 +278,6 @@ export function CharacterTalkCard({
 
     event.preventDefault();
     event.currentTarget.form?.requestSubmit();
-  };
-
-  const queueTalkReveal = (messageId: string, fullText: string) => {
-    const state = getRevealState(messageId);
-    state.fullText = fullText;
-    startRevealTimer(messageId, state);
-  };
-
-  const finishTalkReveal = (messageId: string, fullText: string, doneFallbackUsed: boolean) => {
-    const state = revealRef.current[messageId];
-
-    if (state?.timer) {
-      window.clearInterval(state.timer);
-    }
-
-    delete revealRef.current[messageId];
-    setTalkMessages((messages) =>
-      updateTalkMessage(messages, messageId, {
-        fallbackUsed: doneFallbackUsed,
-        pending: false,
-        text: fullText,
-      }),
-    );
-
-    return Promise.resolve();
-  };
-
-  const getRevealState = (messageId: string) => {
-    const current = revealRef.current[messageId];
-
-    if (current) {
-      return current;
-    }
-
-    const next: RevealState = {
-      fullText: "",
-      timer: null,
-      visibleLength: 0,
-    };
-    revealRef.current[messageId] = next;
-    return next;
-  };
-
-  const startRevealTimer = (messageId: string, state: RevealState) => {
-    if (state.timer) {
-      return;
-    }
-
-    state.timer = window.setInterval(() => {
-      const current = revealRef.current[messageId];
-      if (!current) {
-        return;
-      }
-
-      if (current.visibleLength < current.fullText.length) {
-        const gap = current.fullText.length - current.visibleLength;
-        current.visibleLength = Math.min(current.fullText.length, current.visibleLength + (gap > 9 ? 2 : 1));
-        setTalkMessages((messages) =>
-          updateTalkMessage(messages, messageId, {
-            text: current.fullText.slice(0, current.visibleLength),
-            pending: true,
-          }),
-        );
-        return;
-      }
-
-    }, 24);
   };
 
   const talkLimitLabel = formatTalkLimit(talkMeta);
@@ -476,14 +406,6 @@ export function CharacterTalkCard({
       </Card>
     </section>
   );
-}
-
-function clearRevealTimers(states: Record<string, RevealState>) {
-  Object.values(states).forEach((state) => {
-    if (state.timer) {
-      window.clearInterval(state.timer);
-    }
-  });
 }
 
 function updateTalkMessage(
