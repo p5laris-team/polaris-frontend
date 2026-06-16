@@ -15,8 +15,8 @@ docs/
 
 | 문서 | 역할 |
 |---|---|
-| [PRD.md](./product/PRD.md) | Polaris MVP 제품 요구사항 |
-| [07-Screen-Design-Specification.md](./product/07-Screen-Design-Specification.md) | MVP 화면 목록, 화면별 동작, 라우팅/컴포넌트 기준 |
+| [PRD.md](./product/PRD.md) | Polaris 운영 v1.0 제품 요구사항 |
+| [07-Screen-Design-Specification.md](./product/07-Screen-Design-Specification.md) | 운영 화면 목록, 화면별 동작, 라우팅/컴포넌트 기준 |
 
 ## API
 
