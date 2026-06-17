@@ -343,7 +343,6 @@ export function CharacterTalkCard({
                   "character-talk-card__message",
                   `character-talk-card__message--${message.role}`,
                   message.pending ? "character-talk-card__message--pending" : "",
-                  message.fallbackUsed ? "character-talk-card__message--fallback" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -358,7 +357,7 @@ export function CharacterTalkCard({
                 ) : null}
                 <span className="character-talk-card__bubble">
                   {message.text ? <p>{message.text}</p> : null}
-                  {message.pending ? <img src={talkAssets.typingDots} alt="" /> : null}
+                  {message.pending && !message.text ? <img src={talkAssets.typingDots} alt="" /> : null}
                 </span>
               </div>
             ))

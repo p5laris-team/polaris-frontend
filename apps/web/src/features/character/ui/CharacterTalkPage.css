@@ -10,13 +10,13 @@
 .character-talk-page__hero {
   position: relative;
   flex: 0 0 auto;
-  min-height: 122px;
+  min-height: 104px;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 92px;
+  grid-template-columns: minmax(0, 1fr) 82px;
   align-items: end;
-  gap: 10px;
-  padding: 16px 16px 12px;
+  gap: 8px;
+  padding: 13px 15px 10px;
   border: 1px solid rgba(201, 160, 104, 0.24);
   border-radius: 22px;
   background:
@@ -42,17 +42,17 @@
 
 .character-talk-page__hero-copy {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   align-self: center;
 }
 
 .character-talk-page__hero-copy span {
   width: fit-content;
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: 999px;
   color: var(--accent-strong);
   background: rgba(255, 255, 255, 0.66);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
   line-height: 1;
 }
@@ -61,7 +61,7 @@
   margin: 0;
   color: var(--fg-1);
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 900;
   line-height: 1.08;
 }
@@ -69,7 +69,7 @@
 .character-talk-page__hero-copy p {
   margin: 0;
   color: var(--fg-3);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 850;
   line-height: 1.35;
 }
@@ -77,18 +77,18 @@
 .character-talk-page__character {
   justify-self: center;
   align-self: end;
-  width: 84px;
-  height: 96px;
+  width: 74px;
+  height: 84px;
   object-fit: contain;
   filter: drop-shadow(0 18px 18px rgba(65, 42, 24, 0.16));
 }
 
 .character-talk-page__character--lv1 {
-  width: 52px;
+  width: 46px;
 }
 
 .character-talk-page__character--lv2 {
-  width: 68px;
+  width: 60px;
 }
 
 .character-talk-page__conversation {
@@ -138,7 +138,7 @@
 
 .character-talk-page__tabs {
   flex: 0 0 auto;
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 4px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -656,7 +656,7 @@
 }
 
 .character-talk-page__skeleton--hero {
-  min-height: 122px;
+  min-height: 104px;
 }
 
 .character-talk-page__skeleton--conversation {
@@ -679,24 +679,24 @@
   }
 
   .character-talk-page__hero {
-    grid-template-columns: minmax(0, 1fr) 84px;
-    min-height: 118px;
+    grid-template-columns: minmax(0, 1fr) 76px;
+    min-height: 100px;
   }
 
   .character-talk-page__hero-copy h2 {
-    font-size: 21px;
+    font-size: 18px;
   }
 
   .character-talk-page__character {
-    width: 76px;
-    height: 88px;
+    width: 68px;
+    height: 78px;
   }
 
   .character-talk-page__character--lv1 {
-    width: 50px;
+    width: 44px;
   }
 
   .character-talk-page__character--lv2 {
-    width: 64px;
+    width: 56px;
   }
 }
