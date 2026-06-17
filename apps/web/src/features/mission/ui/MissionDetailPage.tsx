@@ -175,7 +175,9 @@ export function MissionDetailPage() {
   };
 
   return (
-    <MissionDetailFrame showBottomAd>
+    // TODO: AdSense 승인과 슬롯 높이 안정성이 확인되면 다시 활성화합니다.
+    // 하단 광고가 채워진 뒤 앱 shell 높이를 바꿔 미션 상세 화면이 튀는 현상이 있어 임시로 끕니다.
+    <MissionDetailFrame>
       <div className="mission-detail__body">
         <Card className="mission-detail__hero-card">
           <span className={`mission-detail__status-icon mission-detail__status-icon--${statusMeta.tone}`}>

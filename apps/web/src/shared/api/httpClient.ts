@@ -148,7 +148,7 @@ async function refreshTokens(refreshToken: string): Promise<{ accessToken: strin
  * 요청을 보내기 전에 access token을 확인하고, 만료가 가까우면 먼저 갱신합니다.
  * 동시에 여러 API가 호출되어도 refreshPromise 하나를 공유해 재발급 요청을 한 번만 보냅니다.
  */
-async function getOrRefreshAccessToken(): Promise<string | null> {
+export async function getOrRefreshAccessToken(): Promise<string | null> {
   const { accessToken, refreshToken, clearSession } = useAuthStore.getState();
   if (!accessToken) return null;
 

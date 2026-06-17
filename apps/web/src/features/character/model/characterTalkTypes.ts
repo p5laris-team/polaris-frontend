@@ -41,6 +41,47 @@ export type CharacterTalkStreamRequest = {
   sessionId?: string | null;
 };
 
+export type CharacterTalkHistoryRole = "user" | "assistant" | string;
+
+export type CharacterTalkHistoryMessage = {
+  role: CharacterTalkHistoryRole;
+  content: string;
+  sequence: number;
+  requestId: string;
+  fallbackUsed: boolean;
+  createdAt: string;
+  sessionId: string;
+};
+
+export type CharacterTalkMessagesResponse = {
+  characterId: number;
+  date: string;
+  latestSessionId: string;
+  messages: CharacterTalkHistoryMessage[];
+};
+
+export type CharacterTalkDiaryItem = {
+  date: string;
+  summary: string;
+  sourceSessionId: number;
+  createdAt: string;
+};
+
+export type CharacterTalkDiariesResponse = {
+  characterId: number;
+  fromDate: string;
+  toDate: string;
+  items: CharacterTalkDiaryItem[];
+};
+
+export type CharacterTalkDisplayMessage = {
+  id: string;
+  role: "user" | "character";
+  text: string;
+  pending?: boolean;
+  fallbackUsed?: boolean;
+};
+
 export type CharacterTalkMeta = {
   requestId: string;
   characterId: number;

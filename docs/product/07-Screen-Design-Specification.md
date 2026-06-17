@@ -4,10 +4,10 @@
 
 | 항목 | 내용 |
 |------|------|
-| 문서명 | Polaris MVP 화면 설계서 |
+| 문서명 | Polaris 운영 화면 설계서 |
 | 작성일 | 2026-05-14 |
 | 버전 | v1.0 |
-| 참조 문서 | PRD v0.6, 유스케이스 명세서, REST API 명세서 v1.0, 프로토타입 v0.4 |
+| 참조 문서 | PRD v1.0, REST API 명세서 v1.0, 운영 프론트 라우팅 |
 | 상태 | Draft |
 | 작성자 | Backend Architecture Team |
 
@@ -32,12 +32,13 @@
     - [SCR-010 미션 완료 결과](#scr-010-미션-완료-결과)
     - [SCR-011 미션 히스토리](#scr-011-미션-히스토리)
     - [SCR-012 캐릭터 상세 / 돌봄](#scr-012-캐릭터-상세--돌봄)
+    - [SCR-022 별친구 대화](#scr-022-별친구-대화)
     - [SCR-013 상점](#scr-013-상점)
     - [SCR-014 인벤토리](#scr-014-인벤토리)
     - [SCR-015 별조각 내역](#scr-015-별조각-내역)
     - [SCR-016 캐릭터 카드 공유](#scr-016-캐릭터-카드-공유)
     - [SCR-017 공유 링크 랜딩 (외부 유입)](#scr-017-공유-링크-랜딩-외부-유입)
-    - [SCR-018 업적 (MVP 제외/보류)](#scr-018-업적-mvp-제외보류)
+    - [SCR-018 업적 (현재 제외/보류)](#scr-018-업적-현재-제외보류)
     - [SCR-019 출석 체크](#scr-019-출석-체크)
     - [SCR-020 알림함](#scr-020-알림함)
     - [SCR-021 마이페이지](#scr-021-마이페이지)
@@ -55,12 +56,12 @@
 |------|------|--------|
 | 온보딩 | 최초 진입 ~ 첫 미션 도달까지 | 4개 (랜딩 화면 제외) |
 | 핵심 루프 | 미션 제안·완료·거절 핵심 플로우 | 4개 (거절 사유 화면 제외) |
-| 캐릭터 | 캐릭터 상태·돌봄 | 1개 |
+| 캐릭터 | 캐릭터 상태·돌봄·대화 | 2개 |
 | 경제 | 상점·인벤토리·별조각 | 3개 |
 | 바이럴 | 카드 공유·외부 유입 | 2개 |
 | 부가 기능 | 출석·알림·마이페이지 | 3개 |
 | 보류/제외 | 업적 | 1개 |
-| **합계(MVP 구현 대상)** | | **18개** |
+| **합계(운영 구현 대상)** | | **19개** |
 
 ### 1.2 설계 원칙
 
@@ -68,8 +69,8 @@
 1. 미션 1개 집중 — 리스트 나열 금지. 현재 미션 1개를 캐릭터 대화형으로 제안
 2. 캐릭터 말투 일관성 — 노바/무무/쪼리 각각 다른 말투로 모든 화면에 녹아남
 3. API는 `docs/api/01-API-spec.md`의 최신 `/api/{domain}/v1/...` 명세를 기준으로 한다
-4. 거절 → 다음 미션 즉시 — 별도 사유 입력 없이 즉시 거절 API를 호출하고 다음 미션으로 전환 (하루 최대 15개)
-5. 공유 유입 추적 — 공유 링크 클릭 시 referral / UTM 파라미터 추적
+4. 거절 → 다음 미션 즉시 — 별도 사유 입력 없이 즉시 거절 API를 호출하고 다음 미션으로 전환 (하루 보상 완료 20회, 거절 10회, CHALLENGE 1회)
+5. 공유 유입 추적 — 공개 공유 링크 조회와 클릭 기록 API로 운영 로그를 남기되 회원가입 기여 저장은 제외
 ```
 
 ---
@@ -86,17 +87,18 @@
 | SCR-007 | 미션 카드 | UC-006, UC-007, UC-008 | 미션 1개 제안, 완료/거절 선택                     | `GET /api/mission/v1/missions/current`, `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/rejections`, `POST /api/mission/v1/missions/today-focus/next` |
 | SCR-009 | 미션 완료 질문 | UC-008, UC-009 | 캐릭터 질문 1개, 텍스트 답변 입력                   | `POST /api/mission/v1/missions/{missionId}/completion-sessions`, `POST /api/mission/v1/missions/{missionId}/completion-answers` |
 | SCR-010 | 미션 완료 결과 | UC-009, UC-021 | 별조각 지급 애니메이션, 캐릭터 반응         | `POST /api/mission/v1/missions/{missionId}/completion-answers`, `GET /api/wallet/v1/wallets/me` |
-| SCR-011 | 미션 히스토리 | UC-006 | 오늘 제안/거절/완료 미션 스택 조회, 진행 중 미션 바로 수행 | `GET /api/mission/v1/missions/today`, `POST /api/mission/v1/missions/{missionId}/completion-sessions` |
-| SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태 3개 확인, 보유 소모품으로 밥 주기/재우기/놀아주기 | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `GET /api/item/v1/user-items?itemType=CONSUMABLE`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| SCR-011 | 미션 히스토리 | UC-006 | 날짜별 제안/거절/완료 미션 스택 조회, 진행 중 미션 바로 수행 | `GET /api/mission/v1/missions/history`, `GET /api/mission/v1/missions/{missionId}`, `POST /api/mission/v1/missions/{missionId}/completion-sessions` |
+| SCR-012 | 캐릭터 상세 / 돌봄 | UC-010, UC-011, UC-012, UC-013 | 캐릭터 상태/성장 확인, 보유 소모품으로 밥 주기/재우기/놀아주기, 대화 진입 | `GET /api/character/v1/characters/me`, `GET /api/character/v1/characters/{characterId}/status`, `GET /api/item/v1/user-items?itemType=CONSUMABLE`, `POST /api/character/v1/characters/{characterId}/care-logs` |
+| SCR-022 | 별친구 대화 | UC-010, UC-013 | SSE 대화, 오늘 대화 복원, 날짜별 기억 일기 조회 | `POST /api/character/v1/characters/{characterId}/talk/stream`, `GET /api/character/v1/characters/{characterId}/talk/messages`, `GET /api/character/v1/characters/{characterId}/talk/diaries` |
 | SCR-013 | 상점 | UC-015, UC-016, UC-017, UC-023 | 현재 캐릭터용 스킨과 돌봄 소모품 조회, 별조각으로 구매 | `GET /api/item/v1/items`, `POST /api/item/v1/item-purchases`, `GET /api/wallet/v1/wallets/me` |
 | SCR-014 | 인벤토리 | UC-018, UC-019 | 보유 스킨 조회, 스킨 장착/해제                     | `GET /api/item/v1/user-items`, `PUT /api/character/v1/characters/{characterId}/equipped-skin` |
 | SCR-015 | 별조각 내역 | UC-020 | 별조각 잔액 조회, 획득/사용 트랜잭션 목록               | `GET /api/wallet/v1/wallets/me`, `GET /api/wallet/v1/wallets/me/transactions` |
 | SCR-016 | 캐릭터 카드 공유 | UC-025, UC-026, UC-022 | 공유 카드 생성(멘트 지정), SNS 공유, 보상 여부 조회/지급 | `GET /api/share/v1/presigned-url`, `POST /api/share/v1/share-cards`, `POST /api/share/v1/share-events`, `GET /api/share/v1/share-events/today` |
-| SCR-017 | 공유 링크 랜딩 | UC-027 | 외부 공유 링크 진입 화면, 카드 정보 로드 및 클릭 로그 자동 적재 | `GET /api/share/v1/share-links/{shareId}` |
-| SCR-018 | 업적 | UC-029, UC-030 | MVP 제외/보류. 화면 구현 대상 아님 | API 미제공 |
+| SCR-017 | 공유 링크 랜딩 | UC-027 | 외부 공유 링크 진입 화면, 카드 정보 로드 및 클릭 기록 요청 | `GET /api/share/v1/share-links/{shareId}`, `POST /api/share/v1/share-clicks` |
+| SCR-018 | 업적 | UC-029, UC-030 | 현재 제외/보류. 화면 구현 대상 아님 | API 미제공 |
 | SCR-019 | 출석 체크 | UC-028 | 오늘 출석 체크, 출석 달력 조회                     | `POST /api/attendance/v1/attendance-records`, `GET /api/attendance/v1/attendance-records` |
-| SCR-020 | 알림함 | UC-031 | 앱 내 알림 목록 조회, 알림 읽음 처리       | `GET /api/notification/v1/notifications`, `PATCH /api/notification/v1/notifications/{notificationId}` |
-| SCR-021 | 마이페이지 | UC-031 | 내 정보 조회, 알림 로컬 설정, 로그아웃                | `GET /api/user/v1/users/me`, `DELETE /api/auth/v1/sessions/current` |
+| SCR-020 | 알림함 | UC-031 | 앱 내 알림 목록 조회, 알림 읽음/일괄 읽음 처리 | `GET /api/notification/v1/notifications`, `PATCH /api/notification/v1/notifications/{notificationId}`, `PATCH /api/notification/v1/notifications/read-all` |
+| SCR-021 | 마이페이지 | UC-031 | 내 정보 조회, 알림 설정 조회/저장, FCM 토큰 저장, 로그아웃 | `GET /api/user/v1/users/me`, `GET /api/notification/v1/settings`, `PATCH /api/notification/v1/settings`, `POST /api/notification/v1/subscriptions/`, `DELETE /api/auth/v1/sessions/current` |
 
 ---
 
@@ -302,6 +304,7 @@
   - 상태 우선순위: 애정 BAD > 기운 BAD > 포만감 BAD > NORMAL > GOOD
 - 캐릭터 이름
 - 오늘의 캐릭터 한마디 (캐릭터 말투 반영)
+- 별친구 대화 진입 버튼 → SCR-022
 - 캐릭터 하단에는 포만감/기운/애정/별조각/알림 숫자 요약을 노출하지 않음
 
 [미션 카드 영역]
@@ -470,15 +473,15 @@
 | **화면 이름** | 미션 히스토리 |
 | **진입 경로** | SCR-006 홈 하단 "오늘 완료 N개" 탭 |
 | **관련 UC** | UC-006 |
-| **호출 API** | `GET /api/mission/v1/missions/today`, `POST /api/mission/v1/missions/{missionId}/completion-sessions` |
+| **호출 API** | `GET /api/mission/v1/missions/history`, `GET /api/mission/v1/missions/{missionId}`, `POST /api/mission/v1/missions/{missionId}/completion-sessions` |
 
 #### 화면 구성
 
 ```
 [상단]
-- "오늘의 미션 기록" 제목
-- 오늘 날짜
-- 오늘 제안 수 / 최대 15개 / 남은 제안 수
+- "미션 기록" 제목
+- 선택 날짜
+- 오늘 보상 완료 수 / 최대 20회, 거절 수 / 최대 10회, CHALLENGE 사용 여부
 
 [요약]
 - 완료 수
@@ -507,7 +510,7 @@
 #### API 정책
 
 ```
-하루 미션 제안은 최대 15개이므로 pagination을 사용하지 않는다.
+미션 기록은 날짜 기준 stack으로 조회한다. 운영 제한은 하루 보상 완료 20회, 거절 10회, CHALLENGE 1회다.
 `currentMissionId`는 현재 `OFFERED` 또는 `ANSWERING` 상태 미션을 명시하기 위한 필드다.
 ```
 
@@ -529,7 +532,7 @@
 [상단]
 - 캐릭터 이미지 (대형, 현재 상태 + 장착 아이템 반영)
 - 캐릭터 이름
-- 캐릭터 레벨 (MVP에서는 표기만, 실제 진화 제외)
+- 캐릭터 레벨/경험치/성장 단계 (Lv.1~Lv.3)
 
 [상태 패널]
 - 포만감 (`hunger`)
@@ -560,8 +563,56 @@
 - 장착 중인 스킨 미리보기
 - [스킨 바꾸기] → SCR-014
 
+[별친구 대화 진입]
+- [별친구와 이야기하기] → SCR-022
+
 [하단]
 - [홈으로] 버튼
+```
+
+---
+
+### SCR-022 별친구 대화
+
+| 항목 | 내용 |
+|------|------|
+| **화면 ID** | SCR-022 |
+| **화면 이름** | 별친구 대화 |
+| **진입 경로** | SCR-006 홈 대화 버튼 또는 SCR-012 캐릭터 상세 대화 버튼 |
+| **관련 UC** | UC-010, UC-013 |
+| **호출 API** | `GET /api/character/v1/characters/{characterId}/talk/messages`, `GET /api/character/v1/characters/{characterId}/talk/diaries`, `POST /api/character/v1/characters/{characterId}/talk/stream` |
+
+#### 화면 구성
+
+```
+[상단]
+- 캐릭터 이미지/이름/성장 단계
+- 오늘 대화 또는 기억 일기 탭
+
+[대화 탭]
+- 오늘 날짜 대화 이력 복원
+- 사용자 메시지 입력창
+- 전송 버튼
+- SSE meta 이벤트 수신 시 세션/남은 횟수 상태 저장
+- SSE delta 이벤트 수신 즉시 캐릭터 말풍선 텍스트 갱신
+- SSE done 이벤트 수신 시 fallback 여부, 일일 제한, memoryHitCount 반영
+
+[기억 일기 탭]
+- 최근 7일 날짜 스트립
+- 날짜별 요약 카드
+- 대화가 없는 날짜 empty state
+
+[제한/오류]
+- `limitExceeded=true`이면 resetAt 기준 안내
+- provider fallback 응답은 일반 대화로 표시하되 fallback 배지는 조심스럽게 노출
+```
+
+#### API 정책
+
+```
+별친구 대화는 인증 헤더가 필요한 POST 요청이므로 EventSource 대신 fetch stream reader로 처리한다.
+프론트는 서버 delta를 받은 즉시 누적 텍스트로 렌더링하며, 별도 타이핑 지연 타이머를 두지 않는다.
+일일 대화 제한, sessionId, memoryHitCount, fallbackUsed는 서버 이벤트 값을 기준으로 한다.
 ```
 
 ---
@@ -599,7 +650,7 @@
 - `GET /api/item/v1/items?itemType=CONSUMABLE`으로 구매 가능한 소모품 조회
 - 별사탕밥/구름 베개/별 장난감처럼 돌봄 액션에 연결되는 아이템 표시
 - 소모품은 반복 구매 가능하며 구매 확인 팝업에서 수량 선택
-- 구매 시 `POST /api/item/v1/item-purchases` body `{ "itemId": number, "quantity": number }`
+- 구매 시 `POST /api/item/v1/item-purchases` body `{ "itemId": number, "quantity": number, "idempotencyKey": string }`
 - 구매 완료 후 보유 수량은 SCR-012 돌봄 화면의 `GET /api/item/v1/user-items?itemType=CONSUMABLE` 결과에 반영
 
 [구매 확인 팝업]
@@ -628,7 +679,7 @@
 ```
 [상단]
 - 스킨 보관함 제목
-- MVP에서는 스킨 장착/해제를 우선 제공하고, 돌봄 소모품 사용은 SCR-012에서 실행
+- 현재 운영 범위에서는 스킨 장착/해제를 우선 제공하고, 돌봄 소모품 사용은 SCR-012에서 실행
 
 [스킨 탭]
 - 보유 아이템 그리드
@@ -701,7 +752,7 @@
 
 ```
 [공유 상태]
-- 오늘 공유 보상 요약 카드는 MVP 화면에서 노출하지 않음
+- 오늘 공유 보상 요약 카드는 기본 화면에서 노출하지 않음
 - 보상 지급 여부는 공유 버튼 처리와 토스트/지갑 내역에서만 확인
 
 [카드 만들기 / 입력 영역]
@@ -742,7 +793,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **화면 이름** | 공유 링크 랜딩 |
 | **진입 경로** | SNS 공유 링크 클릭 (외부 유입) |
 | **관련 UC** | UC-027 |
-| **호출 API** | `GET /api/share/v1/share-links/{shareId}` |
+| **호출 API** | `GET /api/share/v1/share-links/{shareId}`, `POST /api/share/v1/share-clicks` |
 
 #### 화면 구성
 
@@ -752,7 +803,8 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 
 [카드 미리보기]
 - 공유된 캐릭터 카드 이미지 데이터 로드 (GET /api/share/v1/share-links/{shareId})
-  - 브라우저 진입 즉시 마케팅 클릭 로그(`share_clicks` 테이블)가 서버 측에서 비동기로 자동 적재됩니다.
+  - 브라우저 진입 후 `POST /api/share/v1/share-clicks`로 클릭 기록을 요청합니다.
+  - 백엔드는 별도 클릭 테이블 대신 app log/event log 기준으로 `recorded=true`를 반환합니다.
 - 공유한 사용자의 캐릭터 이름 + 한 줄 각오 메시지(headline) 및 카드 이미지 노출
 
 [서비스 소개 (1~2줄)]
@@ -760,7 +812,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 
 [CTA 버튼]
 - [나도 시작하기] → SCR-001 (랜딩) or 직접 SCR-002 (로그인)
-  - `signupUrl` 기반으로 `shareId` 파라미터가 회원가입 경로까지 자연스럽게 유지되어 가입 시 추천인 유입 추적이 완벽히 작동합니다.
+  - 운영 v1.0에서는 회원가입 기여 저장을 제외하므로 `shareId`는 공개 카드 조회/클릭 기록 범위에서만 사용합니다.
 
 [비로그인 상태 처리]
 - 공유된 카드는 비로그인 대중(Public)에게 완전 개방되어 자유롭게 조회가 가능합니다.
@@ -768,20 +820,20 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 
 ---
 
-### SCR-018 업적 (MVP 제외/보류)
+### SCR-018 업적 (현재 제외/보류)
 
 | 항목 | 내용 |
 |------|------|
 | **화면 ID** | SCR-018 |
 | **화면 이름** | 업적 |
-| **진입 경로** | MVP에서는 제공하지 않음 |
+| **진입 경로** | 현재 제공하지 않음 |
 | **관련 UC** | UC-029, UC-030 |
 | **호출 API** | API 미제공 |
 
-#### MVP 처리
+#### 현재 처리
 
 ```
-업적은 PRD상 MVP 제외 기능이며, 현재 API 명세에도 endpoint가 없다.
+업적은 PRD상 현재 제외 기능이며, 현재 API 명세에도 endpoint가 없다.
 홈 퀵 메뉴와 마이페이지 활동 요약에는 업적 진입/수치를 노출하지 않는다.
 향후 업적 API가 확정되면 별도 화면 설계로 복구한다.
 ```
@@ -827,7 +879,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **화면 이름** | 알림함 |
 | **진입 경로** | SCR-006 홈 상단 알림 아이콘 |
 | **관련 UC** | UC-031 |
-| **호출 API** | `GET /api/notification/v1/notifications`, `PATCH /api/notification/v1/notifications/{notificationId}` |
+| **호출 API** | `GET /api/notification/v1/notifications`, `PATCH /api/notification/v1/notifications/{notificationId}`, `PATCH /api/notification/v1/notifications/read-all` |
 
 #### 화면 구성
 
@@ -863,7 +915,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 | **화면 이름** | 마이페이지 |
 | **진입 경로** | 하단 네비게이션 바 "마이" 탭 |
 | **관련 UC** | UC-031 |
-| **호출 API** | `GET /api/user/v1/users/me`, `DELETE /api/auth/v1/sessions/current` |
+| **호출 API** | `GET /api/user/v1/users/me`, `GET /api/notification/v1/settings`, `PATCH /api/notification/v1/settings`, `POST /api/notification/v1/subscriptions/`, `DELETE /api/auth/v1/sessions/current` |
 
 #### 화면 구성
 
@@ -887,7 +939,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
   - 일일 리마인더 ON/OFF
   - 방해 금지 시간 설정 (시작/종료 시각)
   - FCM 푸시 구독은 `POST /api/notification/v1/subscriptions/`로 토큰 저장
-  - 세부 알림 설정 저장 API는 현재 명세에 없으므로 MVP에서는 로컬 설정으로 처리
+  - 세부 알림 설정은 `GET/PATCH /api/notification/v1/settings`로 조회/저장
 
 ─ 계정
   - [로그아웃] → `DELETE /api/auth/v1/sessions/current` → SCR-002
@@ -915,6 +967,7 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
                 ├── 상단: 별조각 → SCR-015
                 ├── 상단: 알림 → SCR-020
                 ├── 캐릭터 이미지 탭 → SCR-012
+                ├── 별친구 대화 버튼 → SCR-022
                 ├── 미션 카드 [해냈어요] → SCR-009
                 ├── 미션 카드 [다른 거] → 즉시 거절 API 호출 후 다음 미션 갱신
                 ├── 퀵메뉴: 상점 → SCR-013
@@ -931,10 +984,11 @@ https://polaris.app/share/{shareId}?utm_source=share&utm_medium=sns
 |---------|------|---------|
 | **별조각 배지** | ✦ N개 표시, 탭 시 SCR-015 이동 | SCR-006, SCR-013, SCR-010 |
 | **캐릭터 말풍선** | 캐릭터 말투 반영 텍스트 박스 | 전 화면 |
+| **SSE 대화 로그** | 서버 delta를 즉시 누적 렌더링하는 대화 버블 | SCR-022 |
 | **상태 게이지 바** | 포만감/기운/애정 3개 인디케이터 | SCR-006, SCR-012 |
 | **토스트 메시지** | 하단 2초 노출 알림 (성공/에러) | 전 화면 |
 | **로딩 스피너** | API 호출 중 표시 | 전 화면 |
-| **바텀 시트** | 확장용 오버레이 패널. MVP 미션 거절에는 사용하지 않음 | 향후 확장 |
+| **바텀 시트** | 확장용 오버레이 패널. 현재 미션 거절에는 사용하지 않음 | 향후 확장 |
 | **확인 팝업** | 구매 확인 등 2-버튼 모달 | SCR-013 |
 
 ---
@@ -967,7 +1021,7 @@ SCR-006 홈
 SCR-006 홈 또는 SCR-007 미션 카드
   → [다른 거 볼게요] 즉시 거절 API 호출 (SCR-008 오버레이 생략)
     → SCR-006 홈 (다음 미션으로 즉시 교체 갱신)
-      → (15개 초과 시) 오늘 미션 종료 안내
+      → (거절 10회 또는 보상 완료 20회 초과 시) 오늘 미션 종료 안내
 ```
 
 ### 6.4 공유 플로우
@@ -975,9 +1029,9 @@ SCR-006 홈 또는 SCR-007 미션 카드
 ```
 SCR-006 홈 퀵메뉴
   → SCR-016 캐릭터 카드 공유 (한 줄 다짐 작성 및 카드 이미지 발급)
-    → [SNS 공유 수단 탭] POST /api/share/v1/share-events 호출 및 별조각 +10 즉시 지급
-      → SCR-017 공유 링크 랜딩 (외부 사용자 진입 시 클릭 로그 자동 비동기 적재)
-        → SCR-002 Google 로그인 (shareId 기반 회원가입 유입 추적)
+  → [SNS 공유 수단 탭] POST /api/share/v1/share-events 호출 및 별조각 +10 즉시 지급
+      → SCR-017 공유 링크 랜딩 (외부 사용자 진입 시 클릭 기록 요청)
+        → SCR-002 Google 로그인
 ```
 
 ### 6.5 돌봄 플로우
@@ -992,10 +1046,22 @@ SCR-006 홈 캐릭터 이미지 탭
       → 상태 변화 토스트 → SCR-012 상태 갱신
 ```
 
+### 6.6 별친구 대화 플로우
+
+```
+SCR-006 홈 또는 SCR-012 캐릭터 상세 / 돌봄
+  → SCR-022 별친구 대화
+    → `GET /api/character/v1/characters/{characterId}/talk/messages`로 오늘 대화 복원
+    → [메시지 전송] `POST /api/character/v1/characters/{characterId}/talk/stream`
+      → meta / delta / done SSE 이벤트 처리
+      → delta 수신 즉시 캐릭터 말풍선 갱신
+    → [기억 일기 탭] `GET /api/character/v1/characters/{characterId}/talk/diaries`
+```
+
 ---
 
 **문서 버전 이력**
 
 | 버전 | 날짜 | 변경 내용 | 작성자 |
 |------|------|----------|--------|
-| v1.0 | 2026-05-14 | 초안 작성 (PRD v0.6 + 프로토타입 v0.4 기준) | Backend Team |
+| v1.0 | 2026-06-16 | 운영 PRD v1.0 + REST API 명세서 v1.0 기준으로 화면/라우팅 정리 | Frontend Team |

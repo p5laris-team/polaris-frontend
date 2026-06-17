@@ -1,35 +1,153 @@
-# Polaris Frontend
+# Polaris Frontend ✨
 
-Polaris는 사용자가 고른 별친구 캐릭터와 함께 작은 루틴 미션을 수행하는 AI 다마고치형 루틴 서비스입니다. 이 저장소는 Polaris의 프론트엔드 앱, 디자인 기준 문서, UI kit, 이미지 에셋을 함께 관리합니다.
+<p align="center">
+  <img src="assets/brand/logo/logo-wordmark.png" width="260" alt="Polaris">
+</p>
 
-현재 실제 앱 구현은 `apps/web`의 React + TypeScript + Vite 웹앱입니다. `docs`, `ui_kits`, `preview`는 구현 기준과 초기 시안을 확인하기 위한 자료입니다.
+<p align="center">
+  <strong>AI 별친구와 함께 작은 루틴을 이어가는 모바일 웹 프론트엔드 🌙</strong>
+</p>
 
-## Quickstart
+<p align="center">
+  <a href="https://p5laris.life/">서비스 바로가기</a>
+  ·
+  <a href="docs/product/PRD.md">PRD</a>
+  ·
+  <a href="docs/api/01-API-spec.md">API 명세</a>
+  ·
+  <a href="docs/design/00-design-system.md">디자인 시스템</a>
+</p>
 
-처음 실행할 때는 백엔드 없이도 화면을 볼 수 있는 fixture 모드가 가장 편합니다.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react&logoColor=111827" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-5.6-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-5.4-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite">
+  <img src="https://img.shields.io/badge/TanStack_Query-5-FF4154?style=flat-square&logo=reactquery&logoColor=white" alt="TanStack Query">
+  <img src="https://img.shields.io/badge/Zustand-5-443E38?style=flat-square" alt="Zustand">
+  <img src="https://img.shields.io/badge/pnpm-9.15-F69220?style=flat-square&logo=pnpm&logoColor=white" alt="pnpm">
+</p>
 
-```bash
-cd /Users/corapark/Documents/p5laris/polaris-frontend
+---
+
+## 📌 프로젝트 소개
+
+Polaris는 사용자가 직접 거창한 목표를 세우지 않아도, AI 캐릭터인 별친구가 오늘 할 수 있는 작은 미션을 제안하고 완료 경험을 별조각, 성장, 대화 기록으로 이어주는 루틴 서비스입니다.
+
+이 저장소는 Polaris의 프론트엔드 영역을 담당합니다. 실제 앱은 `apps/web`의 React + TypeScript + Vite 웹앱이며, 모바일 앱처럼 보이는 420px 기준 shell, 디자인 시스템, 에셋 레지스트리, API 연동 계층, fixture 기반 개발 환경을 함께 관리합니다.
+
+## 🧩 프론트엔드에서 구현한 것
+
+| 영역 | 구현 내용 |
+|---|---|
+| 📱 모바일 웹앱 shell | PWA 메타/manifest, 420px 모바일 앱 프레임, 하단 탭 내비게이션, 화면별 skeleton/error/empty 상태 |
+| 🔐 인증과 초기화 | Google OAuth callback, access/refresh token 저장, 만료 전 refresh, 401 재시도, 로그인 후 온보딩/홈 라우팅 |
+| 🎯 AI 미션 흐름 | 현재 미션 조회, 다음 미션 요청, 거절, 완료 질문 시작, 답변 제출, 결과 화면, 미션 상세/기록/피드백 |
+| 💬 별친구 대화 | `fetch` stream reader 기반 SSE 수신, `meta`/`delta`/`done` 이벤트 처리, 세션 기반 오늘 대화 복원, 기억 일기 조회 |
+| 🌱 캐릭터와 돌봄 | 캐릭터 선택, 상태/성장 표시, 돌봄 액션, 스킨 장착, 상태별 캐릭터 이미지 resolver |
+| 💎 별조각 경제 | 지갑 거래내역, 상점 상품 조회/구매, 인벤토리, 아이템 사용, 캐시 무효화 |
+| 📨 공유와 출석 | 공유 카드 렌더링, Presigned URL 업로드, 공유 보상 멱등키, 출석 체크와 연속 출석 배너 |
+| 🔔 알림과 운영 | FCM registration token 저장, 알림 목록/읽음 처리, Sentry release/env/source map 기반 확장 |
+| 📣 광고 슬롯 | 하단 웹 배너 config API, AdSense real request guard, 키보드 노출 정책, 승인 전 임시 비활성화 지점 관리 |
+| 🎨 디자인 시스템 | SUIT/Pretendard/Gaegu/JetBrains Mono, 색상/간격/radius/shadow 토큰, UI kit/preview와 실제 컴포넌트 정합성 |
+
+## 🛠 기술적으로 신경 쓴 부분
+
+| 주제 | 프론트엔드 판단 |
+|---|---|
+| API 전환성 | `VITE_USE_API_FIXTURES` 하나로 fixture와 실제 API를 전환해 백엔드 없이도 화면 흐름을 검증합니다. |
+| 서버 상태 관리 | TanStack Query의 query key와 mutation invalidation을 기능별 API 계층에 모아 오래된 화면 데이터를 줄였습니다. |
+| 인증 안정성 | access token 만료 30초 전 선제 갱신, 401 1회 재시도, refresh 요청 공유 Promise로 중복 갱신을 막았습니다. |
+| SSE 실시간성 | 캐릭터 대화는 `EventSource` 대신 인증 header를 실을 수 있는 `fetch` stream reader로 구현했습니다. |
+| 도메인 분리 | `features/{domain}/api`, `model`, `ui` 구조로 API, 화면 계산, 컴포넌트를 분리했습니다. |
+| 이미지 관리 | 화면에서 파일 경로를 직접 흩뿌리지 않고 `shared/assets/polarisAssets.ts` 레지스트리로 관리합니다. |
+| 모바일 UX | 키보드 표시, 하단 탭, 고정 앱 shell, safe-area, 긴 텍스트 줄바꿈을 고려해 모바일 화면 흔들림을 줄였습니다. |
+| 운영 관측성 | Sentry 설정, 민감 header 제거, source map upload 가능 구조를 준비했습니다. |
+
+## 🗂 앱 구조
+
+```text
+apps/web/src/
+├── app/                   # AppProviders, AppInitializer, 최상위 App 조립
+├── routes/                # route path, ProtectedRoute, RootRedirect
+├── entities/              # 여러 feature가 공유하는 도메인 타입
+├── features/              # 화면과 기능 단위 코드
+│   ├── auth/              # 로그인, OAuth callback
+│   ├── home/              # 홈 캐릭터/현재 미션 카드
+│   ├── mission/           # 미션 조회, 거절, 완료, 상세, 기록
+│   ├── character/         # 캐릭터 상태, 돌봄, SSE 대화, 기억 일기
+│   ├── shop/              # 상점 상품과 구매
+│   ├── inventory/         # 보관함과 스킨 장착
+│   ├── wallet/            # 별조각 잔액과 거래내역
+│   ├── share/             # 공유 카드와 공개 공유 페이지
+│   ├── attendance/        # 출석 체크
+│   ├── notifications/     # FCM token, 알림 목록/읽음
+│   ├── my-page/           # 마이페이지와 사용자 설정
+│   └── ad/                # 하단 배너 광고 config와 AdSense 슬롯
+├── shared/                # 공통 API, config, assets, styles, UI
+├── stores/                # 전역 클라이언트 상태
+└── main.tsx               # React 앱 진입점
+```
+
+앱 시작 흐름은 아래 순서입니다.
+
+```text
+main.tsx
+-> AppProviders
+-> App
+-> AppInitializer
+-> AppRouter
+-> feature page
+```
+
+## 📁 저장소 구성
+
+```text
+.
+├── apps/web/              # 실제 React + Vite 웹앱
+├── assets/                # 로고, 캐릭터, 카테고리, 아이템, empty state 이미지
+├── docs/                  # PRD, API 명세, 화면 설계, 디자인 문서
+├── fonts/                 # 자체 호스팅 폰트
+├── preview/               # 디자인 토큰/컴포넌트 HTML 프리뷰
+├── ui_kits/               # 초기 웹/모바일 클릭스루 프로토타입
+├── colors_and_type.css    # 공통 디자인 토큰과 폰트 로딩
+├── AGENTS.md              # 구현 기준과 협업 지침
+├── package.json           # pnpm workspace scripts
+└── pnpm-workspace.yaml    # pnpm workspace 설정
+```
+
+## 🚀 빠른 실행
+
+처음 화면을 확인할 때는 백엔드 없이 fixture 모드로 실행하는 편이 가장 빠릅니다.
+
+```powershell
+cd C:\Users\phj\Documents\p5laris\polaris-frontend
 
 corepack enable
 corepack prepare pnpm@9.15.0 --activate
-
-pnpm install
-cp apps/web/.env.example apps/web/.env.local
-pnpm dev:web
+corepack pnpm install
 ```
 
-개발 서버 기본 주소는 `http://127.0.0.1:5173`입니다.
+`apps/web/.env.local`을 아래처럼 준비합니다.
 
-`corepack`을 사용할 수 없는 환경에서는 아래처럼 pnpm을 직접 설치해도 됩니다.
-
-```bash
-npm install -g pnpm@9.15.0
+```env
+VITE_USE_API_FIXTURES=true
+VITE_API_BASE_URL=http://127.0.0.1:8080
+VITE_OAUTH_REDIRECT_URI=http://127.0.0.1:5173/oauth/google/callback
+VITE_WEB_PUSH_ENABLED=false
+VITE_SENTRY_ENABLED=false
 ```
 
-## 실제 API 연결
+개발 서버를 실행합니다.
 
-기본 fixture 모드는 `VITE_USE_API_FIXTURES=true`라서 API 서버가 없어도 동작합니다. 백엔드와 붙여 볼 때는 `apps/web/.env.local`을 아래처럼 바꿉니다.
+```powershell
+corepack pnpm --filter @polaris/web dev
+```
+
+기본 주소는 `http://127.0.0.1:5173`입니다.
+
+## 🔌 실제 API 연결
+
+운영 레포의 gateway와 붙일 때는 fixture를 끄고 API base URL을 gateway 주소로 맞춥니다.
 
 ```env
 VITE_USE_API_FIXTURES=false
@@ -37,236 +155,93 @@ VITE_API_BASE_URL=http://127.0.0.1:8080
 VITE_OAUTH_REDIRECT_URI=http://127.0.0.1:5173/oauth/google/callback
 ```
 
-`polaris` 백엔드를 쓰면 gateway 기본 포트가 `8080`입니다. `p5laris-local` 백엔드를 같이 띄운 경우에는 local gateway 포트에 맞춰 `VITE_API_BASE_URL=http://127.0.0.1:18080`처럼 바꾸면 됩니다.
+`p5laris-local` gateway를 같이 쓰는 환경이면 포트에 맞춰 `VITE_API_BASE_URL=http://127.0.0.1:18080`처럼 바꿉니다. Vite는 서버 시작 시 환경 변수를 읽으므로 `.env.local`을 바꾼 뒤에는 dev server를 다시 켭니다.
 
-환경 변수를 바꾼 뒤에는 Vite dev server를 껐다가 다시 켜 주세요.
+## ⚙️ 명령어
 
-## Scripts
+pnpm shim이 PATH에 잡혀 있으면 `pnpm dev:web`처럼 package script를 써도 됩니다. Windows에서 bare `pnpm`이 잡히지 않으면 아래처럼 `corepack pnpm --filter`를 직접 실행합니다.
 
-| 명령어 | 설명 |
+| 목적 | 권장 명령 |
 |---|---|
-| `pnpm dev:web` | 웹앱 개발 서버를 실행합니다. |
-| `pnpm build:web` | TypeScript 검사 후 production bundle을 만듭니다. |
-| `pnpm preview:web` | production build 결과를 로컬에서 미리 봅니다. |
-| `pnpm typecheck:web` | TypeScript 타입 검사만 실행합니다. |
+| 개발 서버 | `corepack pnpm --filter @polaris/web dev` |
+| 타입 검사 | `corepack pnpm --filter @polaris/web typecheck` |
+| 프로덕션 빌드 | `corepack pnpm --filter @polaris/web build` |
+| 빌드 결과 미리보기 | `corepack pnpm --filter @polaris/web preview` |
 
-## 저장소 구조
+## 🧭 주요 화면과 코드 위치
+
+| 화면/기능 | 먼저 볼 파일 |
+|---|---|
+| 로그인, OAuth callback | `apps/web/src/features/auth/ui`, `apps/web/src/features/auth/api/authApi.ts` |
+| 로그인 후 초기 라우팅 | `apps/web/src/app/providers/AppInitializer.tsx`, `apps/web/src/routes/AppRouter.tsx` |
+| 홈 캐릭터와 현재 미션 | `apps/web/src/features/home/ui/HomePage.tsx`, `apps/web/src/features/mission/api/missionApi.ts` |
+| 미션 거절/완료/상세 | `apps/web/src/features/mission/ui`, `apps/web/src/entities/mission/types.ts` |
+| 별친구 SSE 대화 | `apps/web/src/features/character/ui/CharacterTalkCard.tsx`, `apps/web/src/features/character/api/characterTalkApi.ts` |
+| 캐릭터 상태와 돌봄 | `apps/web/src/features/character/ui/CharacterCarePage.tsx`, `apps/web/src/features/character/api/characterCareApi.ts` |
+| 캐릭터 이미지 선택 | `apps/web/src/features/character/model/characterAssetResolver.ts`, `apps/web/src/shared/assets/polarisAssets.ts` |
+| 상점/보관함/스킨 | `apps/web/src/features/shop`, `apps/web/src/features/inventory` |
+| 별조각 지갑 | `apps/web/src/features/wallet` |
+| 공유 카드 | `apps/web/src/features/share` |
+| 출석 체크 | `apps/web/src/features/attendance` |
+| 알림/FCM | `apps/web/src/features/notifications`, `apps/web/public/firebase-messaging-sw.js` |
+| 공통 버튼/카드/헤더 | `apps/web/src/shared/ui` |
+
+## 🧠 API와 상태 관리 규칙
+
+서버 상태는 TanStack Query를 사용하며, API 함수와 query key는 각 feature의 `api` 폴더에 둡니다.
+
+클라이언트 상태는 Zustand를 사용합니다. 로그인 세션은 `stores/authStore.ts`, 온보딩 진행 상태는 `features/onboarding/model/onboardingStore.ts`, 미션 완료 플로우 임시 상태는 `features/mission/model/missionFlowStore.ts`에 있습니다.
+
+공통 HTTP 처리는 `shared/api/httpClient.ts`가 담당합니다.
+
+| 처리 | 설명 |
+|---|---|
+| 응답 unwrap | 백엔드의 `ApiResponse<T>`를 `unwrapApiResponse`로 풀어 화면에서는 성공 데이터만 다룹니다. |
+| 인증 header | Axios request interceptor가 access token을 자동 첨부합니다. |
+| 선제 refresh | access token 만료가 가까우면 API 호출 전에 갱신합니다. |
+| 401 retry | 401 응답은 refresh 후 원래 요청을 한 번만 재시도합니다. |
+| 중복 refresh 방지 | 동시에 여러 요청이 401을 만나도 하나의 refresh Promise를 공유합니다. |
+| fixture 전환 | `runtimeConfig.useApiFixtures`로 실제 API와 fixture를 같은 화면 흐름에서 바꿉니다. |
+
+## 🌊 SSE 대화 흐름
+
+별친구 대화는 인증이 필요한 POST 요청이므로 브라우저 `EventSource` 대신 `fetch` stream을 사용합니다.
 
 ```text
-.
-├── apps/web/              # 실제 React + Vite 웹앱
-├── assets/                # 로고, 캐릭터, 카테고리, 아이템 이미지
-├── docs/                  # PRD, API 명세, 화면 설계, 디자인 문서
-├── fonts/                 # 폰트 로딩/자체 호스팅 가이드
-├── preview/               # 디자인 토큰/컴포넌트 HTML 프리뷰
-├── ui_kits/               # 초기 웹/모바일 클릭스루 프로토타입
-├── colors_and_type.css    # 공통 디자인 토큰
-├── AGENTS.md              # 구현 기준과 AI 작업 지침
-├── package.json           # pnpm workspace scripts
-└── pnpm-workspace.yaml    # pnpm workspace 설정
+CharacterTalkCard
+-> streamCharacterTalk()
+-> fetch('/api/character/v1/characters/{id}/talk/stream')
+-> ReadableStream reader
+-> SSE frame parsing
+-> meta / delta / done handlers
+-> 대화 버블 즉시 갱신
 ```
 
-## 웹앱 구조
+`delta` 이벤트는 들어오는 즉시 누적 텍스트로 화면에 반영합니다. 서버가 실제로 chunk를 잘게 내려주면 사용자는 실시간으로 타이핑되는 것처럼 보고, 서버가 큰 chunk를 내려주면 프론트가 그 단위를 그대로 보여줍니다.
 
-`apps/web/src`는 화면 단위로 고치기 쉽게 나눠져 있습니다.
+## 🎨 디자인과 에셋
 
-```text
-apps/web/src/
-├── app/                   # 앱 조립부: 초기화, provider, 최상위 App
-├── routes/                # URL 경로와 라우팅
-├── entities/              # 여러 feature가 공유하는 도메인 타입
-├── features/              # 실제 화면/기능 단위 코드
-├── shared/                # 공통 API, 설정, 스타일, UI 컴포넌트
-├── stores/                # 전역 클라이언트 상태
-└── main.tsx               # React 앱 진입점
-```
+Polaris의 프론트 톤은 할 일 관리 도구보다 "작은 일상을 같이 살아주는 캐릭터 앱"에 가깝습니다. 그래서 버튼, empty state, 에러 문구도 기능 설명보다 감정 흐름을 해치지 않는 방향으로 작성합니다.
 
-`features` 안의 각 기능은 보통 같은 모양을 따릅니다.
-
-```text
-features/mission/
-├── api/                   # 실제 API 호출, React Query hook, query key
-├── model/                 # fixture, mapper, store, 화면 계산 로직
-└── ui/                    # 화면 컴포넌트와 CSS
-```
-
-이 구조 덕분에 “미션 화면을 고친다”면 대부분 `features/mission`부터 보면 되고, “공통 버튼을 고친다”면 `shared/ui/Button`을 보면 됩니다.
-
-## 코드 주석 읽는 법
-
-프론트 코드의 주석은 팀원이 빠르게 구조를 이해하고, 포트폴리오에서 기술 판단을 설명할 수 있게 남겨 둡니다.
-
-| 주석 위치 | 의미 |
+| 기준 | 위치 |
 |---|---|
-| 파일 맨 위 block 주석 | 이 파일이 프로그램에서 맡는 책임입니다. 처음 보는 파일이면 이 주석부터 읽으면 됩니다. |
-| exported function/hook 주석 | 다른 파일에서 호출할 수 있는 함수가 언제, 왜 쓰이는지 설명합니다. |
-| type/enum 주석 | 백엔드 상태값이나 요청/응답 필드가 제품에서 무슨 뜻인지 설명합니다. |
-| 한 줄 주석 | 인증, 동시성, 캐시 무효화, 멱등성, fallback처럼 코드만 봐서는 이유가 덜 보이는 부분에 붙입니다. |
-| `SCR-xxx` 주석 | PR 번호가 아니라 `docs/product/07-Screen-Design-Specification.md`의 화면 ID입니다. 화면 명세와 구현을 연결하기 위한 표시입니다. |
+| 제품 의도 | `docs/product/PRD.md` |
+| 화면 설계 | `docs/product/07-Screen-Design-Specification.md` |
+| 디자인 시스템 | `docs/design/00-design-system.md` |
+| 토큰/폰트 | `colors_and_type.css` |
+| 웹 UI kit | `ui_kits/web/index.html`, `ui_kits/web/styles.css` |
+| 모바일 UI kit | `ui_kits/mobile/index.html` |
+| 이미지 원본 | `assets/` |
+| 웹 에셋 registry | `apps/web/src/shared/assets/polarisAssets.ts` |
 
-개인 작업명, PR 번호, “나중에 대충” 같은 메모는 코드에 남기지 않습니다. 필요하면 README나 이슈에 작업 맥락으로 정리하고, 코드에는 제품/기술 기준으로 설명합니다.
+## ✅ 운영 전 체크리스트
 
-## 어디를 고칠까
+배포 전 최소 확인 항목입니다.
 
-| 고치고 싶은 것 | 먼저 볼 파일 |
-|---|---|
-| 로그인 버튼, OAuth callback | `features/auth/ui`, `features/auth/api/authApi.ts`, `stores/authStore.ts` |
-| 로그인 후 첫 화면 이동 | `app/providers/AppInitializer.tsx`, `routes/AppRouter.tsx` |
-| 홈 캐릭터/미션 카드 | `features/home/ui/HomePage.tsx`, `features/home/model/homeMappers.ts` |
-| 미션 거절/다음 미션/완료 인증 | `features/mission/api/missionApi.ts`, `features/mission/ui` |
-| 미션 상태값 의미 | `entities/mission/types.ts` |
-| 캐릭터 상태/돌봄 | `features/character/ui/CharacterCarePage.tsx`, `features/character/model/characterCareTypes.ts` |
-| 캐릭터 이미지가 다르게 나올 때 | `features/character/model/characterAssetResolver.ts`, `shared/assets/polarisAssets.ts` |
-| 상점 상품/구매 | `features/shop/ui/ShopPage.tsx`, `features/shop/api/shopApi.ts` |
-| 보관함/스킨 장착 | `features/inventory/ui/InventoryPage.tsx`, `features/inventory/api/inventoryApi.ts` |
-| 별조각 거래내역 | `features/wallet/ui/WalletPage.tsx`, `features/wallet/model/walletTypes.ts` |
-| 공유 카드/공유 보상 | `features/share/ui/ShareCardPage.tsx`, `features/share/api/shareApi.ts` |
-| 출석 체크 | `features/attendance/ui/AttendancePage.tsx`, `features/attendance/api/attendanceApi.ts` |
-| 알림 목록/읽음 처리 | `features/notifications/ui/NotificationsPage.tsx`, `features/notifications/api/notificationApi.ts` |
-| 마이페이지/알림 설정 | `features/my-page/ui/MyPage.tsx`, `features/my-page/model/myPageSettingsStore.ts` |
-| 버튼, 카드, 헤더 같은 공통 UI | `shared/ui` |
-
-## 핵심 흐름
-
-앱 시작 흐름은 아래 순서입니다.
-
-```text
-main.tsx
-→ AppProviders
-→ App
-→ AppInitializer
-→ AppRouter
-→ 각 feature page
-```
-
-`AppProviders`는 React Query, React Router, ToastProvider처럼 앱 전체에 필요한 provider를 묶습니다.
-
-`AppInitializer`는 로그인 토큰이 있을 때 온보딩 프로필과 활성 캐릭터를 먼저 조회해서 새로고침 후에도 사용자를 올바른 화면으로 보내기 위한 초기화 계층입니다.
-
-`AppRouter`는 로그인, 온보딩, 홈, 미션, 캐릭터, 상점, 인벤토리, 지갑, 공유, 출석, 알림, 마이페이지 라우트를 관리합니다. fixture 모드에서는 실제 로그인 없이도 화면 흐름을 확인할 수 있습니다.
-
-## API와 상태 관리
-
-서버 상태는 TanStack Query를 사용합니다. API 호출과 query key는 각 feature의 `api` 폴더에 둡니다.
-
-클라이언트 상태는 Zustand를 사용합니다. 로그인 세션은 `stores/authStore.ts`, 온보딩 진행 상태는 `features/onboarding/model/onboardingStore.ts`에 있습니다.
-
-HTTP 공통 처리는 `shared/api/httpClient.ts`에 있습니다.
-
-여기서 신경 쓴 부분:
-
-| 항목 | 설명 |
-|---|---|
-| 공통 응답 unwrap | 백엔드의 `ApiResponse<T>`를 `unwrapApiResponse`로 풀어 화면에서는 성공 데이터만 다루게 했습니다. |
-| 토큰 자동 첨부 | Axios request interceptor에서 access token을 붙입니다. |
-| 선제적 토큰 갱신 | access token 만료 30초 전이면 refresh token으로 먼저 갱신합니다. |
-| 401 재시도 | 응답이 401이면 한 번만 token refresh 후 원래 요청을 재시도합니다. |
-| refresh 중복 방지 | 동시에 여러 요청이 401을 만나도 `refreshPromise` 하나를 공유해 token refresh 요청이 중복으로 나가지 않게 했습니다. |
-| fixture 전환 | `VITE_USE_API_FIXTURES` 값 하나로 실제 API와 fixture 데이터를 바꿔 탈 수 있습니다. |
-| query invalidation | 미션 완료, 거절, 구매, 출석처럼 데이터가 바뀌는 mutation 후 관련 query를 다시 불러오게 했습니다. |
-
-## 디자인 기준
-
-화면 디자인은 새로 해석하지 않고 기존 UI kit과 디자인 문서를 기준으로 맞춥니다.
-
-먼저 볼 파일:
-
-| 상황 | 먼저 볼 곳 |
-|---|---|
-| 화면 생김새가 헷갈릴 때 | `ui_kits/web/index.html`, `ui_kits/web/styles.css` |
-| 모바일 기준까지 확인할 때 | `ui_kits/mobile/index.html` |
-| 제품 의도와 화면 목록을 볼 때 | `docs/product/PRD.md`, `docs/product/07-Screen-Design-Specification.md` |
-| API request/response를 볼 때 | `docs/api/01-API-spec.md` |
-| 색상/폰트/토큰을 볼 때 | `colors_and_type.css`, `docs/design/00-design-system.md` |
-| 에셋 파일명을 찾을 때 | `assets/`, `shared/assets/polarisAssets.ts` |
-
-Polaris의 톤은 “해야 할 일 관리 앱”보다 “작은 일상을 같이 살아주는 캐릭터 앱”에 가깝습니다. 그래서 에러, 빈 상태, 버튼 문구도 너무 딱딱하지 않게 유지합니다.
-
-## 자주 고치는 방법
-
-### 새 페이지를 추가할 때
-
-1. `features/{기능명}/ui`에 페이지 컴포넌트를 만듭니다.
-2. 필요한 API가 있으면 `features/{기능명}/api`에 API 함수와 hook을 만듭니다.
-3. fixture가 필요하면 `features/{기능명}/model`에 `*Fixtures.ts`를 둡니다.
-4. `routes/paths.ts`에 URL을 추가합니다.
-5. `routes/AppRouter.tsx`에 `<Route />`를 추가합니다.
-6. 하단 탭에 들어갈 화면이면 `features/navigation`도 같이 수정합니다.
-
-### API endpoint를 붙일 때
-
-1. `docs/api/01-API-spec.md`에서 endpoint와 응답 타입을 확인합니다.
-2. 여러 feature에서 공유할 타입이면 `entities`에 둡니다.
-3. 특정 화면 전용 타입이면 해당 feature의 `model`에 둡니다.
-4. `shared/api`에서 export되는 `apiClient`와 `unwrapApiResponse`를 사용합니다.
-5. fixture 모드에서도 같은 화면 흐름이 되도록 fixture 함수를 같이 만듭니다.
-
-### 화면 스타일을 고칠 때
-
-1. 먼저 `colors_and_type.css`의 토큰을 확인합니다.
-2. 특정 화면 CSS는 해당 feature의 `ui/*.css`에서 수정합니다.
-3. 여러 화면이 같이 쓰는 컴포넌트는 `shared/ui`에서 수정합니다.
-4. 임의 색상, 임의 radius, 임의 그림자를 만들기 전에 UI kit에 같은 패턴이 있는지 확인합니다.
-
-### 로그인/인증 쪽을 고칠 때
-
-1. OAuth 진입과 callback은 `features/auth`를 봅니다.
-2. access token과 refresh token 보관은 `stores/authStore.ts`를 봅니다.
-3. 토큰 첨부와 재발급은 `shared/api/httpClient.ts`를 봅니다.
-4. 로그인 여부에 따른 라우팅은 `routes/AppRouter.tsx`의 `ProtectedRoute`와 `RootRedirect`를 봅니다.
-
-### 미션 흐름을 고칠 때
-
-1. 미션 조회/생성/거절/완료 API는 `features/mission/api/missionApi.ts`를 봅니다.
-2. 현재 미션 카드와 홈 요약은 `features/home`도 함께 봅니다.
-3. 답변 페이지는 `MissionAnswerPage.tsx`, 결과 페이지는 `MissionResultPage.tsx`입니다.
-4. 거절 후 다음 미션 요청은 하나의 mutation 안에서 순서를 보장합니다.
-
-### 캐릭터/아이템 이미지가 안 맞을 때
-
-1. 실제 이미지 파일은 `assets/`에 있습니다.
-2. 웹에서 쓰는 asset 경로 매핑은 `shared/assets/polarisAssets.ts`를 봅니다.
-3. 캐릭터 상태별 이미지 선택은 `features/character/model/characterAssetResolver.ts`를 봅니다.
-4. 아이템 이미지는 `features/item/model/itemAssetResolver.ts`를 봅니다.
-
-## 신경 쓴 내용
-
-이 프로젝트는 화면만 얹은 코드가 아니라 실제 운영을 생각해 아래 부분을 챙겼습니다.
-
-| 영역 | 신경 쓴 내용 |
-|---|---|
-| API 전환성 | 백엔드가 준비되기 전에는 fixture로 개발하고, 준비되면 환경 변수로 실제 API를 연결합니다. |
-| 인증 안정성 | access token 만료 전 갱신과 401 후 재시도를 모두 처리합니다. |
-| 동시성 | token refresh 요청이 동시에 여러 번 나가지 않도록 공유 Promise로 묶었습니다. |
-| 서버 상태 | TanStack Query query key와 invalidation으로 화면 데이터가 오래된 상태로 남지 않게 했습니다. |
-| 도메인 분리 | feature별로 `api/model/ui`를 나눠 어디를 고칠지 찾기 쉽게 했습니다. |
-| 디자인 일관성 | `colors_and_type.css`, UI kit, `shared/ui` 컴포넌트를 기준으로 화면 톤을 맞췄습니다. |
-| 개발 편의성 | fixture 모드, 디자인 시스템 preview, path alias를 둬 백엔드 없이도 화면을 빠르게 확인할 수 있습니다. |
-| 운영 확장성 | Sentry 같은 프론트 모니터링을 붙일 수 있도록 release/env/source map 기준으로 확장하기 쉬운 Vite 구조입니다. |
-| 주석 기준 | 파일 책임, 타입/enum 의미, 동시성/정합성 판단을 한국어 주석으로 남겨 팀원이 빠르게 따라올 수 있게 했습니다. |
-
-## 대용량/운영 확장 포인트
-
-지금은 MVP 규모에 맞춰 단순하게 구현했지만, 데이터가 커지면 아래 순서로 확장하면 됩니다.
-
-| 영역 | 확장 방향 |
-|---|---|
-| 목록 데이터 | 알림, 지갑, 상점, 보관함은 이미 cursor page 타입을 사용합니다. 실제 무한 스크롤이 필요해지면 `useInfiniteQuery`로 바꾸면 됩니다. |
-| 렌더링 성능 | 알림/거래내역이 수백 건 이상으로 늘면 `react-virtual` 같은 가상 리스트를 붙여 DOM 개수를 줄입니다. |
-| API 부하 | 홈처럼 자주 보는 데이터는 `staleTime`을 조정하고, mutation 후 필요한 query만 invalidation합니다. |
-| 인증 동시성 | refresh token 요청은 공유 Promise로 묶어 여러 API가 동시에 401을 받아도 재발급 요청이 한 번만 나가게 했습니다. |
-| 보상 중복 방지 | 공유 보상은 `idempotencyKey`를 보내 같은 공유 카드로 보상이 중복 지급되지 않게 설계했습니다. |
-| 이미지 트래픽 | 캐릭터/스킨 이미지가 늘면 CDN URL과 로컬 fallback을 같이 유지하고, 필요한 화면에서만 preload를 붙입니다. |
-| 모니터링 | 운영 배포 후에는 Sentry release/env/source map 설정으로 프론트 에러와 사용자 영향도를 추적합니다. |
-
-## 운영 전 체크리스트
-
-배포 전에 최소한 아래를 확인합니다.
-
-```bash
-pnpm typecheck:web
-pnpm build:web
-pnpm preview:web
+```powershell
+corepack pnpm --filter @polaris/web typecheck
+corepack pnpm --filter @polaris/web build
+corepack pnpm --filter @polaris/web preview
 ```
 
 운영 환경에서는 fixture를 반드시 끕니다.
@@ -274,49 +249,42 @@ pnpm preview:web
 ```env
 VITE_USE_API_FIXTURES=false
 VITE_API_BASE_URL=https://api.example.com
+VITE_APP_ENV=production
 ```
 
-나중에 Sentry를 붙이면 아래를 같이 챙깁니다.
+Sentry를 활성화할 때는 release, environment, source map upload, 민감정보 필터링을 함께 확인합니다.
 
-| 항목 | 이유 |
-|---|---|
-| `environment` | production/staging/local 에러를 분리하기 위해 필요합니다. |
-| `release` | 어떤 배포 버전부터 에러가 생겼는지 추적하기 위해 필요합니다. |
-| source map upload | minified JS 에러를 실제 TypeScript 파일/라인으로 보기 위해 필요합니다. |
-| 민감정보 필터링 | token, email, 입력값 같은 개인정보가 외부로 나가지 않게 하기 위해 필요합니다. |
-| 낮은 sampling | 무료 quota와 사용자 프라이버시를 지키기 위해 필요합니다. |
+## 🧯 문제 해결
 
-## 문제 해결
+### 🔐 화면이 로그인으로만 이동할 때
 
-### 화면이 로그인으로만 이동할 때
-
-`VITE_USE_API_FIXTURES=false`이면 실제 로그인 세션이 없을 때 `/login`으로 이동합니다. 백엔드 없이 화면을 보고 싶으면 fixture 모드를 켭니다.
+`VITE_USE_API_FIXTURES=false`이면 실제 로그인 세션이 없을 때 `/login`으로 이동합니다. 백엔드 없이 화면을 확인하려면 fixture 모드를 켭니다.
 
 ```env
 VITE_USE_API_FIXTURES=true
 ```
 
-### API 호출이 전부 실패할 때
+### 🌐 API 호출이 전부 실패할 때
 
 `VITE_API_BASE_URL`이 현재 gateway 포트와 맞는지 확인합니다.
 
 ```env
-# polaris 백엔드
+# polaris gateway
 VITE_API_BASE_URL=http://127.0.0.1:8080
 
-# p5laris-local 백엔드
+# p5laris-local gateway
 VITE_API_BASE_URL=http://127.0.0.1:18080
 ```
 
-### 새 환경 변수가 반영되지 않을 때
+### ♻️ 새 환경 변수가 반영되지 않을 때
 
-Vite는 dev server 시작 시 환경 변수를 읽습니다. `.env.local`을 바꿨다면 `pnpm dev:web`을 다시 실행합니다.
+Vite는 dev server 시작 시 환경 변수를 읽습니다. `.env.local`을 바꿨다면 dev server를 껐다가 다시 실행합니다.
 
-### 이미지 import가 안 될 때
+### 🖼 이미지 import가 안 될 때
 
-`@polaris-assets` alias는 `apps/web/vite.config.ts`와 `apps/web/tsconfig.json`에 같이 등록되어 있습니다. alias를 바꾸면 두 파일을 함께 수정해야 합니다.
+`@polaris-assets` alias는 `apps/web/vite.config.ts`와 `apps/web/tsconfig.json`에 함께 등록되어 있습니다. alias를 바꾸면 두 파일을 같이 수정해야 합니다.
 
-## 문서 인덱스
+## 📚 문서 인덱스
 
 | 영역 | 문서 |
 |---|---|
@@ -325,4 +293,5 @@ Vite는 dev server 시작 시 환경 변수를 읽습니다. `.env.local`을 바
 | API 명세 | `docs/api/01-API-spec.md` |
 | 디자인 시스템 | `docs/design/00-design-system.md` |
 | UI/UX 에셋 | `docs/design/08-UIUX-Asset-Production-Guide.md` |
+| 에셋 관리 | `assets/README.md` |
 | 구현 기준 | `AGENTS.md` |

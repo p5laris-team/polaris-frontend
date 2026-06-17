@@ -185,13 +185,14 @@
 
 .mission-result__growth-reward {
   position: relative;
-  min-height: 146px;
+  min-height: 0;
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  overflow: hidden;
-  padding: 14px;
+  column-gap: 12px;
+  row-gap: 12px;
+  overflow: visible;
+  padding: 16px 14px 18px;
   border-color: rgba(135, 190, 129, 0.28);
   background:
     linear-gradient(135deg, rgba(247, 255, 242, 0.96), rgba(255, 247, 221, 0.9)),
@@ -301,6 +302,22 @@
 
 .mission-result__growth-meter {
   grid-column: 1 / -1;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  align-self: stretch;
+}
+
+.mission-result__growth-meter.character-growth-meter--detail {
+  padding: 11px 12px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 9px;
+  border-radius: 18px;
+}
+
+.mission-result__growth-meter .character-growth-meter__next {
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 .mission-result__reward-copy {
@@ -706,17 +723,34 @@
   }
 
   .mission-result__growth-reward {
-    grid-template-columns: 82px minmax(0, 1fr);
-    min-height: 136px;
+    grid-template-columns: 78px minmax(0, 1fr);
+    row-gap: 10px;
+    min-height: 0;
+    padding: 14px;
   }
 
   .mission-result__growth-visual {
-    width: 82px;
-    height: 82px;
+    width: 78px;
+    height: 78px;
   }
 
   .mission-result__growth-copy strong {
     font-size: 20px;
+  }
+
+  .mission-result__growth-meter.character-growth-meter--detail {
+    padding: 10px 11px;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 8px;
+    border-radius: 16px;
+  }
+
+  .mission-result__growth-meter .character-growth-meter__head strong {
+    font-size: 13px;
+  }
+
+  .mission-result__growth-meter .character-growth-meter__next {
+    font-size: 10px;
   }
 
   .mission-result__exp-strip {
