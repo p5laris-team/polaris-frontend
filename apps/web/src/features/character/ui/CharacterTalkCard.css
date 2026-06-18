@@ -346,11 +346,6 @@
   border-radius: 16px 16px 6px 16px;
 }
 
-.character-talk-card__message--fallback .character-talk-card__bubble {
-  border-color: rgba(196, 95, 86, 0.24);
-  background: color-mix(in srgb, var(--danger) 6%, rgba(255, 250, 239, 0.94));
-}
-
 .character-talk-card__bubble p {
   margin: 0;
   white-space: pre-wrap;

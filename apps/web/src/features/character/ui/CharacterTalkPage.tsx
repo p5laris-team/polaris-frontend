@@ -431,29 +431,25 @@ function CharacterTalkDiarySection({
             <div className="character-talk-page__diary-copy">
               <span>{formatDiaryDate(selectedDay.date)}</span>
               <strong>{formatDiaryTitle(selectedDay.date)}</strong>
-              <p>{formatDiaryPreview(selectedDay.summary, characterName)}</p>
+              <p>{formatDiaryCardSummary(selectedDay.summary, characterName, selectedDay.items.length)}</p>
             </div>
           </div>
 
-          <button
-            aria-expanded={expanded}
-            className="character-talk-page__diary-toggle"
-            onClick={() => setExpandedDate(expanded ? null : selectedDay.date)}
-            onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
-              if (event.key === "Escape") setExpandedDate(null);
-            }}
-            type="button"
-          >
-            <span>
-              {expanded
-                ? "일기 조각 접기"
-                : selectedDay.items.length > 1
-                  ? `${selectedDay.items.length}개의 일기 조각 보기`
-                  : "일기 조각 보기"}
-            </span>
-          </button>
+          {selectedDay.items.length > 1 ? (
+            <button
+              aria-expanded={expanded}
+              className="character-talk-page__diary-toggle"
+              onClick={() => setExpandedDate(expanded ? null : selectedDay.date)}
+              onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+                if (event.key === "Escape") setExpandedDate(null);
+              }}
+              type="button"
+            >
+              <span>{expanded ? "일기 조각 접기" : `${selectedDay.items.length}개의 일기 조각 보기`}</span>
+            </button>
+          ) : null}
 
-          {expanded ? (
+          {expanded && selectedDay.items.length > 1 ? (
             <div className="character-talk-page__diary-detail">
               <div className="character-talk-page__diary-detail-head">
                 <strong>그날의 일기 조각</strong>
@@ -480,9 +476,10 @@ function CharacterTalkDiarySection({
 }
 
 function mapHistoryMessagesToDisplay(messages: CharacterTalkHistoryMessage[]): CharacterTalkDisplayMessage[] {
-  return [...messages]
-    .sort((left, right) => left.sequence - right.sequence)
-    .map((message) => ({
+  return messages
+    .map((message, index) => ({ message, index }))
+    .sort((left, right) => compareHistoryMessages(left.message, right.message, left.index, right.index))
+    .map(({ message }) => ({
       id: `${message.sessionId}-${message.sequence}-${message.role}`,
       role: message.role === "user" ? "user" : "character",
       text: message.content,
@@ -490,9 +487,43 @@ function mapHistoryMessagesToDisplay(messages: CharacterTalkHistoryMessage[]): C
     }));
 }
 
+function compareHistoryMessages(
+  left: CharacterTalkHistoryMessage,
+  right: CharacterTalkHistoryMessage,
+  leftIndex: number,
+  rightIndex: number,
+) {
+  const createdAtOrder = left.createdAt.localeCompare(right.createdAt);
+  if (createdAtOrder !== 0) return createdAtOrder;
+
+  if (left.sessionId === right.sessionId) {
+    const sequenceOrder = left.sequence - right.sequence;
+    if (sequenceOrder !== 0) return sequenceOrder;
+  }
+
+  return leftIndex - rightIndex;
+}
+
+function formatSeoulDateKey(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function formatLocalDateKey(date: Date) {
+  return formatSeoulDateKey(date);
+}
+
 function addDays(date: Date, amount: number) {
   const next = new Date(date);
-  next.setDate(next.getDate() + amount);
+  next.setUTCDate(next.getUTCDate() + amount);
   return next;
 }
 
@@ -500,9 +531,11 @@ function parseLocalDate(value: string) {
   return new Date(`${value}T00:00:00+09:00`);
 }
 
-function formatLocalDateKey(date: Date) {
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 10);
+function parseSeoulDateTime(value: string) {
+  if (/[zZ]|[+-]\d{2}:\d{2}$/.test(value)) {
+    return new Date(value);
+  }
+  return new Date(`${value}+09:00`);
 }
 
 function groupDiaryItemsByDate(items: CharacterTalkDiaryItem[], fromDate: string, toDate: string): CharacterTalkDiaryDay[] {
@@ -532,7 +565,7 @@ function enumerateDatesAsc(fromDate: string, toDate: string) {
 
   while (cursor <= end) {
     dates.push(formatLocalDateKey(cursor));
-    cursor.setDate(cursor.getDate() + 1);
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 
   return dates;
@@ -548,6 +581,7 @@ function mergeDiarySummaries(items: CharacterTalkDiaryItem[]) {
 
 function formatDiaryDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     month: "long",
     day: "numeric",
     weekday: "short",
@@ -556,12 +590,14 @@ function formatDiaryDate(value: string) {
 
 function formatDiaryDayNumber(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     day: "numeric",
   }).format(new Date(`${value}T00:00:00+09:00`));
 }
 
 function formatDiaryWeekday(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     weekday: "short",
   }).format(new Date(`${value}T00:00:00+09:00`));
 }
@@ -573,6 +609,7 @@ function formatDiaryRangeLabel(fromDate: string, toDate: string, isCurrentRange:
 
 function formatDiaryShortDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     month: "numeric",
     day: "numeric",
   }).format(new Date(`${value}T00:00:00+09:00`));
@@ -580,15 +617,23 @@ function formatDiaryShortDate(value: string) {
 
 function formatDiaryTime(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(parseSeoulDateTime(value));
 }
 
 function formatDiaryTitle(value: string) {
   const today = formatLocalDateKey(new Date());
   if (value === today) return "오늘의 마음 조각";
   return "그날의 마음 조각";
+}
+
+function formatDiaryCardSummary(summary: string, characterName: string, itemCount: number) {
+  if (itemCount <= 1) {
+    return formatDiaryDetail(summary, characterName);
+  }
+  return formatDiaryPreview(summary, characterName);
 }
 
 function formatDiaryPreview(summary: string, characterName: string) {
