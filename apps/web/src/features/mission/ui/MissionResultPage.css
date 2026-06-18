@@ -8,6 +8,10 @@
   gap: 10px;
 }
 
+.mission-result__body > * {
+  flex-shrink: 0;
+}
+
 .mission-result__celebration {
   position: relative;
   isolation: isolate;
@@ -89,9 +93,9 @@
 
 .mission-result__reward {
   position: relative;
-  min-height: 0;
-  overflow: hidden;
-  padding: 13px 62px 13px 14px;
+  min-height: 92px;
+  overflow: visible;
+  padding: 14px 70px 14px 14px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
@@ -713,13 +717,15 @@
   }
 
   .mission-result__reward {
-    grid-template-columns: minmax(0, 1fr) 64px;
-    padding: 16px;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 96px;
+    padding: 16px 82px 16px 16px;
   }
 
   .mission-result__reward-stamp {
-    width: 64px;
-    height: 64px;
+    right: 14px;
+    width: 58px;
+    height: 58px;
   }
 
   .mission-result__growth-reward {
